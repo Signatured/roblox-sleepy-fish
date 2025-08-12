@@ -1,0 +1,58 @@
+{
+  "name": "SleepyFish",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "$ignoreUnknownInstances": true,
+      "$path": "plots/framework/src/ReplicatedStorage",
+      "Game": {
+        "$path": "src/ReplicatedStorage"
+      },
+      "Plot": {
+        "$path": "plots/src/ReplicatedStorage"
+      }
+    },
+    "ReplicatedFirst": {
+      "$className": "ReplicatedFirst",
+      "$ignoreUnknownInstances": true,
+      "Game": {
+        "$path": "src/ReplicatedFirst"
+      },
+      "Plot": {
+        "$path": "plots/src/ReplicatedFirst"
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "$ignoreUnknownInstances": true,
+      "$path": "plots/framework/src/ServerScriptService",
+      "Game": {
+        "$path": "src/ServerScriptService"
+      },
+      "Plot": {
+        "$path": "plots/src/ServerScriptService"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "$ignoreUnknownInstances": true,
+        "$path": "plots/framework/src/StarterPlayer/StarterPlayerScripts",
+        "Game": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts"
+        },
+        "Plot": {
+          "$path": "plots/src/StarterPlayer/StarterPlayerScripts"
+        }
+      },
+      "$ignoreUnknownInstances": true
+    },
+    "Workspace": {
+        "$className": "Workspace",
+        "$ignoreUnknownInstances": true,
+        "$path": "src/Workspace"
+      }
+  }
+}
