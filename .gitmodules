@@ -1,0 +1,6 @@
+[submodule "framework"]
+	path = framework
+	url = git@github.com:TapToPlay/rojo-framework.git
+[submodule "plots"]
+	path = plots
+	url = git@github.com:Signatured/plots-framework.git
