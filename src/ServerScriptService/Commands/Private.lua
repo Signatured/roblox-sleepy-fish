@@ -7,7 +7,7 @@ local TeleportService = game:GetService("TeleportService")
 local CommandManager = require(ServerScriptService.CommandManager)
 local CommandType = require(ReplicatedStorage.Game.GameLibrary.Types.Commands)
 
-local Command = {
+local Command = { 
 	Name = "Private",
 	Aliases = {"private"},
 	Permissions = {"Admin", "Owner", "Developer"}, 
