@@ -22,6 +22,13 @@ export type data_schema = {
     BaseTime: number,
 }
 
+export type create_params = {
+    FishId: string,
+    Type: "Normal" | "Shiny" | "Gold" | "Rainbow",
+    Shiny: boolean?,
+    Level: number?,
+}
+
 export type dir_schema = raw_dir & DirectoryTypes.dir_schema
 
 return module

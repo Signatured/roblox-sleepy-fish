@@ -112,6 +112,7 @@ ClientPlot.Created:Connect(function(plot: ClientPlot.Type)
     end
 
     plot:SaveChanged("Pedestals"):Connect(function(newCount: number)
+        print("Pedestals changed", newCount)
         for _, child in pedestals:GetChildren() do
             UpdatePedestal(plot, child::Model)
         end

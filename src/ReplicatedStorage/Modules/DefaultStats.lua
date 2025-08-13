@@ -1,6 +1,7 @@
 --!strict
 
 local PlotTypes = require(game.ReplicatedStorage.Game.GameLibrary.Types.Plots)
+local FishTypes = require(game.ReplicatedStorage.Game.GameLibrary.Types.Fish)
 
 --[[
 	Defines the default stats for a new player.
@@ -9,7 +10,8 @@ local PlotTypes = require(game.ReplicatedStorage.Game.GameLibrary.Types.Plots)
 
 export type PlotSave = {
 	Pedestals: number,
-	PedestalData: PedestalData
+	PedestalData: PedestalData,
+	Inventory: {FishTypes.data_schema} 
 }
 
 export type PedestalData = {[string]: {
@@ -17,6 +19,7 @@ export type PedestalData = {[string]: {
 }}
 
 export type schema = {
+	Inventory: {FishTypes.data_schema},
 	PlotSave: {
 		Variables: PlotSave,
 	},
@@ -24,6 +27,7 @@ export type schema = {
 }
 
 local DefaultStats = {
+	Inventory = {},
 	PlotSave = {
 		Variables = {
 			Pedestals = 1,
