@@ -1,0 +1,14 @@
+--!strict
+
+local FishTypes = require(game.ReplicatedStorage.Game.GameLibrary.Types.Fish)
+local Rarity = require(game.ReplicatedStorage.Game.GameLibrary.Directory.Rarity)
+
+return {
+    DisplayName = "Blobfish",
+    Rarity = Rarity.Common,
+    MoneyPerSecond = 2223,
+    BaseUpgradeCost = 66690
+}::FishTypes.raw_dir
+
+
+
