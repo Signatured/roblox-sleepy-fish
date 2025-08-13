@@ -7,15 +7,27 @@ local PlotTypes = require(game.ReplicatedStorage.Game.GameLibrary.Types.Plots)
 	This is the master schema for all player data.
 ]]
 
+export type PlotSave = {
+	Pedestals: number,
+	PedestalData: PedestalData
+}
+
+export type PedestalData = {[string]: {
+	Level: number,
+}}
+
 export type schema = {
-	PlotSave: PlotTypes.Save,
+	PlotSave: {
+		Variables: PlotSave,
+	},
 	Money: number,
 }
 
 local DefaultStats = {
 	PlotSave = {
 		Variables = {
-			Pedestals = 1
+			Pedestals = 1,
+			PedestalData = {}
 		},
 	},
 	Money = 0,
