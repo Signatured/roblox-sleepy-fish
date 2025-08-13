@@ -20,7 +20,7 @@ export type schema = {
 	PlotSave: {
 		Variables: PlotSave,
 	},
-	Money: number,
+	Settings: {[string]: boolean},
 }
 
 local DefaultStats = {
@@ -30,7 +30,9 @@ local DefaultStats = {
 			PedestalData = {}
 		},
 	},
-	Money = 0,
+	Settings = {
+		Sound = true,
+	},
 }::schema
 
 return DefaultStats

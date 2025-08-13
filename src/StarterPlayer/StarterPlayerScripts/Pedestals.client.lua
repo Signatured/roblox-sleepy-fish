@@ -4,6 +4,7 @@ local Functions = require(game.ReplicatedStorage.Library.Functions)
 local ButtonFX = require(game.ReplicatedStorage.Library.Client.GUIFX.ButtonFX)
 local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
 local DefaultStats = require(game.ReplicatedStorage.Game.Modules.DefaultStats)
+local NotificationCmds = require(game.ReplicatedStorage.Library.Client.NotificationCmds)
 
 function TogglePedestal(model: Model, toggle: boolean, transparency: number?)
     if not transparency then
@@ -26,7 +27,7 @@ function TogglePedestal(model: Model, toggle: boolean, transparency: number?)
     end
 end
 
-local function SetupButtons(model: Model, buyFrame: Frame, upgradeFrame: Frame, placeFrame: Frame)
+local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame, upgradeFrame: Frame, placeFrame: Frame)
     if model:GetAttribute("_ButtonsInit") then
         return
     end
@@ -35,7 +36,16 @@ local function SetupButtons(model: Model, buyFrame: Frame, upgradeFrame: Frame, 
     local buyButton = buyFrame:WaitForChild("Button")::GuiButton
     ButtonFX(buyButton)
     buyButton.MouseButton1Click:Connect(function()
-        print("Buy button pressed")
+        local success, msg = plot:Invoke("BuyPedestal", model:GetAttribute("Id"))
+        if not success and not msg then
+            return
+        end
+
+        if not success and msg then
+            NotificationCmds.Message(msg, {
+                Color = Color3.fromRGB(255, 0, 0),
+            })
+        end
     end)
 
     local upgradeButton = upgradeFrame:WaitForChild("Button")::GuiButton
@@ -65,7 +75,7 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     local upgradeFrame = frame:WaitForChild("Upgrade")::Frame
     local placeFrame = frame:WaitForChild("Place")::Frame
 
-    SetupButtons(model, buyFrame, upgradeFrame, placeFrame)
+    SetupButtons(plot, model, buyFrame, upgradeFrame, placeFrame)
 
     if pedestalId > pedestalCount + 1 then
         TogglePedestal(model, false)
