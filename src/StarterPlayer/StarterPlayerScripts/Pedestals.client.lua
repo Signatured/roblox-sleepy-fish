@@ -1,6 +1,7 @@
 --!strict
 
 local Functions = require(game.ReplicatedStorage.Library.Functions)
+local ButtonFX = require(game.ReplicatedStorage.Library.Client.GUIFX.ButtonFX)
 local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
 local DefaultStats = require(game.ReplicatedStorage.Game.Modules.DefaultStats)
 
@@ -25,7 +26,32 @@ function TogglePedestal(model: Model, toggle: boolean, transparency: number?)
     end
 end
 
-function SetupPedestal(plot: ClientPlot.Type, model: Model)
+local function SetupButtons(model: Model, buyFrame: Frame, upgradeFrame: Frame, placeFrame: Frame)
+    if model:GetAttribute("_ButtonsInit") then
+        return
+    end
+    model:SetAttribute("_ButtonsInit", true)
+
+    local buyButton = buyFrame:WaitForChild("Button")::GuiButton
+    ButtonFX(buyButton)
+    buyButton.MouseButton1Click:Connect(function()
+        print("Buy button pressed")
+    end)
+
+    local upgradeButton = upgradeFrame:WaitForChild("Button")::GuiButton
+    ButtonFX(upgradeButton)
+    upgradeButton.MouseButton1Click:Connect(function()
+        print("upgrade was presssed hahaah")
+    end)
+
+    local placeButton = placeFrame:WaitForChild("Button")::GuiButton
+    ButtonFX(placeButton)
+    placeButton.MouseButton1Click:Connect(function()
+        print("now place was presssed")
+    end)
+end
+
+function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     local pedestalId = model:GetAttribute("Id")
     local pedestalCount = plot:Save("Pedestals")::number
     local pedestalData = plot:Save("PedestalData")::DefaultStats.PedestalData
@@ -38,6 +64,8 @@ function SetupPedestal(plot: ClientPlot.Type, model: Model)
     local buyFrame = frame:WaitForChild("Buy")::Frame
     local upgradeFrame = frame:WaitForChild("Upgrade")::Frame
     local placeFrame = frame:WaitForChild("Place")::Frame
+
+    SetupButtons(model, buyFrame, upgradeFrame, placeFrame)
 
     if pedestalId > pedestalCount + 1 then
         TogglePedestal(model, false)
@@ -65,27 +93,23 @@ function SetupPedestal(plot: ClientPlot.Type, model: Model)
     end
 end
 
-function UpdatePedestal(plot: ClientPlot.Type, model: Model)
-    
-end
-
 ClientPlot.Created:Connect(function(plot: ClientPlot.Type)
     local model = plot:WaitModel()
     local pedestals = model:WaitForChild("Pedestals")::Model
 
     for _, child in pedestals:GetChildren() do
-        SetupPedestal(plot, child::Model)
+        UpdatePedestal(plot, child::Model)
     end
 
     plot:SaveChanged("Pedestals"):Connect(function(newCount: number)
         for _, child in pedestals:GetChildren() do
-            SetupPedestal(plot, child::Model)
+            UpdatePedestal(plot, child::Model)
         end
     end)
 
     plot:SaveChanged("PedestalData"):Connect(function(newData: DefaultStats.PedestalData)
         for _, child in pedestals:GetChildren() do
-            SetupPedestal(plot, child::Model)
+            UpdatePedestal(plot, child::Model)
         end
     end)
 end)
