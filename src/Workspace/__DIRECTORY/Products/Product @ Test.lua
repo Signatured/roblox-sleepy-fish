@@ -4,7 +4,7 @@ local RunService = game:GetService("RunService")
 
 return {
 	ProductId = 3354009677,
-	DisplayName = "Car Purchase",
+	DisplayName = "Fish the dish",
 	Icon = "",
 	Description = "Test",
 	OneTimePurchase = false,
