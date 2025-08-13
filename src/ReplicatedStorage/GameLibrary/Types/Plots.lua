@@ -8,10 +8,8 @@ export type Save = {
 	Variables: {[string]: any},
 }
 
-export type PacketType = "Join" | "Leave" | "Update"
-
 export type Packet = {
-    PacketType: PacketType,
+    PacketType: string,
 	PlotId: number,
     Data: any
 }
@@ -19,7 +17,6 @@ export type Packet = {
 export type JoinPacket = {
     Owner: Player,
     CFrame: CFrame,
-    Model: Model,
     SaveVariables: {[string]: any},
     SessionVariables: {[string]: any},
 }
