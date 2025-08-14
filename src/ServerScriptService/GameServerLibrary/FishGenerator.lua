@@ -1,5 +1,7 @@
 --!strict
 
+local Assets = game.ReplicatedStorage.Assets
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
@@ -26,6 +28,7 @@ local FishGen = {}
 type Swimming = FishTypes.swimming_fish_schema & {
     UID: string,
     Model: Model,
+    Gui: BillboardGui?,
 }
 
 local uidToFish: {[string]: Swimming} = {}
@@ -117,6 +120,44 @@ local function makePrompt(fish: Swimming)
     end)
 end
 
+local function attachGui(fish: Swimming, schema: FishTypes.dir_schema)
+    local primary = fish.Model.PrimaryPart or fish.Model:FindFirstChildWhichIsA("BasePart")
+    if not primary or not primary:IsA("BasePart") then return end
+    local template = Assets:FindFirstChild("FishSwimmingGui")
+    if not template or not template:IsA("BillboardGui") then return end
+    local gui = template:Clone()
+    gui.Name = "FishSwimmingGui"
+    gui.StudsOffsetWorldSpace = Vector3.new(0, schema.BillboardOffset, 0)
+    gui.Adornee = primary
+    gui.Parent = primary
+    fish.Gui = gui
+
+    local frame = gui:FindFirstChild("Frame")
+    if frame and frame:IsA("Frame") then
+        local displayName = frame:FindFirstChild("DisplayName")
+        if displayName and displayName:IsA("TextLabel") then
+            displayName.Text = schema.DisplayName or schema._id
+        end
+        local rarity = frame:FindFirstChild("Rarity")
+        if rarity and rarity:IsA("TextLabel") then
+            local r = schema.Rarity
+            local rarityName = r and ((r :: any).DisplayName or r._id) or "Rarity"
+            rarity.Text = rarityName
+            if r and (r :: any).Color then
+                rarity.TextColor3 = (r :: any).Color
+            end
+        end
+        local mps = frame:FindFirstChild("MoneyPerSecond")
+        if mps and mps:IsA("TextLabel") then
+            mps.Text = `{schema.MoneyPerSecond}/s`
+        end
+        local timer = frame:FindFirstChild("Timer")
+        if timer and timer:IsA("TextLabel") then
+            timer.Text = "60s"
+        end
+    end
+end
+
 local function spawnOne(into: BasePart, backdate: number?)
     local rarityId = chooseRarityId()
     local schema = chooseFishByRarity(rarityId)
@@ -142,6 +183,7 @@ local function spawnOne(into: BasePart, backdate: number?)
         SpawnTime = os.clock() - (backdate or 0),
         Carrier = nil,
         Model = fishModelTemplate:Clone(),
+        Gui = nil,
     }
     uidToFish[uid] = fishInstance
 
@@ -151,6 +193,7 @@ local function spawnOne(into: BasePart, backdate: number?)
     fishInstance.Model:PivotTo(spawnCFrame)
     setModelAnchored(fishInstance.Model, true)
     fishInstance.Model.Parent = ROOT
+    attachGui(fishInstance, schema)
     makePrompt(fishInstance)
 end
 
@@ -201,6 +244,17 @@ RunService.Heartbeat:Connect(function()
         if (now - fish.SpawnTime) >= DESPAWN_SECONDS then
             -- Despawn if timer expired; if carried, also remove
             despawn(uid)
+        else
+            -- Update timer label
+            local gui = fish.Gui
+            if gui then
+                local frame = gui:FindFirstChild("Frame")
+                local timer = frame and frame:FindFirstChild("Timer")
+                if timer and timer:IsA("TextLabel") then
+                    local remaining = math.max(0, DESPAWN_SECONDS - (now - fish.SpawnTime))
+                    timer.Text = tostring(math.ceil(remaining)) .. "s"
+                end
+            end
         end
     end
 end)
