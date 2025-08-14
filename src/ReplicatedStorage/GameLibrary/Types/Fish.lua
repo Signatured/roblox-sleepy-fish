@@ -30,6 +30,12 @@ export type create_params = {
     Level: number?,
 }
 
+export type swimming_fish_schema = {
+    FishData: data_schema,
+    SpawnTime: number,
+    Carrier: Player?,
+}
+
 export type dir_schema = raw_dir & DirectoryTypes.dir_schema
 
 return module
