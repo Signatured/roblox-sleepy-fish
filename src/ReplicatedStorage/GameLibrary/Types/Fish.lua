@@ -10,6 +10,7 @@ export type raw_dir = {
     Rarity: RarityTypes.dir_schema,
     MoneyPerSecond: number,
     BaseUpgradeCost: number,
+    BillboardOffset: number,
 }
 
 export type data_schema = {

@@ -11,7 +11,7 @@ local module: {[string]: ProductTypes.dir_schema} = {
 local function processModule(child: ModuleScript)
 	local success, result = pcall(require, child)
 	if success then
-		local name = child.Name:match("|%s*(.+)")
+		local name = child.Name:match("@%s*(.+)")
 		if not name then
 			warn("Invalid module name format:", child.Name)
 			return

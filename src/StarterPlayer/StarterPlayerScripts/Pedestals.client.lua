@@ -1,15 +1,23 @@
 --!strict
 
+local Assets = game.ReplicatedStorage.Assets
+
 local Functions = require(game.ReplicatedStorage.Library.Functions)
 local ButtonFX = require(game.ReplicatedStorage.Library.Client.GUIFX.ButtonFX)
 local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
-local DefaultStats = require(game.ReplicatedStorage.Game.Modules.DefaultStats)
 local NotificationCmds = require(game.ReplicatedStorage.Library.Client.NotificationCmds)
 local FishCmds = require(game.ReplicatedStorage.Game.GameClientLibrary.FishCmds)
 local PlotTypes = require(game.ReplicatedStorage.Game.GameLibrary.Types.Plots)
 local Directory = require(game.ReplicatedStorage.Game.GameLibrary.Directory)
 
-local pedestalModels: {[ClientPlot.Type]: {[number]: Model}} = {}
+type PedestalModel = {
+    Model: Model,
+    Billboard: BillboardGui,
+    SellProximity: ProximityPrompt,
+    PickupProximity: ProximityPrompt,
+}
+
+local pedestalModels: {[ClientPlot.Type]: {[number]: PedestalModel}} = {}
 
 function TogglePedestal(model: Model, toggle: boolean, transparency: number?)
     if not transparency then
@@ -30,6 +38,54 @@ function TogglePedestal(model: Model, toggle: boolean, transparency: number?)
             child.Enabled = toggle
         end
     end
+end
+
+function SetupProximity(text: string, holdDuration: number, keyboardKeyCode: Enum.KeyCode, attachment: Attachment): ProximityPrompt
+    local prompt = Instance.new("ProximityPrompt")
+	prompt.ActionText = text
+	prompt.HoldDuration = holdDuration
+	prompt.MaxActivationDistance = 8
+	prompt.KeyboardKeyCode = keyboardKeyCode
+    prompt.RequiresLineOfSight = false
+	prompt.Parent = attachment
+
+    return prompt
+end
+
+function SetupBillboard(model: Model, fishData: PlotTypes.Fish): BillboardGui
+    local primaryPart = assert(model.PrimaryPart)
+    local dir = Directory.Fish[fishData.FishId]
+    local billboardOffset = dir.BillboardOffset
+
+    local billboard = Assets.FishPedestalGui:Clone()::BillboardGui
+    billboard.StudsOffsetWorldSpace = Vector3.new(0, billboardOffset, 0)
+    billboard.Parent = primaryPart
+
+    return billboard
+end
+
+function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: BillboardGui)
+    local fishData = plot:GetFish(index)
+    if not fishData then
+        return
+    end
+
+    local dir = Directory.Fish[fishData.FishId]
+    local earnings = plot:GetFishEarnings(index)
+
+    local frame = billboard:WaitForChild("Frame")::Frame
+    local displayName = frame:WaitForChild("DisplayName")::TextLabel
+    local moneyPerSecond = frame:WaitForChild("MoneyPerSecond")::TextLabel
+    local money = frame:WaitForChild("Money")::TextLabel
+    local rarity = frame:WaitForChild("Rarity")::TextLabel
+    local level = frame:WaitForChild("Level")::TextLabel
+
+    displayName.Text = dir.DisplayName
+    rarity.Text = dir.Rarity.DisplayName
+    rarity.TextColor3 = dir.Rarity.Color
+    level.Text = `Level {fishData.FishData.Level}`
+    moneyPerSecond.Text = `${Functions.NumberShorten(plot:GetMoneyPerSecond(index) or 0)}/s`
+    money.Text = `${Functions.NumberShorten(earnings)}/s`
 end
 
 local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame, upgradeFrame: Frame, placeFrame: Frame)
@@ -96,6 +152,8 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
 
     local nameplate = model:WaitForChild("Nameplate")::BasePart
     local base = model:WaitForChild("Base")::BasePart
+    local sellAttachment = base:WaitForChild("SellAttachment")::Attachment
+    local pickupAttachment = base:WaitForChild("PickupAttachment")::Attachment
     local surfaceGui = nameplate:WaitForChild("SurfaceGui")::SurfaceGui
 
     local frame = surfaceGui:WaitForChild("Frame")::Frame
@@ -137,7 +195,7 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             placeFrame.Visible = false
 
             local textLabel = upgradeFrame:WaitForChild("TextLabel")::TextLabel
-            textLabel.Text = `{fishData.FishData.Level} -> {fishData.FishData.Level + 1}`
+            textLabel.Text = `Level {fishData.FishData.Level} -> Level {fishData.FishData.Level + 1}`
 
             local upgradeButton = upgradeFrame:FindFirstChild("Button")::ImageButton
             local buttonText = upgradeButton:FindFirstChild("TextLabel")::TextLabel
@@ -162,12 +220,25 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
         local fishModel = dir._script:WaitForChild("Model"):Clone()::Model
         local plotFishFolder = workspace:WaitForChild("__THINGS"):WaitForChild("PlotFish")
 
-        fishModel:PivotTo(base:GetPivot() + Vector3.new(0, base.Size.Y / 2, 0))
+        fishModel:PivotTo(base:GetPivot() + Vector3.new(0, base.Size.Y / 2, 0) + Vector3.new(0, fishModel:GetExtentsSize().Y / 2, 0))
         fishModel.Parent = plotFishFolder
-        pedestalModels[plot][pedestalId] = fishModel
+
+        local sellProximity = SetupProximity("Sell", 3, Enum.KeyCode.E, sellAttachment)
+        local pickupProximity = SetupProximity("Pickup", 1, Enum.KeyCode.F, pickupAttachment)
+        local billboard = SetupBillboard(fishModel, fishData)
+        UpdateBillboard(plot, pedestalId, billboard)
+
+        pedestalModels[plot][pedestalId] = {
+            Model = fishModel,
+            Billboard = billboard,
+            SellProximity = sellProximity,
+            PickupProximity = pickupProximity,
+        }
     elseif not fishData and pedestalModels[plot] and pedestalModels[plot][pedestalId] then
         local fishModel = pedestalModels[plot][pedestalId]
-        fishModel:Destroy()
+        fishModel.Model:Destroy()
+        fishModel.SellProximity:Destroy()
+        fishModel.PickupProximity:Destroy()
         pedestalModels[plot][pedestalId] = nil
     end
 end
@@ -196,8 +267,21 @@ ClientPlot.Created:Connect(function(plot: ClientPlot.Type)
 end)
 
 ClientPlot.Destroying:Connect(function(plot: ClientPlot.Type)
-    for _, model in pedestalModels[plot] do
-        model:Destroy()
+    for _, model in pairs(pedestalModels[plot]) do
+        model.Model:Destroy()
+        model.SellProximity:Destroy()
+        model.PickupProximity:Destroy()
     end
     pedestalModels[plot] = nil
+end)
+
+task.spawn(function()
+    while true do
+        for plot, models in pairs(pedestalModels) do
+            for index, model in pairs(models) do
+                UpdateBillboard(plot, index, model.Billboard)
+            end
+        end
+        task.wait(1)
+    end
 end)

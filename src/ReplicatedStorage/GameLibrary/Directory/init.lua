@@ -1,10 +1,10 @@
 --!strict
 
 export type schema = {
+	Rarity: typeof(require(script.Rarity)),
 	Gamepasses: typeof(require(script.Gamepasses)),
 	Products: typeof(require(script.Products)),
     Fish: typeof(require(script.Fish)),
-    Rarity: typeof(require(script.Rarity)),
 }
 
 local module: schema = {}::any

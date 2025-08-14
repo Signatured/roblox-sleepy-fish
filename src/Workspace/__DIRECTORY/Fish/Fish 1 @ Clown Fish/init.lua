@@ -7,7 +7,8 @@ return {
     DisplayName = "Clown Fish",
     Rarity = Rarity.Common,
     MoneyPerSecond = 1,
-    BaseUpgradeCost = 30
+    BaseUpgradeCost = 30,
+    BillboardOffset = 5,
 }::FishTypes.raw_dir
 
 
