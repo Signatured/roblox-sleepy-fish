@@ -11,6 +11,7 @@ local Directory = require(ReplicatedStorage.Game.GameLibrary.Directory)
 local FishTypes = require(ReplicatedStorage.Game.GameLibrary.Types.Fish)
 local Functions = require(ReplicatedStorage.Library.Functions)
 local Fish = require(ServerScriptService.Game.GameServerLibrary.Fish)
+local Network = require(ServerScriptService.Library.Network)
 
 local ROOT = workspace:WaitForChild("__THINGS")
 local SPAWNS = ROOT:WaitForChild("FishSpawns")
@@ -115,6 +116,13 @@ local function makePrompt(fish: Swimming)
         -- Prevent multiple carriers and prevent a player from carrying more than one
         if fish.Carrier then return end
         setModelAnchored(fish.Model, false)
+        -- Alert sphere at pickup
+        local dir = Directory.Fish[fish.FishData.FishId]
+        local character = player.Character
+        local hrp = character and character:FindFirstChild("HumanoidRootPart")
+        if dir and hrp and hrp:IsA("BasePart") then
+            Network.FireAll("AlertPart", hrp.Position, dir.Rarity.AlertRange)
+        end
         FishGen.SetCarrying(player, fish.UID)
         prompt.Enabled = false
     end)
