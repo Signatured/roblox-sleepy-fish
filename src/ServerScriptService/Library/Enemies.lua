@@ -7,10 +7,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
+local Functions = require(ReplicatedStorage.Library.Functions)
 local EnemyTypes = require(ReplicatedStorage.Game.Library.Types.Enemy)
 
 local ROOT = workspace:WaitForChild("__THINGS")
 local ENEMY_LOCATIONS = ROOT:WaitForChild("EnemyLocations")
+local WATER = ROOT:WaitForChild("TargetZone")::BasePart
 
 local ENEMY_CONTAINER = ROOT:FindFirstChild("Enemies")
 if not ENEMY_CONTAINER then
@@ -38,7 +40,7 @@ type EnemyRecord = {
 local Enemies = {}
 
 local ATTACK_RANGE = 10
-local MOVE_SPEED = 20
+local MOVE_SPEED = 15
 
 local enemies: { [string]: EnemyRecord } = {}
 
@@ -55,6 +57,15 @@ local function setAssemblyAnchored(model: Model, anchored: boolean)
 			inst.Anchored = anchored
 		end
 	end
+end
+
+local function isPlayerInWater(player: Player): boolean
+	local character = player.Character
+	local hrp = character and character:FindFirstChild("HumanoidRootPart")
+	if hrp and hrp:IsA("BasePart") then
+		return Functions.IsPositionInPart((hrp :: BasePart).Position, WATER)
+	end
+	return false
 end
 
 local function ensureMotionConstraints(rec: EnemyRecord)
@@ -160,7 +171,9 @@ local function tryAdoptAlert(rec: EnemyRecord)
 		local alert = pendingAlerts[i]
 		local dist = (primary.Position - alert.position).Magnitude
 		if dist <= alert.radius then
-			beginChasing(rec, alert.player, true)
+			if isPlayerInWater(alert.player) then
+				beginChasing(rec, alert.player, true)
+			end
 			table.remove(pendingAlerts, i)
 			return
 		end
@@ -177,6 +190,10 @@ local function findNearbyPlayer(rec: EnemyRecord): Player?
 		local character = player.Character
 		local hrp = character and character:FindFirstChild("HumanoidRootPart")
 		if hrp and hrp:IsA("BasePart") then
+			-- Only consider players inside WATER
+			if not Functions.IsPositionInPart((hrp :: BasePart).Position, WATER) then
+				continue
+			end
 			local d = (primary.Position - hrp.Position).Magnitude
 			if d <= followRange and d < closestDist then
 				closest = player
@@ -210,7 +227,17 @@ RunService.Heartbeat:Connect(function()
 				else
 					beginReturning(rec)
 				end
-            else
+			else
+				-- Drop target if they leave the WATER
+				if not isPlayerInWater(target) then
+					local nearby = findNearbyPlayer(rec)
+					if nearby then
+						beginChasing(rec, nearby, false)
+					else
+						beginReturning(rec)
+					end
+					continue
+				end
                 -- Constant-speed homing using LinearVelocity; orientation via AlignOrientation
                 local lv = rec.LinearVelocity
                 local ao = rec.AlignOrientation
@@ -248,7 +275,9 @@ RunService.Heartbeat:Connect(function()
                 local alert = pendingAlerts[i]
                 local dist = (primaryPart.Position - alert.position).Magnitude
 				if dist <= alert.radius then
-					beginChasing(rec, alert.player, true)
+					if isPlayerInWater(alert.player) then
+						beginChasing(rec, alert.player, true)
+					end
 					table.remove(pendingAlerts, i)
 					break
 				end
