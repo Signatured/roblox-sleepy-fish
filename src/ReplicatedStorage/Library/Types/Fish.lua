@@ -1,7 +1,7 @@
 --!strict
 
-local DirectoryTypes = require(game.ReplicatedStorage.Game.GameLibrary.Types.Directory)
-local RarityTypes = require(game.ReplicatedStorage.Game.GameLibrary.Types.Rarity)
+local DirectoryTypes = require(game.ReplicatedStorage.Game.Library.Types.Directory)
+local RarityTypes = require(game.ReplicatedStorage.Game.Library.Types.Rarity)
 
 local module = {}
 

@@ -5,7 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TeleportService = game:GetService("TeleportService")
 
 local CommandManager = require(ServerScriptService.CommandManager)
-local CommandType = require(ReplicatedStorage.Game.GameLibrary.Types.Commands)
+local CommandType = require(ReplicatedStorage.Game.Library.Types.Commands)
 
 local Command = { 
 	Name = "Private",

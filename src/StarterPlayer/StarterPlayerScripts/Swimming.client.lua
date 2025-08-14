@@ -5,6 +5,8 @@ local RunService = game:GetService("RunService")
 local CollectionService = game:GetService("CollectionService")
 local UserInputService = game:GetService("UserInputService")
 
+local Functions = require(game.ReplicatedStorage.Library.Functions)
+
 local LOCAL_PLAYER = Players.LocalPlayer
 
 local waterParts: {Instance} = {}
@@ -88,6 +90,14 @@ RunService.RenderStepped:Connect(function()
         local upBoost = if UserInputService:IsKeyDown(Enum.KeyCode.Space) then 6 else 0
         s.Velocity = humanoid.MoveDirection * humanoid.WalkSpeed + Vector3.new(0, 3 + upBoost, 0)
     end
+
+    local camera = workspace.CurrentCamera
+    local cameraResults = workspace:GetPartBoundsInBox(camera.CFrame, Vector3.new(1, 1, 1), params)
+    local cameraInWater = cameraResults and #cameraResults > 0 or false
+    local topLayer = workspace:WaitForChild("__THINGS"):FindFirstChild("TopLayer")::BasePart
+        if topLayer then
+            topLayer.Transparency = cameraInWater and 0.6 or 1
+        end
 end)
 
 

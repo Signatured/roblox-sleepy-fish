@@ -4,7 +4,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local CommandManager = require(ServerScriptService.CommandManager)
-local CommandType = require(ReplicatedStorage.Game.GameLibrary.Types.Commands)
+local CommandType = require(ReplicatedStorage.Game.Library.Types.Commands)
 local Network = require(ServerScriptService.Library.Network)
 
 local Command = {

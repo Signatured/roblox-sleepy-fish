@@ -1,6 +1,6 @@
 --!strict
 
-local FishTypes = require(game.ReplicatedStorage.Game.GameLibrary.Types.Fish)
+local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
 
 local module = {}
 

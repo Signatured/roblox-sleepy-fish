@@ -1,7 +1,7 @@
 --!strict
 
-local FishTypes = require(game.ReplicatedStorage.Game.GameLibrary.Types.Fish)
-local Rarity = require(game.ReplicatedStorage.Game.GameLibrary.Directory.Rarity)
+local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
+local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Sockeye Salmon",

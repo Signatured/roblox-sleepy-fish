@@ -6,8 +6,8 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
-local Directory = require(ReplicatedStorage.Game.GameLibrary.Directory)
-local FishTypes = require(ReplicatedStorage.Game.GameLibrary.Types.Fish)
+local Directory = require(ReplicatedStorage.Game.Library.Directory)
+local FishTypes = require(ReplicatedStorage.Game.Library.Types.Fish)
 local Saving = require(ServerScriptService.Library.Saving)
 local Functions = require(ReplicatedStorage.Library.Functions)
 

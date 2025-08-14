@@ -1,7 +1,7 @@
 --!strict
 
-local PlotTypes = require(game.ReplicatedStorage.Game.GameLibrary.Types.Plots)
-local FishTypes = require(game.ReplicatedStorage.Game.GameLibrary.Types.Fish)
+local PlotTypes = require(game.ReplicatedStorage.Game.Library.Types.Plots)
+local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
 
 --[[
 	Defines the default stats for a new player.

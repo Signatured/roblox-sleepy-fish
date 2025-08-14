@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Save = require(ReplicatedStorage.Library.Client.Save)
-local FishTypes = require(ReplicatedStorage.Game.GameLibrary.Types.Fish)
+local FishTypes = require(ReplicatedStorage.Game.Library.Types.Fish)
 
 local module = {}
 

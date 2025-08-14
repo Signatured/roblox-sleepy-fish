@@ -5,7 +5,7 @@
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
       "$ignoreUnknownInstances": true,
-      "$path": "plots/framework/src/ReplicatedStorage",
+      "$path": "framework/src/ReplicatedStorage",
       "Game": {
         "$path": "src/ReplicatedStorage"
       },
@@ -26,7 +26,7 @@
     "ServerScriptService": {
       "$className": "ServerScriptService",
       "$ignoreUnknownInstances": true,
-      "$path": "plots/framework/src/ServerScriptService",
+      "$path": "framework/src/ServerScriptService",
       "Game": {
         "$path": "src/ServerScriptService"
       },
@@ -39,7 +39,7 @@
       "StarterPlayerScripts": {
         "$className": "StarterPlayerScripts",
         "$ignoreUnknownInstances": true,
-        "$path": "plots/framework/src/StarterPlayer/StarterPlayerScripts",
+        "$path": "framework/src/StarterPlayer/StarterPlayerScripts",
         "Game": {
           "$path": "src/StarterPlayer/StarterPlayerScripts"
         },

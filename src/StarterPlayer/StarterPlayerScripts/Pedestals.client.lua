@@ -6,9 +6,9 @@ local Functions = require(game.ReplicatedStorage.Library.Functions)
 local ButtonFX = require(game.ReplicatedStorage.Library.Client.GUIFX.ButtonFX)
 local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
 local NotificationCmds = require(game.ReplicatedStorage.Library.Client.NotificationCmds)
-local FishCmds = require(game.ReplicatedStorage.Game.GameClientLibrary.FishCmds)
-local PlotTypes = require(game.ReplicatedStorage.Game.GameLibrary.Types.Plots)
-local Directory = require(game.ReplicatedStorage.Game.GameLibrary.Directory)
+local FishCmds = require(game.ReplicatedStorage.Game.Library.Client.FishCmds)
+local PlotTypes = require(game.ReplicatedStorage.Game.Library.Types.Plots)
+local Directory = require(game.ReplicatedStorage.Game.Library.Directory)
 
 type PedestalModel = {
     Model: Model,

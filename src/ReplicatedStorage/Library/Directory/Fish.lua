@@ -1,11 +1,11 @@
 --!strict
 
-local RarityTypes = require(game.ReplicatedStorage.Game.GameLibrary.Types.Rarity)
-export type dir_schema = RarityTypes.dir_schema
+local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
+export type dir_schema = FishTypes.dir_schema
 
-local Children: typeof(workspace.__DIRECTORY.Rarity) = require(game.ReplicatedStorage.DirectoryLoader):WaitForChild(script.Name)
+local Children: typeof(workspace.__DIRECTORY.Fish) = require(game.ReplicatedStorage.DirectoryLoader):WaitForChild(script.Name)
 
-local module: {[string]: RarityTypes.dir_schema} = {}
+local module: {[string]: FishTypes.dir_schema} = {}
 
 local function processModule(child: ModuleScript)
     local success, result = pcall(require, child)
@@ -39,8 +39,17 @@ if game:GetService("RunService"):IsServer() and game:GetService("RunService"):Is
     for _, dir in pairs(module) do
         local success, reason = pcall(function()
             assert(type(dir.DisplayName) == "string")
-            assert(typeof(dir.Color) == "Color3")
-            assert(type(dir.Priority) == "number")
+            assert(type(dir.MoneyPerSecond) == "number")
+            assert(type(dir.BaseUpgradeCost) == "number")
+
+            -- Rarity schema validation
+            assert(type(dir.Rarity) == "table")
+            assert(typeof(dir.Rarity.Color) == "Color3")
+            assert(type(dir.Rarity.Priority) == "number")
+
+            -- Optional: verify Tool exists under the script for spawning tools
+            local tool = dir._script:FindFirstChild("Tool")
+            assert(tool == nil or tool:IsA("Tool"))
         end)
         if not success then
             warn("[Directory Validator]", script.Name, dir._script, tostring(reason))
