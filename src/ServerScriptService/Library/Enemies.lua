@@ -159,6 +159,8 @@ end
 local function anchorAndIdle(rec: EnemyRecord)
 	setAssemblyAnchored(rec.Model, true)
 	clearMotionConstraints(rec)
+	-- Pivot to spawn position/orientation and roll 90 degrees to lie on its side
+	rec.Model:PivotTo(rec.SpawnCFrame * CFrame.Angles(0, 0, math.rad(90)))
 	rec.TargetPlayer = nil
     rec.TargetAttachment = nil
 	rec.State = "Idle"
@@ -221,13 +223,11 @@ RunService.Heartbeat:Connect(function()
 			local hrp = character and character:FindFirstChild("HumanoidRootPart")
 			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 			if not target or not hrp or not humanoid or humanoid.Health <= 0 then
-                print("fired1")
 				-- Target lost; try follow someone else
 				local nearby = findNearbyPlayer(rec)
 				if nearby then
 					beginChasing(rec, nearby, false)
 				else
-                    print("fired2")
 					beginReturning(rec)
 				end
 			else
@@ -339,7 +339,7 @@ for id, dir in pairs(Directory.Enemy) do
 		continue
 	end
 	local clone = modelTemplate:Clone()
-	clone:PivotTo(spawnPart.CFrame)
+	clone:PivotTo(spawnPart.CFrame * CFrame.Angles(0, 0, math.rad(90)))
 	setAssemblyAnchored(clone, true)
 	clone.Parent = ENEMY_CONTAINER
 
