@@ -38,7 +38,7 @@ type EnemyRecord = {
 local Enemies = {}
 
 local ATTACK_RANGE = 10
-local MOVE_SPEED = 10
+local MOVE_SPEED = 20
 
 local enemies: { [string]: EnemyRecord } = {}
 
@@ -79,9 +79,10 @@ local function ensureMotionConstraints(rec: EnemyRecord)
     local ao: AlignOrientation = rec.AlignOrientation :: AlignOrientation
 
     ao.Attachment0 = attachment
-    ao.MaxTorque = 2e6
-    ao.Responsiveness = 25
+    ao.MaxTorque = 1e9
+    ao.Responsiveness = 200
     ao.RigidityEnabled = true
+    (ao :: any).Mode = Enum.OrientationAlignmentMode.OneAttachment
 
     if not rec.LinearVelocity then
         local lv = Instance.new("LinearVelocity")
@@ -113,38 +114,35 @@ local function beginChasing(rec: EnemyRecord, player: Player, fromAlert: boolean
 	rec.TargetPlayer = player
 	rec.TargetFromAlert = fromAlert
 	rec.State = "Chasing"
-	local primary = getPrimaryPart(rec.Model)
+    local primary = getPrimaryPart(rec.Model)
 	if not primary then return end
 	-- Unanchor per spec (primary part)
 	setAssemblyAnchored(rec.Model, false)
 	ensureMotionConstraints(rec)
-
-    -- Bind both Aligns to a single target attachment on the player's HRP
-    local character = player.Character
-    local hrp = character and character:FindFirstChild("HumanoidRootPart")
-    if hrp and hrp:IsA("BasePart") then
-        local found = (hrp :: BasePart):FindFirstChild("EnemyTargetAttachment")
-        local att: Attachment
-        if not found or not found:IsA("Attachment") then
-            att = Instance.new("Attachment")
-            att.Name = "EnemyTargetAttachment"
-            att.Parent = hrp :: BasePart
-        else
-            att = found :: Attachment
-        end
-        rec.TargetAttachment = att
-        local ao: AlignOrientation? = rec.AlignOrientation
-        if ao then (ao :: AlignOrientation).Attachment1 = att end
+    -- Ensure server controls physics so orientation updates apply reliably
+    -- Force server ownership of physics if available
+    local pp = primary :: BasePart
+    if (pp.SetNetworkOwner) then
+        pp:SetNetworkOwner(nil)
     end
+
+    -- Ensure orientation uses lookAt (not target orientation)
+    local ao: AlignOrientation? = rec.AlignOrientation
+    if ao then (ao :: AlignOrientation).Attachment1 = nil end
+    rec.TargetAttachment = nil
 end
 
 local function beginReturning(rec: EnemyRecord)
 	rec.TargetPlayer = nil
 	rec.State = "Returning"
-	local primary = getPrimaryPart(rec.Model)
+    local primary = getPrimaryPart(rec.Model)
 	if not primary then return end
     setAssemblyAnchored(rec.Model, false)
 	ensureMotionConstraints(rec)
+    local pp = primary :: BasePart
+    if (pp.SetNetworkOwner) then
+        pp:SetNetworkOwner(nil)
+    end
 end
 
 local function anchorAndIdle(rec: EnemyRecord)
@@ -221,7 +219,17 @@ RunService.Heartbeat:Connect(function()
                 local d = toTarget.Magnitude
                 local dir = if d > 0 then toTarget / d else Vector3.zero
                 if lv then (lv :: LinearVelocity).VectorVelocity = dir * MOVE_SPEED end
-                if ao then (ao :: AlignOrientation).CFrame = CFrame.lookAt(primaryPart.Position, hrpPart.Position) end
+                if ao then
+                    local forward = dir
+                    local up = Vector3.yAxis
+                    local lookCFrame
+                    if forward.Magnitude > 0 then
+                        lookCFrame = CFrame.lookAt(primaryPart.Position, primaryPart.Position + forward, up)
+                    else
+                        lookCFrame = primaryPart.CFrame
+                    end
+                    (ao :: AlignOrientation).CFrame = lookCFrame
+                end
 				-- If this target was acquired via FollowRange, drop if they exit FollowRange
 				if not rec.TargetFromAlert then
 					local followRange = rec.Schema.FollowRange or 0
@@ -258,7 +266,17 @@ RunService.Heartbeat:Connect(function()
                 local dHome = toHome.Magnitude
                 local dir = if dHome > 0 then toHome / dHome else Vector3.zero
                 if lv then (lv :: LinearVelocity).VectorVelocity = dir * MOVE_SPEED end
-                if ao then (ao :: AlignOrientation).CFrame = CFrame.lookAt(primaryPart.Position, rec.SpawnCFrame.Position) end
+                if ao then
+                    local forward = dir
+                    local up = Vector3.yAxis
+                    local lookCFrame
+                    if forward.Magnitude > 0 then
+                        lookCFrame = CFrame.lookAt(primaryPart.Position, primaryPart.Position + forward, up)
+                    else
+                        lookCFrame = primaryPart.CFrame
+                    end
+                    (ao :: AlignOrientation).CFrame = lookCFrame
+                end
 				-- Check arrival
 				if dHome <= 3 then
 					anchorAndIdle(rec)
