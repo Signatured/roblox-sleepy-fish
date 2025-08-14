@@ -5,6 +5,8 @@ local ButtonFX = require(game.ReplicatedStorage.Library.Client.GUIFX.ButtonFX)
 local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
 local DefaultStats = require(game.ReplicatedStorage.Game.Modules.DefaultStats)
 local NotificationCmds = require(game.ReplicatedStorage.Library.Client.NotificationCmds)
+local FishCmds = require(game.ReplicatedStorage.Game.GameClientLibrary.FishCmds)
+local PlotTypes = require(game.ReplicatedStorage.Game.GameLibrary.Types.Plots)
 
 function TogglePedestal(model: Model, toggle: boolean, transparency: number?)
     if not transparency then
@@ -51,23 +53,36 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame
     local upgradeButton = upgradeFrame:WaitForChild("Button")::GuiButton
     ButtonFX(upgradeButton)
     upgradeButton.MouseButton1Click:Connect(function()
-        print("upgrade was presssed hahaah")
+        local success = plot:Invoke("UpgradeFish", model:GetAttribute("Id"))
+        if not success then
+            NotificationCmds.Message("Not enough money!", {
+                Color = Color3.fromRGB(255, 0, 0),
+            })
+            return
+        end
     end)
 
     local placeButton = placeFrame:WaitForChild("Button")::GuiButton
     ButtonFX(placeButton)
     placeButton.MouseButton1Click:Connect(function()
-        print("now place was presssed")
+        local fishData = FishCmds.GetCurrentFishData()
+        if not fishData then
+            NotificationCmds.Message("Equip a fish to place it!", {
+                Color = Color3.fromRGB(255, 0, 0),
+            })
+            return
+        end
+
+        plot:Invoke("CreateFish", model:GetAttribute("Id"), fishData.UID)
     end)
 end
 
 function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     local pedestalId = model:GetAttribute("Id")
     local pedestalCount = plot:Save("Pedestals")::number
-    local pedestalData = plot:Save("PedestalData")::DefaultStats.PedestalData
+    local fish = plot:Save("Fish")::{[string]: PlotTypes.Fish}
 
     local nameplate = model:WaitForChild("Nameplate")::BasePart
-    local base = model:WaitForChild("Base")::BasePart
     local surfaceGui = nameplate:WaitForChild("SurfaceGui")::SurfaceGui
 
     local frame = surfaceGui:WaitForChild("Frame")::Frame
@@ -91,10 +106,14 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     else
         TogglePedestal(model, true)
 
-        if pedestalData[tostring(pedestalId)] then
+        local fishData = fish[tostring(pedestalId)]
+        if fishData then
             buyFrame.Visible = false
             upgradeFrame.Visible = true
             placeFrame.Visible = false
+
+            local textLabel = upgradeFrame:WaitForChild("TextLabel")::TextLabel
+            textLabel.Text = `{fishData.FishData.Level} -> {fishData.FishData.Level + 1}`
         else
             buyFrame.Visible = false
             upgradeFrame.Visible = false
@@ -112,13 +131,12 @@ ClientPlot.Created:Connect(function(plot: ClientPlot.Type)
     end
 
     plot:SaveChanged("Pedestals"):Connect(function(newCount: number)
-        print("Pedestals changed", newCount)
         for _, child in pedestals:GetChildren() do
             UpdatePedestal(plot, child::Model)
         end
     end)
 
-    plot:SaveChanged("PedestalData"):Connect(function(newData: DefaultStats.PedestalData)
+    plot:SaveChanged("Fish"):Connect(function(newFish: {[string]: PlotTypes.Fish})
         for _, child in pedestals:GetChildren() do
             UpdatePedestal(plot, child::Model)
         end

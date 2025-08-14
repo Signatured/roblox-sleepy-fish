@@ -59,6 +59,20 @@ local function removeFromInventory(player: Player, uid: string)
     end
 end
 
+function Fish.GetFromInventory(player: Player, uid: string): FishTypes.data_schema?
+    local save = Saving.Get(player)
+    if not save then
+        return nil
+    end
+    local inv = save.Inventory :: {FishTypes.data_schema}
+    for _, entry in ipairs(inv) do
+        if entry.UID == uid then
+            return entry
+        end
+    end
+    return nil
+end
+
 function Fish.Give(player: Player, params: FishTypes.create_params): FishTypes.data_schema?
     local schema = getSchema(params.FishId)
     if not schema then
@@ -82,7 +96,8 @@ function Fish.Give(player: Player, params: FishTypes.create_params): FishTypes.d
     addToInventory(player, fishData)
 
     local tool = toolTemplate:Clone()
-    tool.Name = fishData.UID
+    tool.Name = schema.DisplayName
+    tool:SetAttribute("UID", fishData.UID)
     tool.Parent = backpack
 
     local userTools = playerFishTools[player.UserId]
