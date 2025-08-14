@@ -12,6 +12,7 @@ local FishTypes = require(ReplicatedStorage.Game.Library.Types.Fish)
 local Functions = require(ReplicatedStorage.Library.Functions)
 local Fish = require(ServerScriptService.Game.Library.Fish)
 local Network = require(ServerScriptService.Library.Network)
+local Enemies = require(ServerScriptService.Game.Library.Enemies)
 
 local ROOT = workspace:WaitForChild("__THINGS")
 local SPAWNS = ROOT:WaitForChild("FishSpawns")
@@ -122,6 +123,8 @@ local function makePrompt(fish: Swimming)
         local hrp = character and character:FindFirstChild("HumanoidRootPart")
         if dir and hrp and hrp:IsA("BasePart") then
             Network.FireAll("AlertPart", hrp.Position, dir.Rarity.AlertRange)
+            -- Notify enemies server-side to begin tracking this alert
+            Enemies.Alert(player, hrp.Position, dir.Rarity.AlertRange)
         end
         FishGen.SetCarrying(player, fish.UID)
         prompt.Enabled = false
