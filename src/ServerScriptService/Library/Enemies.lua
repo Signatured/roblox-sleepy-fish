@@ -40,7 +40,7 @@ type EnemyRecord = {
 local Enemies = {}
 
 local ATTACK_RANGE = 10
-local MOVE_SPEED = 15
+local MOVE_SPEED = 17
 
 local enemies: { [string]: EnemyRecord } = {}
 
@@ -189,7 +189,8 @@ local function findNearbyPlayer(rec: EnemyRecord): Player?
 	for _, player in ipairs(Players:GetPlayers()) do
 		local character = player.Character
 		local hrp = character and character:FindFirstChild("HumanoidRootPart")
-		if hrp and hrp:IsA("BasePart") then
+        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		if hrp and hrp:IsA("BasePart") and humanoid and humanoid.Health > 0 then
 			-- Only consider players inside WATER
 			if not Functions.IsPositionInPart((hrp :: BasePart).Position, WATER) then
 				continue
@@ -220,11 +221,13 @@ RunService.Heartbeat:Connect(function()
 			local hrp = character and character:FindFirstChild("HumanoidRootPart")
 			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 			if not target or not hrp or not humanoid or humanoid.Health <= 0 then
+                print("fired1")
 				-- Target lost; try follow someone else
 				local nearby = findNearbyPlayer(rec)
 				if nearby then
 					beginChasing(rec, nearby, false)
 				else
+                    print("fired2")
 					beginReturning(rec)
 				end
 			else
