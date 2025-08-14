@@ -7,6 +7,9 @@ local DefaultStats = require(game.ReplicatedStorage.Game.Modules.DefaultStats)
 local NotificationCmds = require(game.ReplicatedStorage.Library.Client.NotificationCmds)
 local FishCmds = require(game.ReplicatedStorage.Game.GameClientLibrary.FishCmds)
 local PlotTypes = require(game.ReplicatedStorage.Game.GameLibrary.Types.Plots)
+local Directory = require(game.ReplicatedStorage.Game.GameLibrary.Directory)
+
+local pedestalModels: {[ClientPlot.Type]: {[number]: Model}} = {}
 
 function TogglePedestal(model: Model, toggle: boolean, transparency: number?)
     if not transparency then
@@ -92,6 +95,7 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     local fish = plot:Save("Fish")::{[string]: PlotTypes.Fish}
 
     local nameplate = model:WaitForChild("Nameplate")::BasePart
+    local base = model:WaitForChild("Base")::BasePart
     local surfaceGui = nameplate:WaitForChild("SurfaceGui")::SurfaceGui
 
     local frame = surfaceGui:WaitForChild("Frame")::Frame
@@ -151,9 +155,26 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             placeFrame.Visible = true
         end
     end
+
+    local fishData = fish[tostring(pedestalId)]
+    if fishData and pedestalModels[plot] and not pedestalModels[plot][pedestalId] then
+        local dir = Directory.Fish[fishData.FishId]
+        local fishModel = dir._script:WaitForChild("Model"):Clone()::Model
+        local plotFishFolder = workspace:WaitForChild("__THINGS"):WaitForChild("PlotFish")
+
+        fishModel:PivotTo(base:GetPivot() + Vector3.new(0, base.Size.Y / 2, 0))
+        fishModel.Parent = plotFishFolder
+        pedestalModels[plot][pedestalId] = fishModel
+    elseif not fishData and pedestalModels[plot] and pedestalModels[plot][pedestalId] then
+        local fishModel = pedestalModels[plot][pedestalId]
+        fishModel:Destroy()
+        pedestalModels[plot][pedestalId] = nil
+    end
 end
 
 ClientPlot.Created:Connect(function(plot: ClientPlot.Type)
+    pedestalModels[plot] = {}
+
     local model = plot:WaitModel()
     local pedestals = model:WaitForChild("Pedestals")::Model
 
@@ -172,4 +193,11 @@ ClientPlot.Created:Connect(function(plot: ClientPlot.Type)
             UpdatePedestal(plot, child::Model)
         end
     end)
+end)
+
+ClientPlot.Destroying:Connect(function(plot: ClientPlot.Type)
+    for _, model in pedestalModels[plot] do
+        model:Destroy()
+    end
+    pedestalModels[plot] = nil
 end)
