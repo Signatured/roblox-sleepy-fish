@@ -1,5 +1,8 @@
 --!strict
 
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
 local Assets = game.ReplicatedStorage.Assets
 
 local Functions = require(game.ReplicatedStorage.Library.Functions)
@@ -155,6 +158,40 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     local sellAttachment = base:WaitForChild("SellAttachment")::Attachment
     local pickupAttachment = base:WaitForChild("PickupAttachment")::Attachment
     local surfaceGui = nameplate:WaitForChild("SurfaceGui")::SurfaceGui
+
+    -- Hook Claim part touch once per pedestal; print once per continuous contact by the local player
+    if not model:GetAttribute("_ClaimHooked") then
+        local claim = model:FindFirstChild("Claim", true)
+        if claim and claim:IsA("BasePart") then
+            model:SetAttribute("_ClaimHooked", true)
+            local touchingParts: {[BasePart]: boolean} = {}
+            claim.Touched:Connect(function(other: BasePart)
+                local character = LocalPlayer and LocalPlayer.Character
+                if not character or not other or not other:IsDescendantOf(character) then return end
+                if not touchingParts[other] then
+                    touchingParts[other] = true
+                end
+                if model:GetAttribute("_ClaimActive") ~= true then
+                    plot:Invoke("ClaimEarnings", pedestalId)
+                    model:SetAttribute("_ClaimActive", true)
+                end
+            end)
+            claim.TouchEnded:Connect(function(other: BasePart)
+                local character = LocalPlayer and LocalPlayer.Character
+                if not character or not other or not other:IsDescendantOf(character) then return end
+                touchingParts[other] = nil
+                -- If no more local parts are touching, reset active state
+                local any = false
+                for _ in pairs(touchingParts) do
+                    any = true
+                    break
+                end
+                if not any then
+                    model:SetAttribute("_ClaimActive", false)
+                end
+            end)
+        end
+    end
 
     local frame = surfaceGui:WaitForChild("Frame")::Frame
     local buyFrame = frame:WaitForChild("Buy")::Frame
