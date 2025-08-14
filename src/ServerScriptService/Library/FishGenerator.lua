@@ -10,7 +10,7 @@ local RunService = game:GetService("RunService")
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
 local FishTypes = require(ReplicatedStorage.Game.Library.Types.Fish)
 local Functions = require(ReplicatedStorage.Library.Functions)
-local Fish = require(ServerScriptService.Game.GameServerLibrary.Fish)
+local Fish = require(ServerScriptService.Game.Library.Fish)
 local Network = require(ServerScriptService.Library.Network)
 
 local ROOT = workspace:WaitForChild("__THINGS")

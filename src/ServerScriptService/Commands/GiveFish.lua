@@ -5,7 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local CommandManager = require(ServerScriptService.CommandManager)
 local CommandType = require(ReplicatedStorage.Game.Library.Types.Commands)
-local Fish = require(ServerScriptService.Game.GameServerLibrary.Fish)
+local Fish = require(ServerScriptService.Game.Library.Fish)
 local Assert = require(ReplicatedStorage.Library.Assert)
 
 local Command = {
