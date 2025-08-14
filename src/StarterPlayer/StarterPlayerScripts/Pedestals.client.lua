@@ -241,6 +241,10 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
         fishModel.PickupProximity:Destroy()
         pedestalModels[plot][pedestalId] = nil
     end
+
+    if pedestalModels[plot][pedestalId] then
+        UpdateBillboard(plot, pedestalId, pedestalModels[plot][pedestalId].Billboard)
+    end
 end
 
 ClientPlot.Created:Connect(function(plot: ClientPlot.Type)
