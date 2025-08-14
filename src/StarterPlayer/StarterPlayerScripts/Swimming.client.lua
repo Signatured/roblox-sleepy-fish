@@ -3,54 +3,56 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local CollectionService = game:GetService("CollectionService")
+local UserInputService = game:GetService("UserInputService")
 
 local LOCAL_PLAYER = Players.LocalPlayer
 
 local waterParts: {Instance} = {}
 
-local function rebuildWaterList()
+local function refreshWater()
     waterParts = CollectionService:GetTagged("Water")
 end
 
-rebuildWaterList()
-CollectionService:GetInstanceAddedSignal("Water"):Connect(function()
-    rebuildWaterList()
-end)
-CollectionService:GetInstanceRemovedSignal("Water"):Connect(function()
-    rebuildWaterList()
-end)
+refreshWater()
+CollectionService:GetInstanceAddedSignal("Water"):Connect(refreshWater)
+CollectionService:GetInstanceRemovedSignal("Water"):Connect(refreshWater)
 
-local currentCharacter: Model? = nil
 local currentHumanoid: Humanoid? = nil
 local currentHRP: BasePart? = nil
-local wasInWater = false
-local swim: BodyVelocity = nil
+local isSwimming = false
+local swim: BodyVelocity? = nil
+local nextSwimEnableAt = 0
 
 local function onCharacterAdded(character: Model)
-    currentCharacter = character
     currentHumanoid = character:WaitForChild("Humanoid")::Humanoid
     currentHRP = character:WaitForChild("HumanoidRootPart")::BasePart
-    wasInWater = false
+    isSwimming = false
+    if swim then swim:Destroy() swim = nil end
 end
 
-if LOCAL_PLAYER.Character then
-    onCharacterAdded(LOCAL_PLAYER.Character)
-end
+if LOCAL_PLAYER.Character then onCharacterAdded(LOCAL_PLAYER.Character) end
 LOCAL_PLAYER.CharacterAdded:Connect(onCharacterAdded)
+
+local function setSwimmingEnabled(enabled: boolean)
+    local humanoid = currentHumanoid
+    if not humanoid then return end
+    humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, not enabled)
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, not enabled)
+end
 
 RunService.RenderStepped:Connect(function()
     local humanoid = currentHumanoid
     local hrp = currentHRP
-    if not humanoid or not hrp then
-        return
-    end
+    if not humanoid or not hrp then return end
+
+    -- Nothing to test against
     if #waterParts == 0 then
-        if wasInWater then
-            wasInWater = false
-            if swim then
-                swim:Destroy()
-                swim = nil::any
-            end
+        if isSwimming then
+            if swim then swim:Destroy() swim = nil end
+            setSwimmingEnabled(false)
+            nextSwimEnableAt = os.clock() + 0.2
+            isSwimming = false
         end
         return
     end
@@ -59,34 +61,32 @@ RunService.RenderStepped:Connect(function()
     params.FilterType = Enum.RaycastFilterType.Include
     params.FilterDescendantsInstances = waterParts
 
-    local size = hrp.Size + Vector3.new(2, 2, 2)
-    local results = workspace:GetPartBoundsInBox(hrp.CFrame, size, params)
+    local boxSize = hrp.Size + Vector3.new(2, 2, 2)
+    local results = workspace:GetPartBoundsInBox(hrp.CFrame, boxSize, params)
     local inWater = results and #results > 0 or false
 
-    if inWater and not wasInWater then
-        humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, false)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
-
-        swim = Instance.new("BodyVelocity")
-        swim.Parent = hrp
-        wasInWater = true
-    elseif not inWater and wasInWater then 
-        wasInWater = false
-        if swim then
-            swim:Destroy()
-            swim = nil::any
+    if inWater then
+        if (not isSwimming) and os.clock() >= nextSwimEnableAt then
+            setSwimmingEnabled(true)
+            if not swim then swim = Instance.new("BodyVelocity") end
+            local s = swim :: BodyVelocity
+            s.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+            s.Parent = hrp
+            isSwimming = true
+        end
+    else
+        if isSwimming then
+            if swim then swim:Destroy() swim = nil end
+            setSwimmingEnabled(false)
+            nextSwimEnableAt = os.clock() + 0.2
+            isSwimming = false
         end
     end
 
-    if inWater and currentHumanoid then
-        currentHumanoid:ChangeState(Enum.HumanoidStateType.Swimming)
-        currentHumanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, false)
-        currentHumanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
-
-       if swim then
-        swim.Velocity = currentHumanoid.MoveDirection * currentHumanoid.WalkSpeed + Vector3.new(0,4,0)
-       end
+    if isSwimming and swim then
+        local s = swim :: BodyVelocity
+        local upBoost = if UserInputService:IsKeyDown(Enum.KeyCode.Space) then 6 else 0
+        s.Velocity = humanoid.MoveDirection * humanoid.WalkSpeed + Vector3.new(0, 3 + upBoost, 0)
     end
 end)
 
