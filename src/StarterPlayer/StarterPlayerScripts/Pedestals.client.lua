@@ -53,13 +53,22 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame
     local upgradeButton = upgradeFrame:WaitForChild("Button")::GuiButton
     ButtonFX(upgradeButton)
     upgradeButton.MouseButton1Click:Connect(function()
-        local success = plot:Invoke("UpgradeFish", model:GetAttribute("Id"))
-        if not success then
+        local cost = plot:GetUpgradeCost(model:GetAttribute("Id")::number)
+        if not cost then
+            NotificationCmds.Message("Fish is already at max level!", {
+                Color = Color3.fromRGB(255, 0, 0),
+            })
+            return
+        end
+
+        if not plot:CanAfford(cost) then
             NotificationCmds.Message("Not enough money!", {
                 Color = Color3.fromRGB(255, 0, 0),
             })
             return
         end
+
+        plot:Invoke("UpgradeFish", model:GetAttribute("Id"))
     end)
 
     local placeButton = placeFrame:WaitForChild("Button")::GuiButton
@@ -78,7 +87,7 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame
 end
 
 function UpdatePedestal(plot: ClientPlot.Type, model: Model)
-    local pedestalId = model:GetAttribute("Id")
+    local pedestalId = model:GetAttribute("Id")::number
     local pedestalCount = plot:Save("Pedestals")::number
     local fish = plot:Save("Fish")::{[string]: PlotTypes.Fish}
 
@@ -103,6 +112,17 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
         buyFrame.Visible = true
         upgradeFrame.Visible = false
         placeFrame.Visible = false
+
+        local buyButton = buyFrame:FindFirstChild("Button")::ImageButton
+		local buttonText = buyButton:FindFirstChild("TextLabel")::TextLabel
+
+        local cost = PlotTypes.PedestalCost(pedestalId)
+        if not cost then
+            buttonText.Text = "Max!"
+            return
+        end
+
+        buttonText.Text = `${Functions.NumberShorten(cost)}`
     else
         TogglePedestal(model, true)
 
