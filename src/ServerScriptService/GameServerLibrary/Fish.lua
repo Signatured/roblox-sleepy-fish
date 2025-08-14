@@ -73,10 +73,13 @@ function Fish.GetFromInventory(player: Player, uid: string): FishTypes.data_sche
     return nil
 end
 
-function Fish.Give(player: Player, params: FishTypes.create_params): FishTypes.data_schema?
-    local schema = getSchema(params.FishId)
+function Fish.Give(player: Player, params: FishTypes.create_params | FishTypes.swimming_fish_schema): FishTypes.data_schema?
+    local asAny = params :: any
+    local useExistingData: FishTypes.data_schema? = (asAny and asAny.FishData) and (asAny.FishData :: FishTypes.data_schema) or nil
+    local fishId = if useExistingData then useExistingData.FishId else (params :: FishTypes.create_params).FishId
+    local schema = getSchema(fishId)
     if not schema then
-        warn("[Fish] Invalid FishId:", params.FishId)
+        warn("[Fish] Invalid FishId:", fishId)
         return nil
     end
 
@@ -92,7 +95,12 @@ function Fish.Give(player: Player, params: FishTypes.create_params): FishTypes.d
         return nil
     end
 
-    local fishData = createFishData(player, params)
+    local fishData: FishTypes.data_schema
+    if useExistingData then
+        fishData = useExistingData
+    else
+        fishData = createFishData(player, params :: FishTypes.create_params)
+    end
     addToInventory(player, fishData)
 
     local tool = toolTemplate:Clone()

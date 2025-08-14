@@ -85,7 +85,7 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
     rarity.TextColor3 = dir.Rarity.Color
     level.Text = `Level {fishData.FishData.Level}`
     moneyPerSecond.Text = `${Functions.NumberShorten(plot:GetMoneyPerSecond(index) or 0)}/s`
-    money.Text = `${Functions.NumberShorten(earnings)}/s`
+    money.Text = `${Functions.NumberShorten(earnings)}`
 end
 
 local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame, upgradeFrame: Frame, placeFrame: Frame)

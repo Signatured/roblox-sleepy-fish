@@ -10,6 +10,7 @@ local RunService = game:GetService("RunService")
 local Directory = require(ReplicatedStorage.Game.GameLibrary.Directory)
 local FishTypes = require(ReplicatedStorage.Game.GameLibrary.Types.Fish)
 local Functions = require(ReplicatedStorage.Library.Functions)
+local Fish = require(ServerScriptService.Game.GameServerLibrary.Fish)
 
 local ROOT = workspace:WaitForChild("__THINGS")
 local SPAWNS = ROOT:WaitForChild("FishSpawns")
@@ -111,11 +112,10 @@ local function makePrompt(fish: Swimming)
     prompt.MaxActivationDistance = 12
     prompt.Parent = primary
     prompt.Triggered:Connect(function(player)
-        if FishGen.GetCarrying(player) then return end
-        playerCarry[player] = fish.UID
-        fish.Carrier = player
+        -- Prevent multiple carriers and prevent a player from carrying more than one
+        if fish.Carrier then return end
         setModelAnchored(fish.Model, false)
-        weldToBack(fish.Model, player)
+        FishGen.SetCarrying(player, fish.UID)
         prompt.Enabled = false
     end)
 end
@@ -212,6 +212,11 @@ end
 local function despawn(uid: string)
     local fish = uidToFish[uid]
     if not fish then return end
+    -- Clear carrying link if any
+    if fish.Carrier then
+        playerCarry[fish.Carrier] = nil
+        fish.Carrier = nil
+    end
     if fish.Model then fish.Model:Destroy() end
     uidToFish[uid] = nil
     respawnReplacement()
@@ -229,6 +234,10 @@ function FishGen.SetCarrying(player: Player, uid: string): boolean
     if not fish then return false end
     playerCarry[player] = uid
     fish.Carrier = player
+    if fish.Gui then
+        local dir = Directory.Fish[fish.FishData.FishId]
+        fish.Gui.StudsOffsetWorldSpace = Vector3.new(0, 0, dir.BillboardOffset)
+    end
     weldToBack(fish.Model, player)
     return true
 end
@@ -240,6 +249,7 @@ end
 -- Heartbeat: despawn and respawn
 RunService.Heartbeat:Connect(function()
     local now = os.clock()
+    local homeBase = workspace:WaitForChild("__THINGS"):WaitForChild("HomeBase")::BasePart
     for uid, fish in pairs(uidToFish) do
         if (now - fish.SpawnTime) >= DESPAWN_SECONDS then
             -- Despawn if timer expired; if carried, also remove
@@ -255,6 +265,20 @@ RunService.Heartbeat:Connect(function()
                     timer.Text = tostring(math.ceil(remaining)) .. "s"
                 end
             end
+
+			-- Bank carried fish at HomeBase
+			if fish.Carrier and homeBase then
+				local player = fish.Carrier
+				local character = player.Character
+				local hrp = character and character:FindFirstChild("HumanoidRootPart")
+				if hrp and hrp:IsA("BasePart") then
+					if Functions.IsPositionInPart(hrp.Position, homeBase) then
+						-- Award fish to player inventory and despawn world fish
+						Fish.Give(player, fish)
+						despawn(uid)
+					end
+				end
+			end
         end
     end
 end)
