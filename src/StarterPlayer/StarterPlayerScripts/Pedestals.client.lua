@@ -134,6 +134,17 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
 
             local textLabel = upgradeFrame:WaitForChild("TextLabel")::TextLabel
             textLabel.Text = `{fishData.FishData.Level} -> {fishData.FishData.Level + 1}`
+
+            local upgradeButton = upgradeFrame:FindFirstChild("Button")::ImageButton
+            local buttonText = upgradeButton:FindFirstChild("TextLabel")::TextLabel
+
+            local cost = plot:GetUpgradeCost(pedestalId)
+            if not cost then
+                buttonText.Text = "Max!"
+                return
+            end
+
+            buttonText.Text = `${Functions.NumberShorten(cost)}`
         else
             buyFrame.Visible = false
             upgradeFrame.Visible = false
