@@ -7,7 +7,8 @@ return {
     DisplayName = "Bananita Dolphinita",
     Rarity = Rarity.Common,
     MoneyPerSecond = 76,
-    BaseUpgradeCost = 2280
+    BaseUpgradeCost = 2280,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

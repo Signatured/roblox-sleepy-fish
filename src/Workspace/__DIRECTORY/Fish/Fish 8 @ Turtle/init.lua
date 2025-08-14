@@ -7,7 +7,8 @@ return {
     DisplayName = "Turtle",
     Rarity = Rarity.Common,
     MoneyPerSecond = 29,
-    BaseUpgradeCost = 870
+    BaseUpgradeCost = 870,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

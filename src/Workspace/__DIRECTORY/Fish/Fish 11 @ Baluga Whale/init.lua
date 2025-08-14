@@ -7,7 +7,8 @@ return {
     DisplayName = "Baluga Whale",
     Rarity = Rarity.Common,
     MoneyPerSecond = 123,
-    BaseUpgradeCost = 3690
+    BaseUpgradeCost = 3690,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

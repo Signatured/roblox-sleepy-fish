@@ -7,7 +7,8 @@ return {
     DisplayName = "Starfish",
     Rarity = Rarity.Common,
     MoneyPerSecond = 7,
-    BaseUpgradeCost = 210
+    BaseUpgradeCost = 210,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

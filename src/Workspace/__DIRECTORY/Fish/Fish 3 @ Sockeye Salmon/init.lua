@@ -7,7 +7,8 @@ return {
     DisplayName = "Sockeye Salmon",
     Rarity = Rarity.Common,
     MoneyPerSecond = 3,
-    BaseUpgradeCost = 90
+    BaseUpgradeCost = 90,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

@@ -7,7 +7,8 @@ return {
     DisplayName = "Trippi Troppi",
     Rarity = Rarity.Common,
     MoneyPerSecond = 11,
-    BaseUpgradeCost = 330
+    BaseUpgradeCost = 330,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

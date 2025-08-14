@@ -7,7 +7,8 @@ return {
     DisplayName = "Trulimero Trulichina",
     Rarity = Rarity.Common,
     MoneyPerSecond = 4,
-    BaseUpgradeCost = 120
+    BaseUpgradeCost = 120,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

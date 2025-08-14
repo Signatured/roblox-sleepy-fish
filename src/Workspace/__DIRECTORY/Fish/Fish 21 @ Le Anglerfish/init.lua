@@ -7,7 +7,8 @@ return {
     DisplayName = "Le Anglerfish",
     Rarity = Rarity.Common,
     MoneyPerSecond = 15310,
-    BaseUpgradeCost = 459300
+    BaseUpgradeCost = 459300,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

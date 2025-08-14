@@ -7,7 +7,8 @@ return {
     DisplayName = "Mythical Megladon",
     Rarity = Rarity.Common,
     MoneyPerSecond = 100000,
-    BaseUpgradeCost = 3000000
+    BaseUpgradeCost = 3000000,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

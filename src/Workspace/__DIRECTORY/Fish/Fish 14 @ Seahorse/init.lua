@@ -7,7 +7,8 @@ return {
     DisplayName = "Seahorse",
     Rarity = Rarity.Common,
     MoneyPerSecond = 524,
-    BaseUpgradeCost = 15720
+    BaseUpgradeCost = 15720,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

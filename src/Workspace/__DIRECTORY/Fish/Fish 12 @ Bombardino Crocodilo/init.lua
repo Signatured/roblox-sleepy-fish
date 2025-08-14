@@ -7,7 +7,8 @@ return {
     DisplayName = "Bombardino Crocodilo",
     Rarity = Rarity.Common,
     MoneyPerSecond = 200,
-    BaseUpgradeCost = 6000
+    BaseUpgradeCost = 6000,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

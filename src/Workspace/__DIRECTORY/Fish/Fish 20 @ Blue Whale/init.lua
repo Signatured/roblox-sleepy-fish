@@ -7,7 +7,8 @@ return {
     DisplayName = "Blue Whale",
     Rarity = Rarity.Common,
     MoneyPerSecond = 9447,
-    BaseUpgradeCost = 283410
+    BaseUpgradeCost = 283410,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

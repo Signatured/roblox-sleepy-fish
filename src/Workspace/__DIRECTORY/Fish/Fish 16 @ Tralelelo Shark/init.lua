@@ -7,7 +7,8 @@ return {
     DisplayName = "Tralelelo Shark",
     Rarity = Rarity.Common,
     MoneyPerSecond = 1373,
-    BaseUpgradeCost = 41190
+    BaseUpgradeCost = 41190,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

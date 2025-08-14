@@ -7,7 +7,8 @@ return {
     DisplayName = "Hammer Head Shark",
     Rarity = Rarity.Common,
     MoneyPerSecond = 3600,
-    BaseUpgradeCost = 108000
+    BaseUpgradeCost = 108000,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

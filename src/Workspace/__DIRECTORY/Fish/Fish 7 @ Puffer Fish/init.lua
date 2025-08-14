@@ -7,7 +7,8 @@ return {
     DisplayName = "Puffer Fish",
     Rarity = Rarity.Common,
     MoneyPerSecond = 18,
-    BaseUpgradeCost = 540
+    BaseUpgradeCost = 540,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

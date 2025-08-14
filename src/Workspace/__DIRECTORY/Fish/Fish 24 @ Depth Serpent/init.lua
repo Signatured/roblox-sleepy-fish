@@ -7,7 +7,8 @@ return {
     DisplayName = "Depth Serpent",
     Rarity = Rarity.Common,
     MoneyPerSecond = 65357,
-    BaseUpgradeCost = 1960710
+    BaseUpgradeCost = 1960710,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

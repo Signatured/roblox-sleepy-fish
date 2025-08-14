@@ -7,7 +7,8 @@ return {
     DisplayName = "King Jellyfish",
     Rarity = Rarity.Common,
     MoneyPerSecond = 24825,
-    BaseUpgradeCost = 744750
+    BaseUpgradeCost = 744750,
+    BillboardOffset = 7,
 }::FishTypes.raw_dir
 
 

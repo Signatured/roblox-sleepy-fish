@@ -39,13 +39,17 @@ if game:GetService("RunService"):IsServer() and game:GetService("RunService"):Is
     for _, dir in pairs(module) do
         local success, reason = pcall(function()
             assert(type(dir.DisplayName) == "string")
-            assert(type(dir.Type) == "string")
-            assert(dir.Type == "Normal" or dir.Type == "Shiny" or dir.Type == "Gold" or dir.Type == "Rainbow")
-            assert(type(dir.Rarity) == "string")
             assert(type(dir.MoneyPerSecond) == "number")
-            if dir.Shiny ~= nil then
-                assert(type(dir.Shiny) == "boolean")
-            end
+            assert(type(dir.BaseUpgradeCost) == "number")
+
+            -- Rarity schema validation
+            assert(type(dir.Rarity) == "table")
+            assert(typeof(dir.Rarity.Color) == "Color3")
+            assert(type(dir.Rarity.Priority) == "number")
+
+            -- Optional: verify Tool exists under the script for spawning tools
+            local tool = dir._script:FindFirstChild("Tool")
+            assert(tool == nil or tool:IsA("Tool"))
         end)
         if not success then
             warn("[Directory Validator]", script.Name, dir._script, tostring(reason))
