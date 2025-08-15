@@ -160,7 +160,7 @@ local function attachGui(fish: Swimming, schema: FishTypes.dir_schema)
         end
         local mps = frame:FindFirstChild("MoneyPerSecond")
         if mps and mps:IsA("TextLabel") then
-            mps.Text = `{schema.MoneyPerSecond}/s`
+            mps.Text = `${Functions.NumberShorten(schema.MoneyPerSecond)}/s`
         end
         local timer = frame:FindFirstChild("Timer")
         if timer and timer:IsA("TextLabel") then

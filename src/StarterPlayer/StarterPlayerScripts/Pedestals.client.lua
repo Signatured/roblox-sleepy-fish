@@ -96,11 +96,12 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame
         return
     end
     model:SetAttribute("_ButtonsInit", true)
+    local pedestalId = tonumber(model.Name)::number
 
     local buyButton = buyFrame:WaitForChild("Button")::GuiButton
     ButtonFX(buyButton)
     buyButton.MouseButton1Click:Connect(function()
-        local success, msg = plot:Invoke("BuyPedestal", model:GetAttribute("Id"))
+        local success, msg = plot:Invoke("BuyPedestal", pedestalId)
         if not success and not msg then
             return
         end
@@ -115,7 +116,7 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame
     local upgradeButton = upgradeFrame:WaitForChild("Button")::GuiButton
     ButtonFX(upgradeButton)
     upgradeButton.MouseButton1Click:Connect(function()
-        local cost = plot:GetUpgradeCost(model:GetAttribute("Id")::number)
+        local cost = plot:GetUpgradeCost(pedestalId)
         if not cost then
             NotificationCmds.Message("Fish is already at max level!", {
                 Color = Color3.fromRGB(255, 0, 0),
@@ -130,7 +131,7 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame
             return
         end
 
-        plot:Invoke("UpgradeFish", model:GetAttribute("Id"))
+        plot:Invoke("UpgradeFish", pedestalId)
     end)
 
     local placeButton = placeFrame:WaitForChild("Button")::GuiButton
@@ -144,12 +145,12 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame
             return
         end
 
-        plot:Invoke("CreateFish", model:GetAttribute("Id"), fishData.UID)
+        plot:Invoke("CreateFish", pedestalId, fishData.UID)
     end)
 end
 
 function UpdatePedestal(plot: ClientPlot.Type, model: Model)
-    local pedestalId = model:GetAttribute("Id")::number
+    local pedestalId = tonumber(model.Name)::number
     local pedestalCount = plot:Save("Pedestals")::number
     local fish = plot:Save("Fish")::{[string]: PlotTypes.Fish}
 

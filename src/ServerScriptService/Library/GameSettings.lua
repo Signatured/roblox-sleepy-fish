@@ -5,7 +5,7 @@
 ]]
 
 local Settings = {
-	PlotCount = 3,
+	PlotCount = 5,
 }
 
 return Settings 
