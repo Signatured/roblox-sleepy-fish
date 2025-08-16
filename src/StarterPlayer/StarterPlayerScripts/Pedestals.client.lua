@@ -100,7 +100,7 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
     end
 end
 
-local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame, upgradeFrame: Frame, placeFrame: Frame)
+local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame, upgradeFrame: Frame, placeFrame: Frame, boostFrame: Frame)
     if model:GetAttribute("_ButtonsInit") then
         return
     end
@@ -156,6 +156,23 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame
 
         plot:Invoke("CreateFish", pedestalId, fishData.UID)
     end)
+
+    local boostButton = boostFrame:WaitForChild("Button")::GuiButton
+    ButtonFX(boostButton)
+    boostButton.MouseButton1Click:Connect(function()
+        local success, msg = plot:Invoke("PlayerBoost", pedestalId)
+
+        if not success then
+            if msg then
+                NotificationCmds.Message(msg, {
+                    Color = Color3.fromRGB(255, 0, 0),
+                })
+            end
+            return
+        end
+
+        --TODO: play sound effect
+    end)
 end
 
 function UpdatePedestal(plot: ClientPlot.Type, model: Model)
@@ -170,36 +187,38 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     local surfaceGui = nameplate:WaitForChild("SurfaceGui")::SurfaceGui
 
     -- Hook Claim part touch once per pedestal; print once per continuous contact by the local player
-    if not model:GetAttribute("_ClaimHooked") then
-        local claim = model:FindFirstChild("Claim", true)
-        if claim and claim:IsA("BasePart") then
-            model:SetAttribute("_ClaimHooked", true)
-            local touchingParts: {[BasePart]: boolean} = {}
-            claim.Touched:Connect(function(other: BasePart)
-                local character = LocalPlayer and LocalPlayer.Character
-                if not character or not other or not other:IsDescendantOf(character) then return end
-                if not touchingParts[other] then
-                    touchingParts[other] = true
-                end
-                if model:GetAttribute("_ClaimActive") ~= true then
-                    plot:Invoke("ClaimEarnings", pedestalId)
-                    model:SetAttribute("_ClaimActive", true)
-                end
-            end)
-            claim.TouchEnded:Connect(function(other: BasePart)
-                local character = LocalPlayer and LocalPlayer.Character
-                if not character or not other or not other:IsDescendantOf(character) then return end
-                touchingParts[other] = nil
-                -- If no more local parts are touching, reset active state
-                local any = false
-                for _ in pairs(touchingParts) do
-                    any = true
-                    break
-                end
-                if not any then
-                    model:SetAttribute("_ClaimActive", false)
-                end
-            end)
+    if plot:IsLocal() then
+        if not model:GetAttribute("_ClaimHooked") then
+            local claim = model:FindFirstChild("Claim", true)
+            if claim and claim:IsA("BasePart") then
+                model:SetAttribute("_ClaimHooked", true)
+                local touchingParts: {[BasePart]: boolean} = {}
+                claim.Touched:Connect(function(other: BasePart)
+                    local character = LocalPlayer and LocalPlayer.Character
+                    if not character or not other or not other:IsDescendantOf(character) then return end
+                    if not touchingParts[other] then
+                        touchingParts[other] = true
+                    end
+                    if model:GetAttribute("_ClaimActive") ~= true then
+                        plot:Invoke("ClaimEarnings", pedestalId)
+                        model:SetAttribute("_ClaimActive", true)
+                    end
+                end)
+                claim.TouchEnded:Connect(function(other: BasePart)
+                    local character = LocalPlayer and LocalPlayer.Character
+                    if not character or not other or not other:IsDescendantOf(character) then return end
+                    touchingParts[other] = nil
+                    -- If no more local parts are touching, reset active state
+                    local any = false
+                    for _ in pairs(touchingParts) do
+                        any = true
+                        break
+                    end
+                    if not any then
+                        model:SetAttribute("_ClaimActive", false)
+                    end
+                end)
+            end
         end
     end
 
@@ -207,8 +226,14 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     local buyFrame = frame:WaitForChild("Buy")::Frame
     local upgradeFrame = frame:WaitForChild("Upgrade")::Frame
     local placeFrame = frame:WaitForChild("Place")::Frame
+    local boostFrame = frame:WaitForChild("Boost")::Frame
 
-    SetupButtons(plot, model, buyFrame, upgradeFrame, placeFrame)
+    local boostTimer = boostFrame:WaitForChild("TextLabel")::TextLabel
+    local boosts = plot:Session("PlayerBoosts")::{[string]: number}
+    local boostedTime = boosts[tostring(pedestalId)]
+    local isBoosted = boostedTime and workspace:GetServerTimeNow() < boostedTime
+
+    SetupButtons(plot, model, buyFrame, upgradeFrame, placeFrame, boostFrame)
 
     if pedestalId > pedestalCount + 1 then
         TogglePedestal(model, false)
@@ -216,50 +241,74 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     end
 
     if pedestalId == pedestalCount + 1 then
-        TogglePedestal(model, true, 0.5)
+        if plot:IsLocal() then
+            TogglePedestal(model, true, 0.5)
 
-        buyFrame.Visible = true
-        upgradeFrame.Visible = false
-        placeFrame.Visible = false
-
-        local buyButton = buyFrame:FindFirstChild("Button")::ImageButton
-		local buttonText = buyButton:FindFirstChild("TextLabel")::TextLabel
-
-        local cost = PlotTypes.PedestalCost(pedestalId)
-        if not cost then
-            buttonText.Text = "Max!"
-            return
-        end
-
-        buttonText.Text = `${Functions.NumberShorten(cost)}`
-    else
-        TogglePedestal(model, true)
-
-        local fishData = fish[tostring(pedestalId)]
-        if fishData then
-            buyFrame.Visible = false
-            upgradeFrame.Visible = true
+            buyFrame.Visible = true
+            upgradeFrame.Visible = false
             placeFrame.Visible = false
-
-            local textLabel = upgradeFrame:WaitForChild("TextLabel")::TextLabel
-            textLabel.Text = `Level {fishData.FishData.Level} -> Level {fishData.FishData.Level + 1}`
-
-            local upgradeButton = upgradeFrame:FindFirstChild("Button")::ImageButton
-            local buttonText = upgradeButton:FindFirstChild("TextLabel")::TextLabel
-
-            local cost = plot:GetUpgradeCost(pedestalId)
+            boostFrame.Visible = false
+    
+            local buyButton = buyFrame:FindFirstChild("Button")::ImageButton
+            local buttonText = buyButton:FindFirstChild("TextLabel")::TextLabel
+    
+            local cost = PlotTypes.PedestalCost(pedestalId)
             if not cost then
                 buttonText.Text = "Max!"
                 return
             end
+    
+            buttonText.Text = `${Functions.NumberShorten(cost)}` 
+        end
+    else
+        TogglePedestal(model, true)
 
-            buttonText.Text = `${Functions.NumberShorten(cost)}`
+        if plot:IsLocal() then
+            local fishData = fish[tostring(pedestalId)]
+            if fishData then
+                buyFrame.Visible = false
+                upgradeFrame.Visible = true
+                placeFrame.Visible = false
+                boostFrame.Visible = false
+    
+                local textLabel = upgradeFrame:WaitForChild("TextLabel")::TextLabel
+                textLabel.Text = `Level {fishData.FishData.Level} -> Level {fishData.FishData.Level + 1}`
+    
+                local upgradeButton = upgradeFrame:FindFirstChild("Button")::ImageButton
+                local buttonText = upgradeButton:FindFirstChild("TextLabel")::TextLabel
+    
+                local cost = plot:GetUpgradeCost(pedestalId)
+                if not cost then
+                    buttonText.Text = "Max!"
+                    return
+                end
+    
+                buttonText.Text = `${Functions.NumberShorten(cost)}`
+            else
+                buyFrame.Visible = false
+                upgradeFrame.Visible = false
+                placeFrame.Visible = true
+                boostFrame.Visible = false
+            end 
         else
             buyFrame.Visible = false
             upgradeFrame.Visible = false
-            placeFrame.Visible = true
+            placeFrame.Visible = false
+            boostFrame.Visible = true
+
+            if isBoosted then
+                boostTimer.Text = `{Functions.FormatTime(boostedTime - workspace:GetServerTimeNow())}`
+                boostTimer.TextColor3 = Color3.fromRGB(255, 255, 0)
+            else
+                boostTimer.Text = "00:00"
+                boostTimer.TextColor3 = Color3.fromRGB(255, 0, 0)
+            end
         end
     end
+
+    local boostAttachment = nameplate:WaitForChild("BoostedAttachment")::Attachment
+    local boostBillboard = boostAttachment:WaitForChild("BillboardGui")::BillboardGui
+    boostBillboard.Enabled = isBoosted
 
     local fishData = fish[tostring(pedestalId)]
     if fishData and pedestalModels[plot] and not pedestalModels[plot][pedestalId] then
@@ -294,7 +343,7 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     end
 end
 
-ClientPlot.GetOrWaitLocal(function(plot: ClientPlot.Type)
+function plotCreated(plot: ClientPlot.Type)
     pedestalModels[plot] = {}
 
     local model = plot:WaitModel()
@@ -315,6 +364,20 @@ ClientPlot.GetOrWaitLocal(function(plot: ClientPlot.Type)
             UpdatePedestal(plot, child::Model)
         end
     end)
+
+    plot:SessionChanged("PlayerBoosts"):Connect(function(newBoosts: {[string]: number})
+        for _, child in pedestals:GetChildren() do
+            UpdatePedestal(plot, child::Model)
+        end
+    end)
+end
+
+ClientPlot.OnAllAndCreated(function(plot: ClientPlot.Type)
+    if pedestalModels[plot] then
+        return
+    end
+
+    plotCreated(plot)
 end)
 
 ClientPlot.Destroying:Connect(function(plot: ClientPlot.Type)

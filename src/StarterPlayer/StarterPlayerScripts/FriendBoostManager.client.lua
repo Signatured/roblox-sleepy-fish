@@ -13,12 +13,7 @@ local function updateFriendBoost(plot: ClientPlot.Type)
     friendBoostText.Text = `Friend Boost: +{friendBoost}%`
 end
 
-print("this happens")
-ClientPlot.GetOrWaitLocal(function(plot)
-    if not plot:IsLocal() then 
-        return
-    end
-
+ClientPlot.OnLocalAndCreated(function(plot)
     updateFriendBoost(plot)
 
     plot:SessionChanged("FriendBoost"):Connect(function(value: number)

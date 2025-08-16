@@ -46,11 +46,7 @@ end
 --// Set up the button's functionality
 GUIFX.Odometer(CashLabel, 0.5)
 
-ClientPlot.GetOrWaitLocal(function(plot)
-    if not plot:IsLocal() then
-        return
-    end
-
+ClientPlot.OnLocalAndCreated(function(plot)
     local money = plot:Save("Money")
     if money then
         currenyMoney = money

@@ -6,7 +6,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 return {
     DisplayName = "Clown Fish",
     Rarity = Rarity.Common,
-    MoneyPerSecond = 1,
+    MoneyPerSecond = 5,
     BaseUpgradeCost = 30,
     BillboardOffset = 7,
 }::FishTypes.raw_dir

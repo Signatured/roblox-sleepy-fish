@@ -4,7 +4,7 @@ local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
 local FishCmds = require(game.ReplicatedStorage.Game.Library.Client.FishCmds)
 local NotificationCmds = require(game.ReplicatedStorage.Library.Client.NotificationCmds)
 
-ClientPlot.GetOrWaitLocal(function(plot: ClientPlot.Type)
+ClientPlot.OnAllAndCreated(function(plot: ClientPlot.Type)
 	local model = plot:WaitModel()
 	local trashCan = model:FindFirstChild("TrashCan")::BasePart
 
