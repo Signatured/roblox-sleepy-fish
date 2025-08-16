@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Trulimero Trulichina",
-    Rarity = Rarity.Common,
+    Rarity = Rarity.Rare,
     MoneyPerSecond = 4,
     BaseUpgradeCost = 120,
     BillboardOffset = 7,

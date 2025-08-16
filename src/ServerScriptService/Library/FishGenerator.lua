@@ -225,7 +225,11 @@ local function despawn(uid: string)
     if not fish then return end
     -- Clear carrying link if any
     if fish.Carrier then
-        playerCarry[fish.Carrier] = nil
+        local carrier = fish.Carrier
+        playerCarry[carrier] = nil
+        pcall(function()
+            carrier:SetAttribute("CarryingFishId", nil)
+        end)
         fish.Carrier = nil
     end
     if fish.Model then fish.Model:Destroy() end
@@ -245,6 +249,10 @@ function FishGen.SetCarrying(player: Player, uid: string): boolean
     if not fish then return false end
     playerCarry[player] = uid
     fish.Carrier = player
+    -- Set attribute with the directory FishId while carrying
+    pcall(function()
+        player:SetAttribute("CarryingFishId", fish.FishData.FishId)
+    end)
     if fish.Gui then
         local dir = Directory.Fish[fish.FishData.FishId]
         fish.Gui.StudsOffsetWorldSpace = Vector3.new(0, 0, dir.BillboardOffset)
@@ -301,6 +309,9 @@ local function onPlayerRemoving(player: Player)
         despawn(uid)
         playerCarry[player] = nil
     end
+    pcall(function()
+        player:SetAttribute("CarryingFishId", nil)
+    end)
 end
 Players.PlayerRemoving:Connect(onPlayerRemoving)
 

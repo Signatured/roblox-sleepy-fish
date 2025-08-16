@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Crystaldeath Fish",
-    Rarity = Rarity.Common,
+    Rarity = Rarity.Secret,
     MoneyPerSecond = 40266,
     BaseUpgradeCost = 1207980,
     BillboardOffset = 7,

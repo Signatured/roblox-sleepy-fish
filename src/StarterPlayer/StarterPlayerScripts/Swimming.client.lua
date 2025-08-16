@@ -5,7 +5,7 @@ local RunService = game:GetService("RunService")
 local CollectionService = game:GetService("CollectionService")
 local UserInputService = game:GetService("UserInputService")
 
-local Functions = require(game.ReplicatedStorage.Library.Functions)
+local FishCmds = require(game.ReplicatedStorage.Game.Library.Client.FishCmds)
 
 local LOCAL_PLAYER = Players.LocalPlayer
 
@@ -88,7 +88,7 @@ RunService.RenderStepped:Connect(function()
     if isSwimming and swim then
         local s = swim :: BodyVelocity
         local upBoost = if UserInputService:IsKeyDown(Enum.KeyCode.Space) then 6 else 0
-        s.Velocity = humanoid.MoveDirection * humanoid.WalkSpeed + Vector3.new(0, 3 + upBoost, 0)
+        s.Velocity = (humanoid.MoveDirection * humanoid.WalkSpeed + Vector3.new(0, 3 + upBoost, 0)) * FishCmds.GetCurrentSpeedModifier()
     end
 
     local camera = workspace.CurrentCamera

@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Tralelelo Shark",
-    Rarity = Rarity.Common,
+    Rarity = Rarity.Legendary,
     MoneyPerSecond = 1373,
     BaseUpgradeCost = 41190,
     BillboardOffset = 7,

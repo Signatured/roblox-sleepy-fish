@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Mythical Megladon",
-    Rarity = Rarity.Common,
+    Rarity = Rarity.Secret,
     MoneyPerSecond = 100000,
     BaseUpgradeCost = 3000000,
     BillboardOffset = 7,

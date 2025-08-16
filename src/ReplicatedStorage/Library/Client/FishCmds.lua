@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Save = require(ReplicatedStorage.Library.Client.Save)
 local FishTypes = require(ReplicatedStorage.Game.Library.Types.Fish)
+local Directory = require(ReplicatedStorage.Game.Library.Directory)
 
 local module = {}
 
@@ -70,6 +71,13 @@ function module.GetCurrentFishData(): FishTypes.data_schema?
         end
     end
     return nil
+end
+
+function module.GetCurrentSpeedModifier(): number
+    local carryingId = Players.LocalPlayer:GetAttribute("CarryingFishId")
+    if not carryingId then return 1 end
+    local dir = Directory.Fish[carryingId]
+    return dir.Rarity.SpeedModifier or 1
 end
 
 return module

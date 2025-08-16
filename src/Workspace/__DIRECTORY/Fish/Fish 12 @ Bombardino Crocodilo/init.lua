@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Bombardino Crocodilo",
-    Rarity = Rarity.Common,
+    Rarity = Rarity.Legendary,
     MoneyPerSecond = 200,
     BaseUpgradeCost = 6000,
     BillboardOffset = 7,

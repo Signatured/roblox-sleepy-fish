@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Blobfish",
-    Rarity = Rarity.Common,
+    Rarity = Rarity.Legendary,
     MoneyPerSecond = 2223,
     BaseUpgradeCost = 66690,
     BillboardOffset = 7,

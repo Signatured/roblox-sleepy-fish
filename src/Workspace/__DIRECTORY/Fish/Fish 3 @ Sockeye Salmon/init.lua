@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Sockeye Salmon",
-    Rarity = Rarity.Common,
+    Rarity = Rarity.Rare,
     MoneyPerSecond = 3,
     BaseUpgradeCost = 90,
     BillboardOffset = 7,

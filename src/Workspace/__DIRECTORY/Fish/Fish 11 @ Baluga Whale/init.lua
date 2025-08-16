@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Baluga Whale",
-    Rarity = Rarity.Common,
+    Rarity = Rarity.Epic,
     MoneyPerSecond = 123,
     BaseUpgradeCost = 3690,
     BillboardOffset = 7,

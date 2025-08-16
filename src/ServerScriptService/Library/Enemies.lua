@@ -40,7 +40,7 @@ type EnemyRecord = {
 local Enemies = {}
 
 local ATTACK_RANGE = 10
-local MOVE_SPEED = 17
+local MOVE_SPEED = 20
 
 local enemies: { [string]: EnemyRecord } = {}
 

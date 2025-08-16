@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Depth Serpent",
-    Rarity = Rarity.Common,
+    Rarity = Rarity.Secret,
     MoneyPerSecond = 65357,
     BaseUpgradeCost = 1960710,
     BillboardOffset = 7,

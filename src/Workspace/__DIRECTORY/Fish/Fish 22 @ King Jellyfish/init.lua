@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "King Jellyfish",
-    Rarity = Rarity.Common,
+    Rarity = Rarity.Mythical,
     MoneyPerSecond = 24825,
     BaseUpgradeCost = 744750,
     BillboardOffset = 7,

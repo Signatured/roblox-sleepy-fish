@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Bananita Dolphinita",
-    Rarity = Rarity.Common,
+    Rarity = Rarity.Epic,
     MoneyPerSecond = 76,
     BaseUpgradeCost = 2280,
     BillboardOffset = 7,
