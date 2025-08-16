@@ -22,6 +22,7 @@ export type schema = {
 		Variables: PlotSave,
 	},
 	Settings: {[string]: boolean},
+	LastLogout: number?,
 }
 
 local DefaultStats = {

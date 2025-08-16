@@ -36,6 +36,7 @@ export type Fish = {
 	FishId: string,
 	LastClaimTime: number,
 	CreateTime: number,
+    Earnings: number,
 	OfflineEarnings: number,
 }
 
