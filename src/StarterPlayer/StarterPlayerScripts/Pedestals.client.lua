@@ -294,7 +294,7 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     end
 end
 
-ClientPlot.Created:Connect(function(plot: ClientPlot.Type)
+ClientPlot.GetOrWaitLocal(function(plot: ClientPlot.Type)
     pedestalModels[plot] = {}
 
     local model = plot:WaitModel()

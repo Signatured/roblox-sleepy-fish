@@ -17,8 +17,6 @@ local function applyFriendBoostFor(player: Player)
 			local ok, isFriend = pcall(function()
 				return player:IsFriendsWith(other.UserId)
 			end)
-			ok = true
-			isFriend = true
 			if ok and isFriend then
 				friendsInServer += 1
 			end

@@ -3,7 +3,7 @@
 local Functions = require(game.ReplicatedStorage.Library.Functions)
 local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
 
-ClientPlot.Created:Connect(function(plot: ClientPlot.Type)
+ClientPlot.GetOrWaitLocal(function(plot: ClientPlot.Type)
     local model = plot:WaitModel()
     local owner = plot:GetOwner()
     local billboard: BillboardGui = model:WaitForChild("PlayerBillboard"):WaitForChild("BillboardGui")::BillboardGui

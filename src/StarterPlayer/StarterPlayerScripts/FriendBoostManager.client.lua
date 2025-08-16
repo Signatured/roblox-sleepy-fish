@@ -14,7 +14,7 @@ local function updateFriendBoost(plot: ClientPlot.Type)
 end
 
 print("this happens")
-ClientPlot.Created:Connect(function(plot)
+ClientPlot.GetOrWaitLocal(function(plot)
     if not plot:IsLocal() then 
         return
     end

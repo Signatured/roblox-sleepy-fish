@@ -46,7 +46,7 @@ end
 --// Set up the button's functionality
 GUIFX.Odometer(CashLabel, 0.5)
 
-ClientPlot.Created:Connect(function(plot)
+ClientPlot.GetOrWaitLocal(function(plot)
     if not plot:IsLocal() then
         return
     end
