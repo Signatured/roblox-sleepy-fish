@@ -75,6 +75,7 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
 
     local dir = Directory.Fish[fishData.FishId]
     local earnings = plot:GetFishEarnings(index)
+    local offlineEarnings = plot:GetFishOfflineEarnings(index)
 
     local frame = billboard:WaitForChild("Frame")::Frame
     local displayName = frame:WaitForChild("DisplayName")::TextLabel
@@ -82,6 +83,7 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
     local money = frame:WaitForChild("Money")::TextLabel
     local rarity = frame:WaitForChild("Rarity")::TextLabel
     local level = frame:WaitForChild("Level")::TextLabel
+    local offlineFrame = frame:WaitForChild("OfflineEarnings")::TextLabel
 
     displayName.Text = dir.DisplayName
     rarity.Text = dir.Rarity.DisplayName
@@ -89,6 +91,13 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
     level.Text = `Level {fishData.FishData.Level}`
     moneyPerSecond.Text = `${Functions.NumberShorten(plot:GetMoneyPerSecond(index) or 0)}/s`
     money.Text = `${Functions.NumberShorten(earnings)}`
+
+    if offlineEarnings > 0 then
+        offlineFrame.Visible = true
+        offlineFrame.Text = `<font color="#FFFFFF">${Functions.NumberShorten(offlineEarnings)}</font> <font color="#a2a2a2">Made Offline</font>`
+    else
+        offlineFrame.Visible = false
+    end
 end
 
 local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame, upgradeFrame: Frame, placeFrame: Frame)
