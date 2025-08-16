@@ -13,6 +13,7 @@ local function updateFriendBoost(plot: ClientPlot.Type)
     friendBoostText.Text = `Friend Boost: +{friendBoost}%`
 end
 
+print("this happens")
 ClientPlot.Created:Connect(function(plot)
     if not plot:IsLocal() then 
         return
