@@ -9,6 +9,7 @@ local RunService = game:GetService("RunService")
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
 local Functions = require(ReplicatedStorage.Library.Functions)
 local EnemyTypes = require(ReplicatedStorage.Game.Library.Types.Enemy)
+local ServerPlot = require(game.ServerScriptService.Plot.ServerPlot)
 
 local ROOT = workspace:WaitForChild("__THINGS")
 local ENEMY_LOCATIONS = ROOT:WaitForChild("EnemyLocations")
@@ -120,6 +121,27 @@ local function clearMotionConstraints(rec: EnemyRecord)
 	rec.Attachment = nil
 end
 
+local function markPlayerDead(player: Player)
+    if not player or not player.Parent then return end
+    if player:GetAttribute("Dead") then return end
+    pcall(function()
+        player:SetAttribute("Dead", true)
+    end)
+    local plot = ServerPlot.GetByPlayer(player)
+    if plot then
+        pcall(function()
+            plot:Fire("Death")
+        end)
+    end
+    task.delay(2, function()
+        if player and player.Parent then
+            pcall(function()
+                player:SetAttribute("Dead", nil)
+            end)
+        end
+    end)
+end
+
 local function beginChasing(rec: EnemyRecord, player: Player, fromAlert: boolean)
     print("beginChasing", rec.Id, player.Name)
 	rec.TargetPlayer = player
@@ -191,8 +213,7 @@ local function findNearbyPlayer(rec: EnemyRecord): Player?
 	for _, player in ipairs(Players:GetPlayers()) do
 		local character = player.Character
 		local hrp = character and character:FindFirstChild("HumanoidRootPart")
-        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-		if hrp and hrp:IsA("BasePart") and humanoid and humanoid.Health > 0 then
+		if hrp and hrp:IsA("BasePart") and not player:GetAttribute("Dead") then
 			-- Only consider players inside WATER
 			if not Functions.IsPositionInPart((hrp :: BasePart).Position, WATER) then
 				continue
@@ -222,7 +243,7 @@ RunService.Heartbeat:Connect(function()
 			local character = target and target.Character
 			local hrp = character and character:FindFirstChild("HumanoidRootPart")
 			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-			if not target or not hrp or not humanoid or humanoid.Health <= 0 then
+			if not target or not hrp or target:GetAttribute("Dead") then
 				-- Target lost; try follow someone else
 				local nearby = findNearbyPlayer(rec)
 				if nearby then
@@ -269,7 +290,7 @@ RunService.Heartbeat:Connect(function()
 					end
 				end
 				if d <= ATTACK_RANGE then
-					(humanoid :: Humanoid).Health = 0
+					markPlayerDead(target)
 				end
 			end
 			-- Alerts can override follow while chasing (ignore FollowRange)

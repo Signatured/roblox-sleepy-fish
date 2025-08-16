@@ -48,6 +48,14 @@ RunService.RenderStepped:Connect(function()
     local hrp = currentHRP
     if not humanoid or not hrp then return end
 
+    if isSwimming and (LOCAL_PLAYER:GetAttribute("Dead") or LOCAL_PLAYER:GetAttribute("Flying")) then
+        if swim then swim:Destroy() swim = nil end
+        setSwimmingEnabled(false)
+        nextSwimEnableAt = os.clock() + 0.2
+        isSwimming = false
+        return
+    end
+
     -- Nothing to test against
     if #waterParts == 0 then
         if isSwimming then
