@@ -13,6 +13,7 @@ export type PlotSave = {
 	Pedestals: number,
 	Inventory: {FishTypes.data_schema},
 	Fish: {[string]: PlotTypes.Fish},
+	PaidIndex: number,
 }
 
 export type schema = {
@@ -29,7 +30,8 @@ local DefaultStats = {
 		Variables = {
 			Money = 0,
 			Fish = {},
-			Pedestals = 1
+			Pedestals = 1,
+			PaidIndex = 0
 		},
 	},
 	Settings = {
