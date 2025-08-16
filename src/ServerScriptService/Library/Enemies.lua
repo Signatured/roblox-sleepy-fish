@@ -10,6 +10,7 @@ local Directory = require(ReplicatedStorage.Game.Library.Directory)
 local Functions = require(ReplicatedStorage.Library.Functions)
 local EnemyTypes = require(ReplicatedStorage.Game.Library.Types.Enemy)
 local ServerPlot = require(game.ServerScriptService.Plot.ServerPlot)
+local Signal = require(ReplicatedStorage.Library.Signal)
 
 local ROOT = workspace:WaitForChild("__THINGS")
 local ENEMY_LOCATIONS = ROOT:WaitForChild("EnemyLocations")
@@ -131,6 +132,7 @@ local function markPlayerDead(player: Player)
     if plot then
         pcall(function()
             plot:Fire("Death")
+			Signal.Fire("Death", player)
         end)
     end
     task.delay(2, function()
@@ -143,7 +145,6 @@ local function markPlayerDead(player: Player)
 end
 
 local function beginChasing(rec: EnemyRecord, player: Player, fromAlert: boolean)
-    print("beginChasing", rec.Id, player.Name)
 	rec.TargetPlayer = player
 	rec.TargetFromAlert = fromAlert
 	rec.State = "Chasing"

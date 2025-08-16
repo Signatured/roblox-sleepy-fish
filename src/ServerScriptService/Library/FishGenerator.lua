@@ -7,6 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local RunService = game:GetService("RunService")
 
+local Signal = require(ReplicatedStorage.Library.Signal)
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
 local FishTypes = require(ReplicatedStorage.Game.Library.Types.Fish)
 local Functions = require(ReplicatedStorage.Library.Functions)
@@ -261,6 +262,58 @@ function FishGen.SetCarrying(player: Player, uid: string): boolean
     return true
 end
 
+function FishGen.Drop(player: Player): boolean
+    local uid = playerCarry[player]
+    if not uid then return false end
+    local fish = uidToFish[uid]
+    if not fish then return false end
+
+    -- Clear carrying record and attribute
+    playerCarry[player] = nil
+    pcall(function()
+        player:SetAttribute("CarryingFishId", nil)
+    end)
+
+    -- Remove weld constraints that attached the fish to the player
+    local character = player.Character
+    for _, inst in ipairs(fish.Model:GetDescendants()) do
+        if inst:IsA("WeldConstraint") then
+            local part0 = (inst :: any).Part0
+            local part1 = (inst :: any).Part1
+            if (typeof(part0) == "Instance" and character and (part0 :: Instance):IsDescendantOf(character))
+                or (typeof(part1) == "Instance" and character and (part1 :: Instance):IsDescendantOf(character)) then
+                inst:Destroy()
+            end
+        end
+    end
+
+    -- Re-anchor the fish and place it at the player's current position
+    setModelAnchored(fish.Model, true)
+    local hrp = character and character:FindFirstChild("HumanoidRootPart")
+    if hrp and hrp:IsA("BasePart") then
+        local hrpPart: BasePart = hrp :: BasePart
+        local _, ry, _ = hrpPart.CFrame:ToOrientation()
+        local uprightCFrame = CFrame.new(hrpPart.Position) * CFrame.Angles(0, ry, 0)
+        fish.Model:PivotTo(uprightCFrame)
+    end
+
+    -- Restore GUI offset for world space
+    if fish.Gui then
+        local dir = Directory.Fish[fish.FishData.FishId]
+        fish.Gui.StudsOffsetWorldSpace = Vector3.new(0, dir.BillboardOffset, 0)
+    end
+
+    -- Re-enable pickup prompt(s)
+    for _, inst in ipairs(fish.Model:GetDescendants()) do
+        if inst:IsA("ProximityPrompt") then
+            (inst :: ProximityPrompt).Enabled = true
+        end
+    end
+
+    fish.Carrier = nil
+    return true
+end
+
 function FishGen.Destroy(uid: string)
     despawn(uid)
 end
@@ -335,6 +388,10 @@ end
 for i = 1, EASY_COUNT do
     spawnOne(EASY, Functions.RandomDouble(0, 50))
 end
+
+Signal.Fired("Death"):Connect(function(player: Player)
+    FishGen.Drop(player)
+end)
 
 return FishGen
 
