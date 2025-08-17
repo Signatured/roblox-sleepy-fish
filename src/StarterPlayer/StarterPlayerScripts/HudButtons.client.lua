@@ -20,7 +20,11 @@ local function setup()
 	if buyButton and buyButton:IsA("GuiButton") then
 		ButtonFX(buyButton)
 		buyButton.Activated:Connect(function()
-			TabController.OpenTab("Tools")
+			if TabController.GetCurrentTab() ~= "Tools" then
+				TabController.OpenTab("Tools")
+			else
+				TabController.CloseTab()
+			end
 		end)
 	end
 

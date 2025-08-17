@@ -38,6 +38,20 @@ function module.Has(id: string | GadgetTypes.dir_schema): boolean
 	return false
 end
 
+-- Returns the directory schema of the currently equipped gadget (if any), otherwise nil
+function module.GetCurrent(): GadgetTypes.dir_schema?
+    local player = Players.LocalPlayer
+    if not player then return nil end
+
+    local character = player.Character
+    local tool = character and character:FindFirstChildOfClass("Tool")
+    if not tool then return nil end
+
+    -- Tools are named with schema._id; map back to directory
+    local dir = GadgetDirectory[tool.Name]
+    return dir
+end
+
 return module
 
 
