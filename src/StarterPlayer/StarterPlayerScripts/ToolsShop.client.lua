@@ -8,6 +8,7 @@ local ButtonFX = require(ReplicatedStorage.Library.Client.GUIFX.ButtonFX)
 local GadgetDirectory = require(ReplicatedStorage.Game.Library.Directory.Gadgets)
 local GadgetCmds = require(ReplicatedStorage.Game.Library.Client.GadgetCmds)
 local Functions = require(ReplicatedStorage.Library.Functions)
+local ScreenResolution = require(ReplicatedStorage.Library.Client.ScreenResolution)
 
 local function getContentContainer(): ScrollingFrame?
 	local toolsGui = GUI.Tools()
@@ -89,6 +90,12 @@ local function buildToolsList()
 		end
 
 		clone.Parent = scrolling
+	end
+
+	while true do
+		if TabController.GetCurrentTab() ~= "Tools" then break end
+		Functions.UpdateCanvasSize(scrolling)
+		task.wait(0.1)
 	end
 end
 
