@@ -7,13 +7,7 @@
       "$ignoreUnknownInstances": true,
       "$path": "framework/src/ReplicatedStorage",
       "Game": {
-        "$path": "src/ReplicatedStorage",
-        "GameLibrary": {
-          "$path": "src/ReplicatedStorage/Library"
-        },
-        "GameClientLibrary": {
-          "$path": "src/ReplicatedStorage/Library/Client"
-        }
+        "$path": "src/ReplicatedStorage"
       },
       "Plot": {
         "$path": "plots/src/ReplicatedStorage"
