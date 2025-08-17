@@ -10,6 +10,8 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local GadgetDirectory = require(ReplicatedStorage.Game.Library.Directory.Gadgets)
 local GadgetTypes = require(ReplicatedStorage.Game.Library.Types.Gadgets)
 local Saving = require(ServerScriptService.Library.Saving)
+local ServerPlot = require(ServerScriptService.Plot.ServerPlot)
+local Network = require(ServerScriptService.Library.Network)
 
 local Gadgets = {}
 
@@ -125,6 +127,74 @@ local function onCharacterAdded(character: Model, player: Player)
 	end)
 end
 
+--// Attempts to buy a gadget for the player. Returns true if purchased.
+function Gadgets.Buy(player: Player, id: string | GadgetTypes.dir_schema): boolean
+    local schema = getGadgetSchema(id)
+    if not schema then
+        warn("[Gadgets] Invalid gadget id provided to Buy")
+        return false
+    end
+
+    local save = Saving.Get(player)
+    if not save then return false end
+
+    local plot = ServerPlot.GetByPlayer(player)
+    if not plot then
+        warn("[Gadgets] No plot found for", player.Name)
+        return false
+    end
+
+    -- Already owned in save?
+    if save.Tools[schema._id] then
+        return false
+    end
+
+    local cost = schema.Cost or 0
+    if not plot:CanAfford(cost) then
+        return false
+    end
+
+    -- Deduct, mark owned, and give the gadget
+    plot:AddMoney(-cost)
+    save.Tools[schema._id] = true
+    Gadgets.Give(player, schema)
+
+    return true
+end
+
+--// Attempts to sell a gadget back. Returns true if sold and refunded.
+function Gadgets.Sell(player: Player, id: string | GadgetTypes.dir_schema): boolean
+    local schema = getGadgetSchema(id)
+    if not schema then
+        warn("[Gadgets] Invalid gadget id provided to Sell")
+        return false
+    end
+
+    local save = Saving.Get(player)
+    if not save then return false end
+
+    local plot = ServerPlot.GetByPlayer(player)
+    if not plot then
+        warn("[Gadgets] No plot found for", player.Name)
+        return false
+    end
+
+    if not save.Tools[schema._id] then
+        return false
+    end
+
+    -- Remove ownership, take the tool, and refund half cost
+    save.Tools[schema._id] = nil
+    Gadgets.Take(player, schema)
+
+    local refund = math.floor((schema.Cost or 0) * 0.5)
+    if refund > 0 then
+        plot:AddMoney(refund)
+    end
+
+    return true
+end
+
 --// This function is called when a player joins the game.
 local function onPlayerAdded(player: Player)
 	-- Initialize the gadget table for the player
@@ -154,4 +224,14 @@ Players.PlayerRemoving:Connect(function(player)
 	playerGadgets[player.UserId] = nil
 end)
 
-return Gadgets 
+Network.Invoked("BuyTool", function(player: Player, id: string)
+	local success = Gadgets.Buy(player, id)
+	return success
+end)
+
+Network.Invoked("SellTool", function(player: Player, id: string)
+	local success = Gadgets.Sell(player, id)
+	return success
+end)
+
+return Gadgets

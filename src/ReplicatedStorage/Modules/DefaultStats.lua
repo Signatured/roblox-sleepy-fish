@@ -18,6 +18,7 @@ export type PlotSave = {
 
 export type schema = {
 	Inventory: {FishTypes.data_schema},
+	Tools: {[string]: boolean},
 	PlotSave: {
 		Variables: PlotSave,
 	},
@@ -27,6 +28,7 @@ export type schema = {
 
 local DefaultStats = {
 	Inventory = {},
+	Tools = {},
 	PlotSave = {
 		Variables = {
 			Money = 0,
