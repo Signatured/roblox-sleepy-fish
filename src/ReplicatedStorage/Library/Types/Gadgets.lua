@@ -8,6 +8,9 @@ export type raw_dir = {
 	DisplayName: string,
 	Icon: string,
 	Description: string,
+	Index: number,
+	Cost: number,
+	SpeedMultiplier: number,
 	Gradient: string?,
 }
 

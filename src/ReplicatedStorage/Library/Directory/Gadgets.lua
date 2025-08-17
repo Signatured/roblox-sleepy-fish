@@ -11,7 +11,7 @@ local module: {[string]: GadgetTypes.dir_schema} = {
 local function processModule(child: ModuleScript)
 	local success, result = pcall(require, child)
 	if success then
-		local name = child.Name:match("|%s*(.+)")
+		local name = child.Name:match("@%s*(.+)")
 		if not name then
 			warn("Invalid module name format:", child.Name)
 			return
@@ -42,6 +42,8 @@ if game:GetService("RunService"):IsServer() and game:GetService("RunService"):Is
 			assert(type(dir.DisplayName) == "string")
 			assert(type(dir.Icon) == "string")
 			assert(type(dir.Description) == "string")
+			assert(type(dir.Index) == "number")
+			assert(type(dir.Cost) == "number")
 			assert(dir.Gradient == nil or type(dir.Gradient) == "string")
 		end)
 		if not success then
