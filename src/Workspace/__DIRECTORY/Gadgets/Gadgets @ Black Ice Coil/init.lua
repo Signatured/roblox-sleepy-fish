@@ -1,7 +1,7 @@
 --!strict
 
 return {
-	DisplayName = "Frost Coil",
+	DisplayName = "Black Ice Coil",
 	Icon = "",
 	Description = "Swim 210% faster!",
 	Index = 7,
