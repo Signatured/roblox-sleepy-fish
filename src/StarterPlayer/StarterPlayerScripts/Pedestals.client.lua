@@ -319,7 +319,9 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
         local fishModel = dir._script:WaitForChild("Model"):Clone()::Model
         local plotFishFolder = workspace:WaitForChild("__THINGS"):WaitForChild("PlotFish")
 
-        fishModel:PivotTo(base:GetPivot() + Vector3.new(0, base.Size.Y / 2, 0) + Vector3.new(0, fishModel:GetExtentsSize().Y / 2, 0))
+        fishModel:PivotTo(base:GetPivot() + Vector3.new(0, base.Size.Y / 2, 0) + Vector3.new(0, fishModel:GetExtentsSize().Y / 2, 0) + Vector3.new(0, 2, 0))
+        fishModel:SetAttribute("PedestalFish", true)
+        fishModel:AddTag("SwimmingFish")
         fishModel.Parent = plotFishFolder
 
         local sellProximity: ProximityPrompt?

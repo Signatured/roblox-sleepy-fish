@@ -14,6 +14,7 @@ local Functions = require(ReplicatedStorage.Library.Functions)
 local Fish = require(ServerScriptService.Game.Library.Fish)
 local Network = require(ServerScriptService.Library.Network)
 local Enemies = require(ServerScriptService.Game.Library.Enemies)
+local Notifications = require(ServerScriptService.Library.Notifications)
 
 local ROOT = workspace:WaitForChild("__THINGS")
 local SPAWNS = ROOT:WaitForChild("FishSpawns")
@@ -119,6 +120,14 @@ local function makePrompt(fish: Swimming)
     prompt.Triggered:Connect(function(player)
         -- Prevent multiple carriers and prevent a player from carrying more than one
         if fish.Carrier then return end
+
+        if playerCarry[player] then
+            Notifications.Message(player, "You're already carrying a fish!", {
+                Color = Color3.fromRGB(255, 0, 0),
+            })
+            return
+        end
+
         setModelAnchored(fish.Model, false)
         -- Alert sphere at pickup
         local dir = Directory.Fish[fish.FishData.FishId]
@@ -273,6 +282,7 @@ function FishGen.Drop(player: Player): boolean
     if not uid then return false end
     local fish = uidToFish[uid]
     if not fish then return false end
+    if playerCarry[player] then return false end
 
     -- Clear carrying record and attribute
     playerCarry[player] = nil
