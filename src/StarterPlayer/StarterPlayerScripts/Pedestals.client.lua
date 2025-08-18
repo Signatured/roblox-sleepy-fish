@@ -107,7 +107,7 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame
     model:SetAttribute("_ButtonsInit", true)
     local pedestalId = tonumber(model.Name)::number
 
-    local buyButton = buyFrame:WaitForChild("Button")::GuiButton
+    local buyButton = buyFrame:WaitForChild("ButtonMoney")::GuiButton
     ButtonFX(buyButton)
     buyButton.MouseButton1Click:Connect(function()
         local success, msg = plot:Invoke("BuyPedestal", pedestalId)
@@ -249,7 +249,7 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             placeFrame.Visible = false
             boostFrame.Visible = false
     
-            local buyButton = buyFrame:FindFirstChild("Button")::ImageButton
+            local buyButton = buyFrame:FindFirstChild("ButtonMoney")::ImageButton
             local buttonText = buyButton:FindFirstChild("TextLabel")::TextLabel
     
             local cost = PlotTypes.PedestalCost(pedestalId)
