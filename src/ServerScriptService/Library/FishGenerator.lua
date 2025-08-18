@@ -113,6 +113,7 @@ local function makePrompt(fish: Swimming)
     prompt.KeyboardKeyCode = Enum.KeyCode.E
     prompt.HoldDuration = 0
     prompt.MaxActivationDistance = 12
+    prompt.RequiresLineOfSight = false
     prompt.Parent = primary
     prompt.Triggered:Connect(function(player)
         -- Prevent multiple carriers and prevent a player from carrying more than one
@@ -205,6 +206,7 @@ local function spawnOne(into: BasePart, backdate: number?)
     fishInstance.Model:PivotTo(spawnCFrame)
     setModelAnchored(fishInstance.Model, true)
     fishInstance.Model.Parent = ROOT
+    fishInstance.Model:AddTag("SwimmingFish")
     attachGui(fishInstance, schema)
     makePrompt(fishInstance)
 end
