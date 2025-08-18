@@ -1,11 +1,11 @@
 --!strict
 
 return {
-	ProductId = 3372113200,
-	DisplayName = "+0.5x Multi",
+	ProductId = 3375483794,
+	DisplayName = "[OP] Steal!",
 	Icon = "",
-	Description = "+0.5x Multi",
-	OneTimePurchase = true,
+	Description = "Steal another player's fish!",
+	OneTimePurchase = false,
 	ClientTest = function(player: Player)
 		local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
 
@@ -20,25 +20,15 @@ return {
 			return false, "No plot found!"
 		end
 
-		if plot:Save("PaidIndex") ~= 2 then
-			return false, "You cannot buy this right now!"
-		end
-
 		return true
 	end,
 	Callback = function(player: Player): (boolean, string?)
-		local ServerPlot = require(game.ServerScriptService.Plot.ServerPlot)
+		local Steal = require(game.ServerScriptService.Game.Library.Steal)
 
-		local plot = ServerPlot.GetByPlayer(player)
-		if not plot then
-			return false, "No plot found!"
+		local success = Steal.ExecuteSteal(player)
+		if not success then
+			return false, "That fish no longer exists!"
 		end
-
-		if plot:Save("PaidIndex") ~= 2 then
-			return false, "You cannot buy this right now!"
-		end
-
-		plot:SaveSet("PaidIndex", 3)
 
 		return true
 	end,

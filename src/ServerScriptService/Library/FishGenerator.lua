@@ -346,7 +346,10 @@ RunService.Heartbeat:Connect(function()
 				if hrp and hrp:IsA("BasePart") then
 					if Functions.IsPositionInPart(hrp.Position, homeBase) then
 						-- Award fish to player inventory and despawn world fish
-						Fish.Give(player, fish)
+						local data = Fish.Give(player, fish)
+                        if data then
+                            Fish.ForceHoldFish(player, data)
+                        end
 						despawn(uid)
 					end
 				end

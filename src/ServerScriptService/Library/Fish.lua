@@ -73,6 +73,63 @@ function Fish.GetFromInventory(player: Player, uid: string): FishTypes.data_sche
     return nil
 end
 
+function Fish.ForceHoldFish(player: Player, fishData: FishTypes.data_schema)
+	if not player or not fishData or typeof(fishData.UID) ~= "string" then
+		return false
+	end
+
+	local save = Saving.Get(player)
+	if not save then return false end
+
+	-- Verify the fish exists in the player's inventory
+	local hasFish = false
+	for _, entry in ipairs(save.Inventory :: {FishTypes.data_schema}) do
+		if entry.UID == fishData.UID then
+			hasFish = true
+			break
+		end
+	end
+	if not hasFish then return false end
+
+	local humanoid: Humanoid? = nil
+	local character = player.Character
+	if character then
+		humanoid = character:FindFirstChildOfClass("Humanoid")
+	end
+	if not humanoid then return false end
+
+	-- Find the tool representing this fish (by UID) in character or backpack
+	local tool: Tool? = nil
+	local userTools = playerFishTools[player.UserId]
+	if userTools then
+		tool = userTools[fishData.UID]
+	end
+	if not tool then
+		local backpack = ensureBackpack(player)
+		local function findIn(container: Instance): Tool?
+			for _, inst in ipairs(container:GetChildren()) do
+				if inst:IsA("Tool") and inst:GetAttribute("UID") == fishData.UID then
+					return inst
+				end
+			end
+			return nil
+		end
+		if character then
+			tool = findIn(character)
+		end
+		if not tool and backpack then
+			tool = findIn(backpack)
+		end
+	end
+	if not tool then return false end
+
+	-- Equip the tool to force the player to hold it
+	pcall(function()
+		humanoid:EquipTool(tool :: Tool)
+	end)
+	return true
+end
+
 function Fish.Give(player: Player, params: FishTypes.create_params | FishTypes.swimming_fish_schema): FishTypes.data_schema?
     local asAny = params :: any
     local useExistingData: FishTypes.data_schema? = (asAny and asAny.FishData) and (asAny.FishData :: FishTypes.data_schema) or nil
@@ -145,7 +202,8 @@ local function populateToolsFromInventory(player: Player)
             if toolTemplate and toolTemplate:IsA("Tool") then
                 if not backpack:FindFirstChild(fishData.UID) then
                     local newTool = toolTemplate:Clone()
-                    newTool.Name = fishData.UID
+                    newTool.Name = schema.DisplayName
+                    newTool:SetAttribute("UID", fishData.UID)
                     newTool.Parent = backpack
                     playerFishTools[player.UserId][fishData.UID] = newTool
                 end

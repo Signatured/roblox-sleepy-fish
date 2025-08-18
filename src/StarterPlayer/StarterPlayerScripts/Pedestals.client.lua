@@ -12,12 +12,15 @@ local NotificationCmds = require(game.ReplicatedStorage.Library.Client.Notificat
 local FishCmds = require(game.ReplicatedStorage.Game.Library.Client.FishCmds)
 local PlotTypes = require(game.ReplicatedStorage.Game.Library.Types.Plots)
 local Directory = require(game.ReplicatedStorage.Game.Library.Directory)
+local Network = require(game.ReplicatedStorage.Library.Client.Network)
 
 type PedestalModel = {
     Model: Model,
     Billboard: BillboardGui,
-    SellProximity: ProximityPrompt,
-    PickupProximity: ProximityPrompt,
+    SellProximity: ProximityPrompt?,
+    PickupProximity: ProximityPrompt?,
+    BoostProximity: ProximityPrompt?,
+    StealProximity: ProximityPrompt?,
 }
 
 local pedestalModels: {[ClientPlot.Type]: {[number]: PedestalModel}} = {}
@@ -47,7 +50,7 @@ function SetupProximity(text: string, holdDuration: number, keyboardKeyCode: Enu
     local prompt = Instance.new("ProximityPrompt")
 	prompt.ActionText = text
 	prompt.HoldDuration = holdDuration
-	prompt.MaxActivationDistance = 8
+	prompt.MaxActivationDistance = 13
 	prompt.KeyboardKeyCode = keyboardKeyCode
     prompt.RequiresLineOfSight = false
 	prompt.Parent = attachment
@@ -319,8 +322,46 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
         fishModel:PivotTo(base:GetPivot() + Vector3.new(0, base.Size.Y / 2, 0) + Vector3.new(0, fishModel:GetExtentsSize().Y / 2, 0))
         fishModel.Parent = plotFishFolder
 
-        local sellProximity = SetupProximity("Sell", 3, Enum.KeyCode.E, sellAttachment)
-        local pickupProximity = SetupProximity("Pickup", 1, Enum.KeyCode.F, pickupAttachment)
+        local sellProximity: ProximityPrompt?
+        local pickupProximity: ProximityPrompt?
+        local stealProximity: ProximityPrompt?
+        local boostProximity: ProximityPrompt?
+
+        if plot:IsLocal() then
+            sellProximity = SetupProximity("Sell", 3, Enum.KeyCode.E, sellAttachment)
+            pickupProximity = SetupProximity("Pickup", 1, Enum.KeyCode.F, pickupAttachment)
+
+            assert(sellProximity).Triggered:Connect(function(player: Player)
+                plot:Invoke("SellFish", pedestalId)
+            end)
+
+            assert(pickupProximity).Triggered:Connect(function(player: Player)
+                plot:Invoke("PickupFish", pedestalId)
+            end)
+        else
+            stealProximity = SetupProximity("Steal", 3, Enum.KeyCode.E, sellAttachment)
+            boostProximity = SetupProximity("Boost", 1, Enum.KeyCode.F, pickupAttachment)
+
+            assert(stealProximity).Triggered:Connect(function(player: Player)
+                Network.Fire("Steal", plot:GetId(), pedestalId, fishData.UID)
+            end)
+
+            assert(boostProximity).Triggered:Connect(function(player: Player)
+                local success, msg = plot:Invoke("PlayerBoost", pedestalId)
+
+                if not success then
+                    if msg then
+                        NotificationCmds.Message(msg, {
+                            Color = Color3.fromRGB(255, 0, 0),
+                        })
+                    end
+                    return
+                end
+        
+                --TODO: play sound effect
+            end)
+        end
+       
         local billboard = SetupBillboard(fishModel, fishData)
         UpdateBillboard(plot, pedestalId, billboard)
 
@@ -329,12 +370,24 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             Billboard = billboard,
             SellProximity = sellProximity,
             PickupProximity = pickupProximity,
+            StealProximity = stealProximity,
+            BoostProximity = boostProximity,
         }
     elseif not fishData and pedestalModels[plot] and pedestalModels[plot][pedestalId] then
         local fishModel = pedestalModels[plot][pedestalId]
         fishModel.Model:Destroy()
-        fishModel.SellProximity:Destroy()
-        fishModel.PickupProximity:Destroy()
+        if fishModel.SellProximity then
+            fishModel.SellProximity:Destroy()
+        end
+        if fishModel.PickupProximity then
+            fishModel.PickupProximity:Destroy()
+        end
+        if fishModel.StealProximity then
+            fishModel.StealProximity:Destroy()
+        end
+        if fishModel.BoostProximity then
+            fishModel.BoostProximity:Destroy()
+        end
         pedestalModels[plot][pedestalId] = nil
     end
 
@@ -383,8 +436,18 @@ end)
 ClientPlot.Destroying:Connect(function(plot: ClientPlot.Type)
     for _, model in pairs(pedestalModels[plot]) do
         model.Model:Destroy()
-        model.SellProximity:Destroy()
-        model.PickupProximity:Destroy()
+        if model.SellProximity then
+            model.SellProximity:Destroy()
+        end
+        if model.PickupProximity then
+            model.PickupProximity:Destroy()
+        end
+        if model.StealProximity then
+            model.StealProximity:Destroy()
+        end
+        if model.BoostProximity then
+            model.BoostProximity:Destroy()
+        end
     end
     pedestalModels[plot] = nil
 end)

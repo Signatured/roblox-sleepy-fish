@@ -20,7 +20,7 @@ return {
 			return false, "No plot found!"
 		end
 
-		if plot:Session("PaidIndex") ~= 0 then
+		if plot:Save("PaidIndex") ~= 0 then
 			return false, "You cannot buy this right now!"
 		end
 
@@ -34,11 +34,11 @@ return {
 			return false, "No plot found!"
 		end
 
-		if plot:Session("PaidIndex") ~= 0 then
+		if plot:Save("PaidIndex") ~= 0 then
 			return false, "You cannot buy this right now!"
 		end
 
-		plot:SessionSet("PaidIndex", 1)
+		plot:SaveSet("PaidIndex", 1)
 
 		return true
 	end,

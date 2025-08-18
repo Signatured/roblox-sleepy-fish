@@ -3,6 +3,13 @@
 local Functions = require(game.ReplicatedStorage.Library.Functions)
 local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
 
+local paidIndexMap = {
+    [0] = 0,
+    [1] = 0.5,
+    [2] = 1,
+    [3] = 1.5,
+}
+
 ClientPlot.OnAllAndCreated(function(plot: ClientPlot.Type)
     local model = plot:WaitModel()
     local owner = plot:GetOwner()
@@ -24,8 +31,18 @@ ClientPlot.OnAllAndCreated(function(plot: ClientPlot.Type)
         end
     end)
 
+    local paidIndex = plot:Save("PaidIndex")::number
+    local indexMap = paidIndexMap[paidIndex]
+    local totalMulti = indexMap + 1
+
     name.Text = owner.DisplayName
-    multi.Text = "x1 Multi"
+    multi.Text = `x{totalMulti} Multi`
 
     billboard.Enabled = true
+
+    plot:SaveChanged("PaidIndex"):Connect(function(paidIndex: number)
+        local newIndexMap = paidIndexMap[paidIndex]
+        local newTotalMulti = newIndexMap + 1
+        multi.Text = `x{newTotalMulti} Multi`
+    end)
 end)
