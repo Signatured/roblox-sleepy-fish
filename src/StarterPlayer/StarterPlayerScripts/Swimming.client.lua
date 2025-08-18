@@ -101,7 +101,7 @@ RunService.RenderStepped:Connect(function()
         local currentGadget = GadgetCmds.GetCurrent()
         local gadgetMulti = currentGadget and currentGadget.SpeedMultiplier or 1
         local totalMulti = fishMulti * gadgetMulti
-        s.Velocity = (humanoid.MoveDirection * humanoid.WalkSpeed + Vector3.new(0, 3 + upBoost, 0)) * totalMulti
+        s.Velocity = ((humanoid.MoveDirection * humanoid.WalkSpeed + Vector3.new(0, upBoost, 0)) * totalMulti) + Vector3.new(0, 2, 0) -- add 2 to Y to swim up by default
     end
 
     local camera = workspace.CurrentCamera

@@ -101,11 +101,6 @@ local function buildToolsList()
 			buyButton.Activated:Connect(function()
 				if busy then return end
 				busy = true
-				buyButton.Active = false
-				buyButton.AutoButtonColor = false
-				if label and label:IsA("TextLabel") then
-					label.Text = "..."
-				end
 
 				local isOwned = hasGadget(dir)
 				local _ok, _
