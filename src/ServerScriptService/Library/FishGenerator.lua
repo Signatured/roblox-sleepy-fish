@@ -87,7 +87,8 @@ local function weldToBack(model: Model, player: Player)
     if not character then return end
     local torso = character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")
     if not torso or not torso:IsA("BasePart") then return end
-    model:PivotTo((torso :: BasePart).CFrame * CFrame.new(0, 0, 1) * CFrame.Angles(math.rad(90), 0, 0))
+    local size = model:GetExtentsSize()
+    model:PivotTo((torso :: BasePart).CFrame * CFrame.new(0, 0, (size.Y / 2)) * CFrame.Angles(math.rad(90), 0, 0))
     local primary = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
     if not primary or not primary:IsA("BasePart") then return end
     local weld = Instance.new("WeldConstraint")
@@ -259,10 +260,10 @@ function FishGen.SetCarrying(player: Player, uid: string): boolean
         player:SetAttribute("CarryingFishId", fish.FishData.FishId)
         player:SetAttribute("CarryingFishUID", uid)
     end)
-    if fish.Gui then
-        local dir = Directory.Fish[fish.FishData.FishId]
-        fish.Gui.StudsOffsetWorldSpace = Vector3.new(0, 0, dir.BillboardOffset)
-    end
+    -- if fish.Gui then
+    --     local dir = Directory.Fish[fish.FishData.FishId]
+    --     fish.Gui.StudsOffsetWorldSpace = Vector3.new(0, 0, dir.BillboardOffset)
+    -- end
     weldToBack(fish.Model, player)
     return true
 end
@@ -304,10 +305,10 @@ function FishGen.Drop(player: Player): boolean
     end
 
     -- Restore GUI offset for world space
-    if fish.Gui then
-        local dir = Directory.Fish[fish.FishData.FishId]
-        fish.Gui.StudsOffsetWorldSpace = Vector3.new(0, dir.BillboardOffset, 0)
-    end
+    -- if fish.Gui then
+    --     local dir = Directory.Fish[fish.FishData.FishId]
+    --     fish.Gui.StudsOffsetWorldSpace = Vector3.new(0, dir.BillboardOffset, 0)
+    -- end
 
     -- Re-enable pickup prompt(s)
     for _, inst in ipairs(fish.Model:GetDescendants()) do
