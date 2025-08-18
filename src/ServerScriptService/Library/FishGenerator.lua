@@ -87,7 +87,7 @@ local function weldToBack(model: Model, player: Player)
     if not character then return end
     local torso = character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")
     if not torso or not torso:IsA("BasePart") then return end
-    model:PivotTo((torso :: BasePart).CFrame * CFrame.new(0, 0, 1))
+    model:PivotTo((torso :: BasePart).CFrame * CFrame.new(0, 0, 1) * CFrame.Angles(math.rad(90), 0, 0))
     local primary = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
     if not primary or not primary:IsA("BasePart") then return end
     local weld = Instance.new("WeldConstraint")
@@ -178,7 +178,7 @@ local function spawnOne(into: BasePart, backdate: number?)
     local fishModelTemplate = schema._script:WaitForChild("Model")
     if not fishModelTemplate or not fishModelTemplate:IsA("Model") then return end
 
-    local uid = tostring(math.random(1, 1e9)) .. "-" .. tostring(os.clock())
+    local uid = Functions.GenerateUID()
 
     local fishData: FishTypes.data_schema = {
         UID = uid,
@@ -207,6 +207,7 @@ local function spawnOne(into: BasePart, backdate: number?)
     setModelAnchored(fishInstance.Model, true)
     fishInstance.Model.Parent = ROOT
     fishInstance.Model:AddTag("SwimmingFish")
+    fishInstance.Model:SetAttribute("UID", uid)
     attachGui(fishInstance, schema)
     makePrompt(fishInstance)
 end
@@ -232,6 +233,7 @@ local function despawn(uid: string)
         playerCarry[carrier] = nil
         pcall(function()
             carrier:SetAttribute("CarryingFishId", nil)
+            carrier:SetAttribute("CarryingFishUID", nil)
         end)
         fish.Carrier = nil
     end
@@ -255,6 +257,7 @@ function FishGen.SetCarrying(player: Player, uid: string): boolean
     -- Set attribute with the directory FishId while carrying
     pcall(function()
         player:SetAttribute("CarryingFishId", fish.FishData.FishId)
+        player:SetAttribute("CarryingFishUID", uid)
     end)
     if fish.Gui then
         local dir = Directory.Fish[fish.FishData.FishId]
@@ -274,6 +277,7 @@ function FishGen.Drop(player: Player): boolean
     playerCarry[player] = nil
     pcall(function()
         player:SetAttribute("CarryingFishId", nil)
+        player:SetAttribute("CarryingFishUID", nil)
     end)
 
     -- Remove weld constraints that attached the fish to the player
@@ -369,6 +373,7 @@ local function onPlayerRemoving(player: Player)
     end
     pcall(function()
         player:SetAttribute("CarryingFishId", nil)
+        player:SetAttribute("CarryingFishUID", nil)
     end)
 end
 Players.PlayerRemoving:Connect(onPlayerRemoving)

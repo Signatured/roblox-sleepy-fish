@@ -7,6 +7,8 @@ local Functions = require(ReplicatedStorage.Library.Functions)
 
 export type Options = {[string]: any}
 
+local localPlayer = game.Players.LocalPlayer
+
 local function animate(model: Model, opts: Options?)
     if not model or not model:IsA("Model") then
         warn("FishAnimations: model must be a Model")
@@ -27,6 +29,10 @@ local function animate(model: Model, opts: Options?)
 
     local step = Functions.RenderStepped(function(_dt: number, t: number)
         if not model.Parent then
+            return
+        end
+
+        if localPlayer:GetAttribute("CarryingFishUID") == model:GetAttribute("UID") then
             return
         end
 
@@ -57,4 +63,4 @@ local function animate(model: Model, opts: Options?)
     end
 end
 
--- Functions.TagHook("SwimmingFish", animate)
+Functions.TagHook("SwimmingFish", animate)
