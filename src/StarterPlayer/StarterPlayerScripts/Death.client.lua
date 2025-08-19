@@ -130,7 +130,9 @@ function Death(spawnPos: CFrame)
     UnanchorLocally()
     localPlayer:SetAttribute("Flying", false)
 
-	humanoid.PlatformStand = false
+	task.delay(2, function()
+		humanoid.PlatformStand = false
+	end)
 end
 
 ClientPlot.OnLocalAndCreated(function(plot)
