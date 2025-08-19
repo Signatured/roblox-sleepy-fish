@@ -71,17 +71,13 @@ local function setupButton(button: GuiButton)
 		local gamepassId = gamepassSchema.GamepassId
 		local textLabel = button:FindFirstChild("TextLabel")
 		
-        print("fired1", gamepassId)
 		if doesOwnGamepass(gamepassId) then
 			if textLabel and textLabel:IsA("TextLabel") then
 				textLabel.Text = "Owned!"
 			end
 			button.AutoButtonColor = false
 			button.Activated:Connect(function() end)
-
-            print("fired2", gamepassId)
 		else
-            print("fired3", gamepassId)
 			if textLabel and textLabel:IsA("TextLabel") then
 				textLabel.Text = " ???" -- Loading state
 			end

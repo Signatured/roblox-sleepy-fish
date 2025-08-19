@@ -32,7 +32,7 @@ local function updatePriceLabel(textLabel: TextLabel, productId: number?)
 		textLabel.Text = " ???"
 		return
 	end
-	textLabel.Text = " ???"
+	-- textLabel.Text = " ???"
 	task.spawn(function()
 		local success, info = pcall(MarketplaceService.GetProductInfo, MarketplaceService, productId, Enum.InfoType.Product)
 		if success and info and textLabel and textLabel:IsA("TextLabel") then
@@ -50,6 +50,24 @@ local function hideMultiFrame()
 
 	local multiFrame = sideRight:FindFirstChild("Frame")::Frame
 	multiFrame.Visible = false
+end
+
+local function updateMultiText(paidIndex: number)
+	print(paidIndex)
+	local mainGui = GUI.Main()
+	local sideRight = mainGui:FindFirstChild("SideRight")
+	if not sideRight then
+		warn("HudButtons: Could not find 'SideRight' in Main gui")
+	end
+	
+	local multiFrame = sideRight:FindFirstChild("Frame")::Frame
+	local multiText = multiFrame:FindFirstChild("MultiText")
+	if multiText and multiText:IsA("TextLabel") then
+		local product = Products[`Multi Tier {paidIndex + 1}`]
+		if product then
+			updatePriceLabel(multiText, product.ProductId)
+		end
+	end
 end
 
 local function setup(plot: ClientPlot.Type)
@@ -83,7 +101,6 @@ local function setup(plot: ClientPlot.Type)
 	else
 		local multiFrame = sideRight:FindFirstChild("Frame")::Frame
 		local multiButton = multiFrame:FindFirstChild("MultiButton")
-		local multiText = multiFrame:FindFirstChild("MultiText")
 		if multiButton and multiButton:IsA("GuiButton") then
 			ButtonFX(multiButton)
 			multiButton.Activated:Connect(function()
@@ -93,13 +110,7 @@ local function setup(plot: ClientPlot.Type)
 				end
 			end)
 		end
-		if multiText and multiText:IsA("TextLabel") then
-			local product = Products[`Multi Tier {paidIndex + 1}`]
-
-			if product then
-				updatePriceLabel(multiText, product.ProductId)
-			end
-		end
+		updateMultiText(paidIndex)
 	end
 end
 
@@ -109,6 +120,8 @@ ClientPlot.OnLocalAndCreated(function(plot: ClientPlot.Type)
 	plot:SaveChanged("PaidIndex"):Connect(function(paidIndex: number)
 		if paidIndex == 3 then
 			hideMultiFrame()
+		else
+			updateMultiText(paidIndex)
 		end
 	end)
 end)
