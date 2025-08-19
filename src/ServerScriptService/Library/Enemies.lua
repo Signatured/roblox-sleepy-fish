@@ -123,6 +123,18 @@ local function clearMotionConstraints(rec: EnemyRecord)
 	rec.Attachment = nil
 end
 
+-- Toggle sleep particles on the primary part's SleepAttachment
+local function setSleepParticles(rec: EnemyRecord, enabled: boolean)
+    local primary = getPrimaryPart(rec.Model)
+    if not primary then return end
+    local att = primary:FindFirstChild("SleepAttachment")
+    if not att or not att:IsA("Attachment") then return end
+    local emitter = att:FindFirstChildOfClass("ParticleEmitter")
+    if emitter then
+        (emitter :: ParticleEmitter).Enabled = enabled
+    end
+end
+
 -- Apply/remove Idle darkening on parts marked with attribute "IdleDark"
 local function applyIdleDark(rec: EnemyRecord)
     if rec.IdleOriginalColors then return end
@@ -175,6 +187,7 @@ local function beginChasing(rec: EnemyRecord, player: Player, fromAlert: boolean
 	rec.TargetFromAlert = fromAlert
 	rec.State = "Chasing"
     clearIdleDark(rec)
+    setSleepParticles(rec, false)
     local primary = getPrimaryPart(rec.Model)
 	if not primary then return end
 	-- Unanchor per spec (primary part)
@@ -197,6 +210,7 @@ local function beginReturning(rec: EnemyRecord)
 	rec.TargetPlayer = nil
 	rec.State = "Returning"
     clearIdleDark(rec)
+    setSleepParticles(rec, false)
     local primary = getPrimaryPart(rec.Model)
 	if not primary then return end
     setAssemblyAnchored(rec.Model, false)
@@ -216,6 +230,7 @@ local function anchorAndIdle(rec: EnemyRecord)
     rec.TargetAttachment = nil
 	rec.State = "Idle"
     applyIdleDark(rec)
+    setSleepParticles(rec, true)
 end
 
 local function tryAdoptAlert(rec: EnemyRecord)
@@ -410,6 +425,7 @@ for id, dir in pairs(Directory.Enemy) do
 	enemies[id] = rec
     -- Newly spawned enemies are Idle; apply dark effect
     applyIdleDark(rec)
+    setSleepParticles(rec, true)
 end
 
 return Enemies
