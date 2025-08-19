@@ -79,8 +79,7 @@ local function ensureStep()
                 continue
             end
 
-            local carryingFishUID = localPlayer:GetAttribute("CarryingFishUID")
-            if carryingFishUID and carryingFishUID == model:GetAttribute("UID") then
+            if model:GetAttribute("Carrying") then
                 continue
             end
 
@@ -143,7 +142,6 @@ local function animate(model: Model, opts: Options?)
 
     local startTime = workspace:GetServerTimeNow() * math.random()
     if model:GetAttribute("PedestalFish") then
-        print("found pedestal fish")
         startTime = syncTime
     end
 
@@ -157,9 +155,6 @@ local function animate(model: Model, opts: Options?)
 
     -- Return a cleanup function to unregister this model
     return function()
-        if model:GetAttribute("PedestalFish") then
-            print("removed pedes")
-        end
         registry[model] = nil
         if next(registry) == nil then
             if stepHandle and stepHandle.IsConnected and stepHandle:IsConnected() then

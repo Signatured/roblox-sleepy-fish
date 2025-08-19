@@ -285,11 +285,16 @@ local function respawnReplacement()
     end
 end
 
-local function despawn(uid: string)
+local function despawn(uid: string, sendCarrierMessage: boolean?)
     local fish = uidToFish[uid]
     if not fish then return end
     -- Clear carrying link if any
     if fish.Carrier then
+        if sendCarrierMessage then
+            Notifications.Message(fish.Carrier, "Your fish timed out!", {
+                Color = Color3.fromRGB(255, 0, 0),
+            })
+        end
         local carrier = fish.Carrier
         playerCarry[carrier] = nil
         pcall(function()
@@ -319,6 +324,7 @@ function FishGen.SetCarrying(player: Player, uid: string): boolean
     pcall(function()
         player:SetAttribute("CarryingFishId", fish.FishData.FishId)
         player:SetAttribute("CarryingFishUID", uid)
+        fish.Model:SetAttribute("Carrying", true)
     end)
     -- if fish.Gui then
     --     local dir = Directory.Fish[fish.FishData.FishId]
@@ -333,13 +339,14 @@ function FishGen.Drop(player: Player): boolean
     if not uid then return false end
     local fish = uidToFish[uid]
     if not fish then return false end
-    if playerCarry[player] then return false end
+    if not playerCarry[player] then return false end
 
     -- Clear carrying record and attribute
     playerCarry[player] = nil
     pcall(function()
         player:SetAttribute("CarryingFishId", nil)
         player:SetAttribute("CarryingFishUID", nil)
+        fish.Model:SetAttribute("Carrying", nil)
     end)
 
     -- Remove weld constraints that attached the fish to the player
@@ -365,12 +372,6 @@ function FishGen.Drop(player: Player): boolean
         fish.Model:PivotTo(uprightCFrame)
     end
 
-    -- Restore GUI offset for world space
-    -- if fish.Gui then
-    --     local dir = Directory.Fish[fish.FishData.FishId]
-    --     fish.Gui.StudsOffsetWorldSpace = Vector3.new(0, dir.BillboardOffset, 0)
-    -- end
-
     -- Re-enable pickup prompt(s)
     for _, inst in ipairs(fish.Model:GetDescendants()) do
         if inst:IsA("ProximityPrompt") then
@@ -393,7 +394,7 @@ RunService.Heartbeat:Connect(function()
     for uid, fish in pairs(uidToFish) do
         if (now - fish.SpawnTime) >= DESPAWN_SECONDS then
             -- Despawn if timer expired; if carried, also remove
-            despawn(uid)
+            despawn(uid, true)
         else
             -- Update timer label
             local gui = fish.Gui
@@ -420,7 +421,10 @@ RunService.Heartbeat:Connect(function()
                         end
 						despawn(uid)
                         task.spawn(function()
-                            BadgeManager.GiveBadgeByName(player, "FirstCatch")
+                            local success = BadgeManager.GiveBadgeByName(player, "FirstCatch")
+                            if success then
+                                Network.Fire(player, "PromptFavorite", 3)
+                            end
                         end)
 					end
 				end
@@ -433,8 +437,7 @@ end)
 local function onPlayerRemoving(player: Player)
     local uid = playerCarry[player]
     if uid then
-        despawn(uid)
-        playerCarry[player] = nil
+        FishGen.Drop(player)
     end
     pcall(function()
         player:SetAttribute("CarryingFishId", nil)
@@ -449,8 +452,7 @@ Players.PlayerAdded:Connect(function(player)
         humanoid.Died:Connect(function()
             local uid = playerCarry[player]
             if uid then
-                despawn(uid)
-                playerCarry[player] = nil
+                FishGen.Drop(player)
             end
         end)
     end)
@@ -465,6 +467,10 @@ for i = 1, EASY_COUNT do
 end
 
 Signal.Fired("Death"):Connect(function(player: Player)
+    FishGen.Drop(player)
+end)
+
+Network.Fired("DropFish", function(player: Player)
     FishGen.Drop(player)
 end)
 

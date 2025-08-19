@@ -38,6 +38,7 @@ type EnemyRecord = {
 	AlignOrientation: AlignOrientation?,
 	Attachment: Attachment?,
 	IdleOriginalColors: { [BasePart]: Color3 }?,
+	LastAlertSeenT: number?,
 }
 
 local Enemies = {}
@@ -49,6 +50,7 @@ local enemies: { [string]: EnemyRecord } = {}
 
 -- Alert queue populated by fish pickup events
 local pendingAlerts: { {player: Player, position: Vector3, radius: number, t: number} } = {}
+local ALERT_TTL = 1.0
 
 local function getPrimaryPart(model: Model): BasePart?
 	return model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
@@ -240,11 +242,13 @@ local function tryAdoptAlert(rec: EnemyRecord)
 		local alert = pendingAlerts[i]
 		local dist = (primary.Position - alert.position).Magnitude
 		if dist <= alert.radius then
-			if isPlayerInWater(alert.player) then
-				beginChasing(rec, alert.player, true)
+			if (rec.LastAlertSeenT or 0) < alert.t then
+				if isPlayerInWater(alert.player) then
+					beginChasing(rec, alert.player, true)
+					rec.LastAlertSeenT = alert.t
+				end
+				return
 			end
-			table.remove(pendingAlerts, i)
-			return
 		end
 	end
 end
@@ -343,11 +347,11 @@ RunService.Heartbeat:Connect(function()
             for i = #pendingAlerts, 1, -1 do
                 local alert = pendingAlerts[i]
                 local dist = (primaryPart.Position - alert.position).Magnitude
-				if dist <= alert.radius then
+				if dist <= alert.radius and (rec.LastAlertSeenT or 0) < alert.t then
 					if isPlayerInWater(alert.player) then
 						beginChasing(rec, alert.player, true)
+						rec.LastAlertSeenT = alert.t
 					end
-					table.remove(pendingAlerts, i)
 					break
 				end
 			end
@@ -382,6 +386,14 @@ RunService.Heartbeat:Connect(function()
 				-- Alerts can interrupt return anytime
 				tryAdoptAlert(rec)
 			end
+		end
+	end
+	-- Prune expired alerts
+	local now = os.clock()
+	for i = #pendingAlerts, 1, -1 do
+		local alert = pendingAlerts[i]
+		if (now - alert.t) > ALERT_TTL then
+			table.remove(pendingAlerts, i)
 		end
 	end
 end)
@@ -420,6 +432,7 @@ for id, dir in pairs(Directory.Enemy) do
 		AlignOrientation = nil,
 		Attachment = nil,
 		IdleOriginalColors = nil,
+		LastAlertSeenT = nil,
 	}
 
 	enemies[id] = rec

@@ -26,6 +26,8 @@ export type schema = {
 	LastLogout: number?,
 	Gamepasses: {[string]: boolean},
 	Products: {[string]: boolean},
+	Joins: number,
+	Playtime: number,
 }
 
 local DefaultStats = {
@@ -44,6 +46,8 @@ local DefaultStats = {
 	},
 	Gamepasses = {},
 	Products = {},
+	Joins = 0,
+	Playtime = 0,
 }::schema
 
 return DefaultStats
