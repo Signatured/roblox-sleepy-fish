@@ -13,6 +13,9 @@ local FishCmds = require(game.ReplicatedStorage.Game.Library.Client.FishCmds)
 local PlotTypes = require(game.ReplicatedStorage.Game.Library.Types.Plots)
 local Directory = require(game.ReplicatedStorage.Game.Library.Directory)
 local Network = require(game.ReplicatedStorage.Library.Client.Network)
+local GameSettings = require(game.ReplicatedStorage.Game.Library.GameSettings)
+local ProductDirectory = require(game.ReplicatedStorage.Game.Library.Directory.Products)
+local Marketplace = require(game.ReplicatedStorage.Library.Marketplace)
 
 type PedestalModel = {
     Model: Model,
@@ -103,6 +106,16 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
     end
 end
 
+function GetPedestalTierProduct(pedestalId: number): ProductDirectory.dir_schema
+    if pedestalId <= GameSettings.PedestalTier1Count then
+        return ProductDirectory["Buy Pedestal Tier 1"]
+    elseif pedestalId <= GameSettings.PedestalTier2Count then
+        return ProductDirectory["Buy Pedestal Tier 2"]
+    else
+        return ProductDirectory["Buy Pedestal Tier 3"]
+    end
+end
+
 local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame, upgradeFrame: Frame, placeFrame: Frame, boostFrame: Frame)
     if model:GetAttribute("_ButtonsInit") then
         return
@@ -123,6 +136,25 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame
                 Color = Color3.fromRGB(255, 0, 0),
             })
         end
+    end)
+
+    local robuxButton = buyFrame:WaitForChild("ButtonRobux")::GuiButton
+    ButtonFX(robuxButton)
+    robuxButton.MouseButton1Click:Connect(function()
+        local pedestals = plot:Save("Pedestals")::number
+        if pedestals >= GameSettings.PedestalCount then
+            return
+        end
+
+        local product = GetPedestalTierProduct(pedestalId)
+        Marketplace.Prompt(LocalPlayer, product.ProductId, true)
+    end)
+    
+    local robuxText = robuxButton:WaitForChild("TextLabel")::TextLabel
+    task.spawn(function()
+        local product = GetPedestalTierProduct(pedestalId)
+        local price = Functions.GetRobuxPrice(product.ProductId, true)
+        robuxText.Text = ` {price}`
     end)
 
     local upgradeButton = upgradeFrame:WaitForChild("Button")::GuiButton
