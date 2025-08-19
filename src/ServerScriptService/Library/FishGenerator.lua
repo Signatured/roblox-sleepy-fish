@@ -16,7 +16,7 @@ local Network = require(ServerScriptService.Library.Network)
 local Enemies = require(ServerScriptService.Game.Library.Enemies)
 local Notifications = require(ServerScriptService.Library.Notifications)
 local BadgeManager = require(ServerScriptService.Game.Library.BadgeManager)
-local Functions = require(ReplicatedStorage.Library.Functions)
+local SharedGameSettings = require(ReplicatedStorage.Game.Library.GameSettings)
 
 local THINGS = workspace:WaitForChild("__THINGS")
 local ROOT = THINGS:WaitForChild("SwimmingFish")
@@ -196,7 +196,8 @@ local function attachGui(fish: Swimming, schema: FishTypes.dir_schema)
         end
         local mps = frame:FindFirstChild("MoneyPerSecond")
         if mps and mps:IsA("TextLabel") then
-            mps.Text = `${Functions.NumberShorten(schema.MoneyPerSecond)}/s`
+            local typeMultiplier = SharedGameSettings.TypeMultipliers[fish.FishData.Type] or 1
+            mps.Text = `${Functions.NumberShorten(math.ceil(schema.MoneyPerSecond * typeMultiplier))}/s`
         end
         local timer = frame:FindFirstChild("Timer")
         if timer and timer:IsA("TextLabel") then

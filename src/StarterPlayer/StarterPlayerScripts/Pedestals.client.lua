@@ -28,6 +28,17 @@ type PedestalModel = {
 
 local pedestalModels: {[ClientPlot.Type]: {[number]: PedestalModel}} = {}
 
+local function getFishType(type: string): (string?, Color3?)
+    if type == "Shiny" then
+        return "Shiny", Color3.fromRGB(255, 255, 255)
+    elseif type == "Gold" then
+        return "Gold", Color3.fromRGB(255, 215, 0)
+    elseif type == "Rainbow" then
+        return "Rainbow"
+    end
+    return nil
+end
+
 function TogglePedestal(model: Model, toggle: boolean, transparency: number?)
     if not transparency then
         transparency = toggle and 0 or 1
@@ -89,13 +100,16 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
     local money = frame:WaitForChild("Money")::TextLabel
     local rarity = frame:WaitForChild("Rarity")::TextLabel
     local level = frame:WaitForChild("Level")::TextLabel
+    local fishType = frame:WaitForChild("FishType")::TextLabel
     local offlineFrame = frame:WaitForChild("OfflineEarnings")::TextLabel
+
+    local typeMultiplier = GameSettings.TypeMultipliers[fishData.FishData.Type] or 1
 
     displayName.Text = dir.DisplayName
     rarity.Text = dir.Rarity.DisplayName
     rarity.TextColor3 = dir.Rarity.Color
     level.Text = `Level {fishData.FishData.Level}`
-    moneyPerSecond.Text = `${Functions.NumberShorten(plot:GetMoneyPerSecond(index) or 0)}/s`
+    moneyPerSecond.Text = `${Functions.NumberShorten(math.ceil((plot:GetMoneyPerSecond(index) or 0) * typeMultiplier))}/s`
     money.Text = `${Functions.NumberShorten(earnings)}`
 
     if offlineEarnings > 0 then
@@ -103,6 +117,17 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
         offlineFrame.Text = `<font color="#FFFFFF">${Functions.NumberShorten(offlineEarnings)}</font> <font color="#a2a2a2">Made Offline</font>`
     else
         offlineFrame.Visible = false
+    end
+
+    local name, color = getFishType(fishData.FishData.Type)
+    if color then
+        fishType.TextColor3 = color
+    end
+
+    if name then
+        fishType.Text = name
+    else
+        fishType.Visible = false
     end
 end
 
@@ -350,11 +375,23 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
         local dir = Directory.Fish[fishData.FishId]
         local fishModel = dir._script:WaitForChild("Model"):Clone()::Model
         local plotFishFolder = workspace:WaitForChild("__THINGS"):WaitForChild("PlotFish")
+        local plotFishShiny = plotFishFolder:WaitForChild("Shiny")::Model
+        local plotFishRainbow = plotFishFolder:WaitForChild("Rainbow")::Model
+        local plotFishGold = plotFishFolder:WaitForChild("Gold")::Model
+        local parent = plotFishFolder
+
+        if fishData.FishData.Type == "Shiny" then
+            parent = plotFishShiny
+        elseif fishData.FishData.Type == "Rainbow" then
+            parent = plotFishRainbow
+        elseif fishData.FishData.Type == "Gold" then
+            parent = plotFishGold
+        end
 
         fishModel:PivotTo(base:GetPivot() + Vector3.new(0, base.Size.Y / 2, 0) + Vector3.new(0, fishModel:GetExtentsSize().Y / 2, 0) + Vector3.new(0, 2, 0))
         fishModel:SetAttribute("PedestalFish", true)
         fishModel:AddTag("SwimmingFish")
-        fishModel.Parent = plotFishFolder
+        fishModel.Parent = parent
 
         local sellProximity: ProximityPrompt?
         local pickupProximity: ProximityPrompt?

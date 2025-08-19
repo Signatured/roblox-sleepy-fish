@@ -143,6 +143,7 @@ local function setupIncreaseLuck(scrollingFrame: Instance)
     local buttons = increaseFrame:FindFirstChild("Buttons")
     local buyButton = buttons and buttons:FindFirstChild("BuyButton")
     local buyText = buyButton and buyButton:FindFirstChild("TextLabel")
+    local clover = increaseFrame:WaitForChild("ToolImage"):WaitForChild("ImageLabel")::ImageLabel
 
     if buyButton and buyButton:IsA("GuiButton") then
         ButtonFX(buyButton)
@@ -195,6 +196,14 @@ local function setupIncreaseLuck(scrollingFrame: Instance)
                 isActive.Text = Functions.FormatTime(timeLeft)
             end
         end
+
+		if clover and clover:IsA("ImageLabel") then
+			if mult == 1 then
+				clover.Image = "rbxassetid://91670033702172"
+			else
+				clover.Image = "rbxassetid://130334998181902"
+			end
+		end
 
         local productId = getProductIdForState(mult)
         updatePriceLabel(productId)

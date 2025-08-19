@@ -163,6 +163,7 @@ function Fish.Give(player: Player, params: FishTypes.create_params | FishTypes.s
     local tool = toolTemplate:Clone()
     tool.Name = schema.DisplayName
     tool:SetAttribute("UID", fishData.UID)
+    tool:SetAttribute("Type", fishData.Type)
     tool.Parent = backpack
 
     local userTools = playerFishTools[player.UserId]

@@ -44,6 +44,7 @@ local function setSwimmingEnabled(enabled: boolean)
     humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, not enabled)
 end
 
+local defaultWalkspeed = 16
 RunService.RenderStepped:Connect(function()
     local humanoid = currentHumanoid
     local hrp = currentHRP
@@ -101,7 +102,7 @@ RunService.RenderStepped:Connect(function()
         local currentGadget = GadgetCmds.GetCurrent()
         local gadgetMulti = currentGadget and currentGadget.SpeedMultiplier or 1
         local totalMulti = fishMulti * gadgetMulti
-        s.Velocity = ((humanoid.MoveDirection * humanoid.WalkSpeed + Vector3.new(0, upBoost, 0)) * totalMulti) + Vector3.new(0, 0.25, 0) -- add 2 to Y to swim up by default
+        s.Velocity = ((humanoid.MoveDirection * defaultWalkspeed + Vector3.new(0, upBoost, 0)) * totalMulti) + Vector3.new(0, 0.25, 0) -- add 2 to Y to swim up by default
     end
 
     local camera = workspace.CurrentCamera
@@ -113,4 +114,12 @@ RunService.RenderStepped:Connect(function()
         end
 end)
 
+RunService.RenderStepped:Connect(function()
+    local humanoid = currentHumanoid
+    if not humanoid then return end
 
+    local currentGadget = GadgetCmds.GetCurrent()
+    local gadgetMulti = currentGadget and currentGadget.SpeedMultiplier or 1
+
+    humanoid.WalkSpeed = defaultWalkspeed * gadgetMulti
+end)
