@@ -1,34 +1,31 @@
 --!strict
 
 return {
-	ProductId = 3375483794,
+	ProductId = 3375973460,
 	DisplayName = "[OP] 2x Server Luck!",
 	Icon = "",
 	Description = "Activate 2x server luck!",
 	OneTimePurchase = false,
 	ClientTest = function(player: Player)
-		local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
+		local ServerLuckCmds = require(game.ReplicatedStorage.Game.Library.Client.ServerLuckCmds)
 
-		local plot = ClientPlot.GetLocal()
-		return plot ~= nil
+		return ServerLuckCmds.GetMultiplier() == 1
 	end,
 	ServerTest = function(player: Player): (boolean, string?)
-		local ServerPlot = require(game.ServerScriptService.Plot.ServerPlot)
+		local ServerLuck = require(game.ServerScriptService.Game.Library.ServerLuck)
 
-		local plot = ServerPlot.GetByPlayer(player)
-		if not plot then
-			return false, "No plot found!"
-		end
-
-		return true
+		return ServerLuck.GetServerLuck() == 1
 	end,
 	Callback = function(player: Player): (boolean, string?)
-		local Steal = require(game.ServerScriptService.Game.Library.Steal)
+		local ServerLuck = require(game.ServerScriptService.Game.Library.ServerLuck)
 
-		local success = Steal.ExecuteSteal(player)
-		if not success then
-			return false, "That fish no longer exists!"
+		local currentMultiplier = ServerLuck.GetServerLuck()
+
+		if currentMultiplier ~= 1 then
+			return false, "This server already has 2x server luck!"
 		end
+
+		ServerLuck.Activate2xLuck()
 
 		return true
 	end,

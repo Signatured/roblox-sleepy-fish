@@ -25,13 +25,11 @@ local function requestSync()
     end
 end
 
--- passive updates from server
 Network.Fired("ServerLuck_Update", function(m: number, t: number)
     multiplier = m
     timeLeft = t
 end)
 
--- initialize
 task.spawn(requestSync)
 
 return ServerLuck
