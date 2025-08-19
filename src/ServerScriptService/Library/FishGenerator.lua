@@ -15,9 +15,15 @@ local Fish = require(ServerScriptService.Game.Library.Fish)
 local Network = require(ServerScriptService.Library.Network)
 local Enemies = require(ServerScriptService.Game.Library.Enemies)
 local Notifications = require(ServerScriptService.Library.Notifications)
+local BadgeManager = require(ServerScriptService.Game.Library.BadgeManager)
+local Functions = require(ReplicatedStorage.Library.Functions)
 
-local ROOT = workspace:WaitForChild("__THINGS")
-local SPAWNS = ROOT:WaitForChild("FishSpawns")
+local THINGS = workspace:WaitForChild("__THINGS")
+local ROOT = THINGS:WaitForChild("SwimmingFish")
+local ROOT_SHINY = THINGS:WaitForChild("SwimmingFish"):WaitForChild("Shiny")
+local ROOT_GOLD = THINGS:WaitForChild("SwimmingFish"):WaitForChild("Gold")
+local ROOT_RAINBOW = THINGS:WaitForChild("SwimmingFish"):WaitForChild("Rainbow")
+local SPAWNS = THINGS:WaitForChild("FishSpawns")
 local EASY = SPAWNS:WaitForChild("Easy")::BasePart
 local HARD = SPAWNS:WaitForChild("Hard")::BasePart
 
@@ -27,6 +33,13 @@ local HARD_COUNT = math.floor(TOTAL_FISH * HARD_RATIO)
 local EASY_COUNT = TOTAL_FISH - HARD_COUNT
 
 local DESPAWN_SECONDS = 60
+
+local typeChances = {
+    ["Normal"] = 1,--79,
+    ["Shiny"] = 15,
+    ["Gold"] = 5,
+    ["Rainbow"] = 1,
+}
 
 local FishGen = {}
 
@@ -143,6 +156,17 @@ local function makePrompt(fish: Swimming)
     end)
 end
 
+local function getFishType(type: string): (string?, Color3?)
+    if type == "Shiny" then
+        return "Shiny", Color3.fromRGB(255, 255, 255)
+    elseif type == "Gold" then
+        return "Gold", Color3.fromRGB(255, 215, 0)
+    elseif type == "Rainbow" then
+        return "Rainbow"
+    end
+    return nil
+end
+
 local function attachGui(fish: Swimming, schema: FishTypes.dir_schema)
     local primary = fish.Model.PrimaryPart or fish.Model:FindFirstChildWhichIsA("BasePart")
     if not primary or not primary:IsA("BasePart") then return end
@@ -178,7 +202,32 @@ local function attachGui(fish: Swimming, schema: FishTypes.dir_schema)
         if timer and timer:IsA("TextLabel") then
             timer.Text = "60s"
         end
+        local fishType = frame:FindFirstChild("FishType")
+        if fishType and fishType:IsA("TextLabel") then
+            local name, color = getFishType(fish.FishData.Type)
+            if color then
+                fishType.TextColor3 = color
+            end
+
+            if name then
+                fishType.Text = name
+                fishType.Visible = true
+            else
+                fishType.Visible = false
+            end
+        end
     end
+end
+
+local function getRoot(type: string): Model
+    if type == "Shiny" then
+        return ROOT_SHINY
+    elseif type == "Gold" then
+        return ROOT_GOLD
+    elseif type == "Rainbow" then
+        return ROOT_RAINBOW
+    end
+    return ROOT
 end
 
 local function spawnOne(into: BasePart, backdate: number?)
@@ -189,11 +238,12 @@ local function spawnOne(into: BasePart, backdate: number?)
     if not fishModelTemplate or not fishModelTemplate:IsA("Model") then return end
 
     local uid = Functions.GenerateUID()
+    local fishType = Functions.Lottery(typeChances)
 
     local fishData: FishTypes.data_schema = {
         UID = uid,
         FishId = schema._id,
-        Type = "Normal",
+        Type = fishType,
         Shiny = false,
         Level = 1,
         CreateTime = os.clock(),
@@ -215,7 +265,7 @@ local function spawnOne(into: BasePart, backdate: number?)
     local spawnCFrame = CFrame.new(cf.Position) * CFrame.Angles(0, yaw, 0)
     fishInstance.Model:PivotTo(spawnCFrame)
     setModelAnchored(fishInstance.Model, true)
-    fishInstance.Model.Parent = ROOT
+    fishInstance.Model.Parent = getRoot(fishType)
     fishInstance.Model:AddTag("SwimmingFish")
     fishInstance.Model:SetAttribute("UID", uid)
     attachGui(fishInstance, schema)
@@ -368,6 +418,9 @@ RunService.Heartbeat:Connect(function()
                             Fish.ForceHoldFish(player, data)
                         end
 						despawn(uid)
+                        task.spawn(function()
+                            BadgeManager.GiveBadgeByName(player, "FirstCatch")
+                        end)
 					end
 				end
 			end

@@ -12,6 +12,7 @@ local GadgetTypes = require(ReplicatedStorage.Game.Library.Types.Gadgets)
 local Saving = require(ServerScriptService.Library.Saving)
 local ServerPlot = require(ServerScriptService.Plot.ServerPlot)
 local Network = require(ServerScriptService.Library.Network)
+local BadgeManager = require(ServerScriptService.Game.Library.BadgeManager)
 
 local Gadgets = {}
 
@@ -74,6 +75,12 @@ function Gadgets.Give(player: Player, id: string | GadgetTypes.dir_schema)
 		playerGadgets[player.UserId] = {}
 	end
 	playerGadgets[player.UserId][schema._id] = newTool
+
+	task.spawn(function()
+		if schema.DisplayName:find("Coil") then
+			BadgeManager.GiveBadgeByName(player, "NewGadget")
+		end
+	end)
 	
 	print(`[Gadgets] Gave '{schema.DisplayName}' to {player.Name}.`)
 end

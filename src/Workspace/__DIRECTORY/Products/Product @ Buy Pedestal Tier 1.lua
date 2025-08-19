@@ -63,8 +63,8 @@ return {
 			return false, "Max pedestals reached!"
 		end
 
-		plot:SaveSet("Pedestals", pedestals + 1)
+		local success = plot:AddPedestal()
 
-		return true
+		return success
 	end,
 }
