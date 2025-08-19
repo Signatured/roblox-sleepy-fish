@@ -1,6 +1,7 @@
 --!strict
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local MarketplaceService = game:GetService("MarketplaceService")
 
 local GUI = require(ReplicatedStorage.Game.Library.Client.GUI)
 local ButtonFX = require(ReplicatedStorage.Library.Client.GUIFX.ButtonFX)
@@ -26,7 +27,33 @@ local function getMultiProuct(): Products.dir_schema?
 	return product
 end
 
-local function setup()
+local function updatePriceLabel(textLabel: TextLabel, productId: number?)
+	if not productId then
+		textLabel.Text = " ???"
+		return
+	end
+	textLabel.Text = " ???"
+	task.spawn(function()
+		local success, info = pcall(MarketplaceService.GetProductInfo, MarketplaceService, productId, Enum.InfoType.Product)
+		if success and info and textLabel and textLabel:IsA("TextLabel") then
+			textLabel.Text = ` {info.PriceInRobux}`
+		end
+	end)
+end
+
+local function hideMultiFrame()
+	local mainGui = GUI.Main()
+	local sideRight = mainGui:FindFirstChild("SideRight")
+	if not sideRight then
+		warn("HudButtons: Could not find 'SideRight' in Main gui")
+	end
+
+	local multiFrame = sideRight:FindFirstChild("Frame")::Frame
+	multiFrame.Visible = false
+end
+
+local function setup(plot: ClientPlot.Type)
+	local paidIndex = plot:Save("PaidIndex")::number
 	local mainGui = GUI.Main()
 	local sideLeft = mainGui:FindFirstChild("SideLeft")
 	if not sideLeft then
@@ -51,8 +78,12 @@ local function setup()
 	local sideRight = mainGui:FindFirstChild("SideRight")
 	if not sideRight then
 		warn("HudButtons: Could not find 'SideRight' in Main gui")
+	elseif paidIndex == 3 then
+		hideMultiFrame()
 	else
-		local multiButton = sideRight:FindFirstChild("MultiButton")
+		local multiFrame = sideRight:FindFirstChild("Frame")::Frame
+		local multiButton = multiFrame:FindFirstChild("MultiButton")
+		local multiText = multiFrame:FindFirstChild("MultiText")
 		if multiButton and multiButton:IsA("GuiButton") then
 			ButtonFX(multiButton)
 			multiButton.Activated:Connect(function()
@@ -62,19 +93,22 @@ local function setup()
 				end
 			end)
 		end
+		if multiText and multiText:IsA("TextLabel") then
+			local product = Products[`Multi Tier {paidIndex + 1}`]
+
+			if product then
+				updatePriceLabel(multiText, product.ProductId)
+			end
+		end
 	end
 end
 
 ClientPlot.OnLocalAndCreated(function(plot: ClientPlot.Type)
-	setup()
+	setup(plot)
 
 	plot:SaveChanged("PaidIndex"):Connect(function(paidIndex: number)
 		if paidIndex == 3 then
-			local mainGui = GUI.Main()
-			local sideRight = mainGui:FindFirstChild("SideRight")::Frame
-			local multiButton = sideRight:FindFirstChild("MultiButton")::GuiButton
-			
-			multiButton.Visible = false
+			hideMultiFrame()
 		end
 	end)
 end)

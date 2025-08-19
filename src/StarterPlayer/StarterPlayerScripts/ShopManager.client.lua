@@ -246,7 +246,7 @@ local function setupShop()
 	local shopGui = GUI.Shop()
 	if not shopGui then return end
 	
-	local scrollingFrame = shopGui:WaitForChild("Frame"):WaitForChild("Container"):WaitForChild("MainFrame"):WaitForChild("Content"):WaitForChild("ScrollingFrame")
+	local scrollingFrame = shopGui:WaitForChild("Frame"):WaitForChild("MainFrame"):WaitForChild("Content"):WaitForChild("ScrollingFrame")
 	
 	for _, descendant in ipairs(scrollingFrame:GetDescendants()) do
 		if descendant:IsA("GuiButton") then
@@ -274,7 +274,7 @@ TabController.Opened:Connect(function(tabId)
 		setupShop()
 		local shopGui = GUI.Shop()
 		if shopGui then
-			local scrollingFrame = shopGui.Frame.Container.MainFrame.Content.ScrollingFrame
+			local scrollingFrame = shopGui.Frame.MainFrame.Content.ScrollingFrame
 			setupIncreaseLuck(scrollingFrame)
 		end
 	end
@@ -287,7 +287,7 @@ Save.Fired(function(key)
 		end
 		local shopGui = GUI.Shop()
 		if shopGui then
-			local scrollingFrame = shopGui.Frame.Container.MainFrame.Content.ScrollingFrame
+			local scrollingFrame = shopGui.Frame.MainFrame.Content.ScrollingFrame
 			setupIncreaseLuck(scrollingFrame)
 		end
 	end

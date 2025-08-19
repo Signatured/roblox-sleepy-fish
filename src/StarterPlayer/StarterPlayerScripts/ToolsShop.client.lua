@@ -15,9 +15,7 @@ local function getContentContainer(): ScrollingFrame?
 	local toolsGui = GUI.Tools()
 	local frame = toolsGui:FindFirstChild("Frame")
 	if not frame then return nil end
-	local container = frame:FindFirstChild("Container")
-	if not container then return nil end
-	local mainFrame = container:FindFirstChild("MainFrame")
+	local mainFrame = frame:FindFirstChild("MainFrame")
 	if not mainFrame then return nil end
 	local content = mainFrame:FindFirstChild("Content")
 	if not content then return nil end
