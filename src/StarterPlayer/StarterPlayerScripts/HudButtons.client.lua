@@ -53,7 +53,6 @@ local function hideMultiFrame()
 end
 
 local function updateMultiText(paidIndex: number)
-	print(paidIndex)
 	local mainGui = GUI.Main()
 	local sideRight = mainGui:FindFirstChild("SideRight")
 	if not sideRight then

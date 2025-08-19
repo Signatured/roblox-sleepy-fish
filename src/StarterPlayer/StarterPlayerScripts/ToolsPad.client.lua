@@ -9,7 +9,6 @@ local TagHook = require(ReplicatedStorage.Library.Functions.TagHook)
 local TAG = "ToolsPad"
 
 TagHook(TAG, function(instance: Instance)
-    print("tagging pad")
     if not instance:IsA("BasePart") and not instance:IsA("Model") then
         return function() end
     end

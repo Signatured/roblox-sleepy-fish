@@ -78,7 +78,7 @@ function Gadgets.Give(player: Player, id: string | GadgetTypes.dir_schema)
 
 	task.spawn(function()
 		if schema.DisplayName:find("Coil") then
-			BadgeManager.GiveBadgeByName(player, "NewGadget")
+			BadgeManager.GiveBadgeByName(player, "NewCoil")
 		end
 	end)
 	
