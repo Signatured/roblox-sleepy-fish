@@ -124,7 +124,6 @@ RunService.RenderStepped:Connect(function()
         local s = swim :: BodyVelocity
         local hasFocus = UserInputService:GetFocusedTextBox() ~= nil
         local helpUpwards = inSwimUpArea and getWaterElapsedSeconds() > 3
-        print(inSwimUpArea, getWaterElapsedSeconds(), helpUpwards)
         local upBoost = if ((not hasFocus) and UserInputService:IsKeyDown(Enum.KeyCode.Space) or helpUpwards) then 6 else 0
         local fishMulti = FishCmds.GetCurrentSpeedModifier()
         local currentGadget = GadgetCmds.GetCurrent()

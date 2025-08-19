@@ -269,6 +269,7 @@ local function spawnOne(into: BasePart, backdate: number?)
     fishInstance.Model.Parent = getRoot(fishType)
     fishInstance.Model:AddTag("SwimmingFish")
     fishInstance.Model:SetAttribute("UID", uid)
+    fishInstance.Model:SetAttribute("CFrame", spawnCFrame)
     attachGui(fishInstance, schema)
     makePrompt(fishInstance)
 end
@@ -370,6 +371,7 @@ function FishGen.Drop(player: Player): boolean
         local _, ry, _ = hrpPart.CFrame:ToOrientation()
         local uprightCFrame = CFrame.new(hrpPart.Position) * CFrame.Angles(0, ry, 0)
         fish.Model:PivotTo(uprightCFrame)
+        fish.Model:SetAttribute("CFrame", uprightCFrame)
     end
 
     -- Re-enable pickup prompt(s)

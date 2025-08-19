@@ -7,13 +7,14 @@ local Functions = require(ReplicatedStorage.Library.Functions)
 
 export type Options = {[string]: any}
 
-local localPlayer = game.Players.LocalPlayer
+local _localPlayer = game.Players.LocalPlayer
 
 -- Single render step with registry of animated fish
 local registry: {[Model]: {
     baseCFrame: CFrame,
     startTime: number,
     options: Options,
+    attrConn: RBXScriptConnection?,
 }} = {}
 
 local stepHandle: any = nil
@@ -145,16 +146,38 @@ local function animate(model: Model, opts: Options?)
         startTime = syncTime
     end
 
+    local initialBase = model:GetPivot()
+    local attrCF = model:GetAttribute("CFrame")
+    if typeof(attrCF) == "CFrame" then
+        initialBase = attrCF :: CFrame
+    end
     registry[model] = {
-        baseCFrame = model:GetPivot(),
+        baseCFrame = initialBase,
         startTime = startTime,
         options = opts or {} :: Options,
+        attrConn = nil,
     }
+
+    -- Update base when server updates model attribute "CFrame" (e.g., on drop)
+    registry[model].attrConn = model:GetAttributeChangedSignal("CFrame"):Connect(function()
+        local cf = model:GetAttribute("CFrame")
+        if typeof(cf) == "CFrame" then
+            local rec = registry[model]
+            if rec then
+                rec.baseCFrame = cf :: CFrame
+                rec.startTime = workspace:GetServerTimeNow()
+            end
+        end
+    end)
 
     ensureStep()
 
     -- Return a cleanup function to unregister this model
     return function()
+        local rec = registry[model]
+        if rec and rec.attrConn then
+            (rec.attrConn :: RBXScriptConnection):Disconnect()
+        end
         registry[model] = nil
         if next(registry) == nil then
             if stepHandle and stepHandle.IsConnected and stepHandle:IsConnected() then
