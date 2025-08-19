@@ -7,10 +7,20 @@ local UserInputService = game:GetService("UserInputService")
 
 local FishCmds = require(game.ReplicatedStorage.Game.Library.Client.FishCmds)
 local GadgetCmds = require(game.ReplicatedStorage.Game.Library.Client.GadgetCmds)
+local Functions = require(game.ReplicatedStorage.Library.Functions)
 
 local LOCAL_PLAYER = Players.LocalPlayer
 
 local waterParts: {Instance} = {}
+local waterEnterTimestamp: number? = nil
+
+local function getWaterElapsedSeconds(): number
+    local t = waterEnterTimestamp
+    if t then
+        return os.clock() - t
+    end
+    return 0
+end
 
 local function refreshWater()
     waterParts = CollectionService:GetTagged("Water")
@@ -50,6 +60,10 @@ RunService.RenderStepped:Connect(function()
     local hrp = currentHRP
     if not humanoid or not hrp then return end
 
+    local thingsFolder = workspace:FindFirstChild("__THINGS")
+    local swimUpArea = thingsFolder and thingsFolder:FindFirstChild("SwimUpZone")::BasePart
+    local inSwimUpArea = swimUpArea and Functions.IsPositionInPart(hrp.Position, swimUpArea)
+
     if isSwimming and (LOCAL_PLAYER:GetAttribute("Dead") or LOCAL_PLAYER:GetAttribute("Flying")) then
         if swim then swim:Destroy() swim = nil end
         setSwimmingEnabled(false)
@@ -77,6 +91,17 @@ RunService.RenderStepped:Connect(function()
     local results = workspace:GetPartBoundsInBox(hrp.CFrame, boxSize, params)
     local inWater = results and #results > 0 or false
 
+    -- Track enter/exit timestamps for water
+    if inWater then
+        if not waterEnterTimestamp then
+            waterEnterTimestamp = os.clock()
+        end
+    else
+        if waterEnterTimestamp then
+            waterEnterTimestamp = nil
+        end
+    end
+
     if inWater then
         if (not isSwimming) and os.clock() >= nextSwimEnableAt then
             setSwimmingEnabled(true)
@@ -98,7 +123,9 @@ RunService.RenderStepped:Connect(function()
     if isSwimming and swim then
         local s = swim :: BodyVelocity
         local hasFocus = UserInputService:GetFocusedTextBox() ~= nil
-        local upBoost = if (not hasFocus) and UserInputService:IsKeyDown(Enum.KeyCode.Space) then 6 else 0
+        local helpUpwards = inSwimUpArea and getWaterElapsedSeconds() > 3
+        print(inSwimUpArea, getWaterElapsedSeconds(), helpUpwards)
+        local upBoost = if ((not hasFocus) and UserInputService:IsKeyDown(Enum.KeyCode.Space) or helpUpwards) then 6 else 0
         local fishMulti = FishCmds.GetCurrentSpeedModifier()
         local currentGadget = GadgetCmds.GetCurrent()
         local gadgetMulti = currentGadget and currentGadget.SpeedMultiplier or 1
