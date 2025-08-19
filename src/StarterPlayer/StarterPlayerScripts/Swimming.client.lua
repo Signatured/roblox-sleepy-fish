@@ -97,7 +97,8 @@ RunService.RenderStepped:Connect(function()
 
     if isSwimming and swim then
         local s = swim :: BodyVelocity
-        local upBoost = if UserInputService:IsKeyDown(Enum.KeyCode.Space) then 6 else 0
+        local hasFocus = UserInputService:GetFocusedTextBox() ~= nil
+        local upBoost = if (not hasFocus) and UserInputService:IsKeyDown(Enum.KeyCode.Space) then 6 else 0
         local fishMulti = FishCmds.GetCurrentSpeedModifier()
         local currentGadget = GadgetCmds.GetCurrent()
         local gadgetMulti = currentGadget and currentGadget.SpeedMultiplier or 1
