@@ -37,6 +37,7 @@ type EnemyRecord = {
 	LinearVelocity: LinearVelocity?,
 	AlignOrientation: AlignOrientation?,
 	Attachment: Attachment?,
+	IdleOriginalColors: { [BasePart]: Color3 }?,
 }
 
 local Enemies = {}
@@ -122,6 +123,31 @@ local function clearMotionConstraints(rec: EnemyRecord)
 	rec.Attachment = nil
 end
 
+-- Apply/remove Idle darkening on parts marked with attribute "IdleDark"
+local function applyIdleDark(rec: EnemyRecord)
+    if rec.IdleOriginalColors then return end
+    local originals: { [BasePart]: Color3 } = {}
+    for _, inst in ipairs(rec.Model:GetDescendants()) do
+        if inst:IsA("BasePart") and inst:GetAttribute("IdleDark") then
+            local part = inst :: BasePart
+            originals[part] = part.Color
+            part.Color = Color3.new(0, 0, 0)
+        end
+    end
+    rec.IdleOriginalColors = originals
+end
+
+local function clearIdleDark(rec: EnemyRecord)
+    local originals = rec.IdleOriginalColors
+    if not originals then return end
+    for part, color in pairs(originals) do
+        if part and part.Parent then
+            part.Color = color
+        end
+    end
+    rec.IdleOriginalColors = nil
+end
+
 local function markPlayerDead(player: Player)
     if not player or not player.Parent then return end
     if player:GetAttribute("Dead") then return end
@@ -148,6 +174,7 @@ local function beginChasing(rec: EnemyRecord, player: Player, fromAlert: boolean
 	rec.TargetPlayer = player
 	rec.TargetFromAlert = fromAlert
 	rec.State = "Chasing"
+    clearIdleDark(rec)
     local primary = getPrimaryPart(rec.Model)
 	if not primary then return end
 	-- Unanchor per spec (primary part)
@@ -169,6 +196,7 @@ end
 local function beginReturning(rec: EnemyRecord)
 	rec.TargetPlayer = nil
 	rec.State = "Returning"
+    clearIdleDark(rec)
     local primary = getPrimaryPart(rec.Model)
 	if not primary then return end
     setAssemblyAnchored(rec.Model, false)
@@ -187,6 +215,7 @@ local function anchorAndIdle(rec: EnemyRecord)
 	rec.TargetPlayer = nil
     rec.TargetAttachment = nil
 	rec.State = "Idle"
+    applyIdleDark(rec)
 end
 
 local function tryAdoptAlert(rec: EnemyRecord)
@@ -243,7 +272,7 @@ RunService.Heartbeat:Connect(function()
 			local target = rec.TargetPlayer
 			local character = target and target.Character
 			local hrp = character and character:FindFirstChild("HumanoidRootPart")
-			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+			local _humanoid = character and character:FindFirstChildOfClass("Humanoid")
 			if not target or not hrp or target:GetAttribute("Dead") then
 				-- Target lost; try follow someone else
 				local nearby = findNearbyPlayer(rec)
@@ -375,9 +404,12 @@ for id, dir in pairs(Directory.Enemy) do
 		LinearVelocity = nil,
 		AlignOrientation = nil,
 		Attachment = nil,
+		IdleOriginalColors = nil,
 	}
 
 	enemies[id] = rec
+    -- Newly spawned enemies are Idle; apply dark effect
+    applyIdleDark(rec)
 end
 
 return Enemies
