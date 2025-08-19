@@ -34,17 +34,13 @@ local function setup()
 		return
 	end
 
-	local buyButton = sideLeft:FindFirstChild("BuyButton")
+	local shopButton = sideLeft:FindFirstChild("ShopButton")
 	local indexButton = sideLeft:FindFirstChild("IndexButton")
 
-	if buyButton and buyButton:IsA("GuiButton") then
-		ButtonFX(buyButton)
-		buyButton.Activated:Connect(function()
-			if TabController.GetCurrentTab() ~= "Tools" then
-				TabController.OpenTab("Tools")
-			else
-				TabController.CloseTab()
-			end
+	if shopButton and shopButton:IsA("GuiButton") then
+		ButtonFX(shopButton)
+		shopButton.Activated:Connect(function()
+			TabController.OpenTab("Shop")
 		end)
 	end
 
