@@ -349,13 +349,13 @@ local function tutorialMain()
             end)
         elseif state == "Complete" then
             print("YOU DID IT!")
+            Network.Fire("SetFinishedTutorial")
             destroyBeam()
             task.delay(3, function()
                 -- Show a final tip after the completion message sits for 3s
                 typeMessage("Buy tools to be faster in the water!")
                 task.delay(6, function()
                     -- End tutorial and mark as finished
-                    Network.Fire("SetFinishedTutorial")
                     if tutorialGui and tutorialGui:IsA("ScreenGui") then
                         tutorialGui.Enabled = false
                     end
