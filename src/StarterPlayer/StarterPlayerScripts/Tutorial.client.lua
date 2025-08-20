@@ -354,6 +354,11 @@ local function tutorialMain(initialState: string?)
             if not plot then return end
             local plotModel = plot:WaitModel()
             local pedsFolder = plotModel:WaitForChild("Pedestals")
+            -- Ensure next pedestal id is defined when entering this state directly
+            if nextPedestalId == nil then
+                local currentCount = plot:Save("Pedestals") :: number
+                nextPedestalId = (currentCount :: number) + 1
+            end
             local pedModel = pedsFolder:FindFirstChild(tostring(nextPedestalId :: number))
             if pedModel then
                 local nameplate = pedModel:FindFirstChild("Nameplate") :: BasePart
