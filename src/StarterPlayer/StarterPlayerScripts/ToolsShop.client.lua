@@ -84,6 +84,49 @@ local function buildToolsList()
 			description.Text = tostring(dir.Description or "")
 		end
 
+		-- Viewport rendering for tool preview
+		local toolImage = clone:FindFirstChild("ToolImage")
+		local viewport: ViewportFrame? = toolImage and toolImage:FindFirstChild("ViewportFrame") :: ViewportFrame?
+		if viewport and viewport:IsA("ViewportFrame") then
+			-- Clear previous
+			for _, c in ipairs(viewport:GetChildren()) do
+				c:Destroy()
+			end
+
+			local cam = Instance.new("Camera")
+			cam.Parent = viewport
+			viewport.CurrentCamera = cam
+			viewport.Ambient = Color3.fromRGB(200, 200, 200)
+			viewport.LightColor = Color3.fromRGB(255, 255, 255)
+
+			local toolTemplate = dir._script and dir._script:WaitForChild("Tool")
+			if toolTemplate and toolTemplate:IsA("Tool") then
+				local model = Instance.new("Model")
+				model.Name = "ToolPreview"
+				model.Parent = viewport
+
+				-- Clone the Tool into the model to preserve structure
+				local toolClone = toolTemplate:Clone()
+				toolClone.Parent = model
+				toolClone:PivotTo(toolClone:GetPivot() * CFrame.Angles(0, math.rad(110), math.rad(90)))
+
+				-- Find a primary/base part to focus and compute bounds
+				local primary = model.PrimaryPart or model:FindFirstChild("Handle") or model:FindFirstChildWhichIsA("BasePart")
+				if primary and not model.PrimaryPart and primary:IsA("BasePart") then
+					model.PrimaryPart = primary
+				end
+
+				-- Compute bounding box and frame camera
+				local bboxCF, bboxSize = model:GetBoundingBox()
+				local maxDim = math.max(bboxSize.X, bboxSize.Y, bboxSize.Z)
+				print(maxDim * 2)
+				local dist = maxDim * 1.25
+				local target = bboxCF.Position
+				local cameraOffset = Vector3.new(0, bboxSize.Y * 0.25, dist)
+				cam.CFrame = CFrame.lookAt(target + cameraOffset, target)
+			end
+		end
+
 		-- Button setup
 		local buttons = clone:FindFirstChild("Buttons")
 		local buyButton: GuiButton? = buttons and buttons:FindFirstChild("BuyButton") :: GuiButton?

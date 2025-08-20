@@ -264,7 +264,7 @@ local function setupShop()
     setupIncreaseLuck(scrollingFrame)
 	
 	task.delay(0.1, function()
-		-- Functions.UpdateCanvasSize(scrollingFrame)
+		Functions.UpdateCanvasSize(scrollingFrame)
 	end)
 	
 	shopIsSetup = true
