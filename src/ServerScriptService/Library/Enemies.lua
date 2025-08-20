@@ -211,6 +211,14 @@ local function beginChasing(rec: EnemyRecord, player: Player, fromAlert: boolean
     local ao: AlignOrientation? = rec.AlignOrientation
     if ao then (ao :: AlignOrientation).Attachment1 = nil end
     rec.TargetAttachment = nil
+
+	task.spawn(function()
+		local id = ALERT_SOUNDS[math.random(1, #ALERT_SOUNDS)]
+		local pos = rec.Model:GetPivot()
+		for _, player in ipairs(Players:GetPlayers()) do
+			Audio.Play(id, pos, nil, nil, 999999, false, nil, player)
+		end
+	end)
 end
 
 local function beginReturning(rec: EnemyRecord)
@@ -251,14 +259,6 @@ local function tryAdoptAlert(rec: EnemyRecord)
 				if isPlayerInWater(alert.player) then
 					beginChasing(rec, alert.player, true)
 					rec.LastAlertSeenT = alert.t
-
-					task.spawn(function()
-						local id = ALERT_SOUNDS[math.random(1, #ALERT_SOUNDS)]
-						local pos = rec.Model:GetPivot()
-						for _, player in ipairs(Players:GetPlayers()) do
-							Audio.Play(id, pos, nil, nil, 999999, false, nil, player)
-						end
-					end)
 				end
 				return
 			end
@@ -380,7 +380,7 @@ RunService.Heartbeat:Connect(function()
                 local toHome = rec.SpawnCFrame.Position - primaryPart.Position
                 local dHome = toHome.Magnitude
                 local dir = if dHome > 0 then toHome / dHome else Vector3.zero
-                if lv then (lv :: LinearVelocity).VectorVelocity = dir * (MOVE_SPEED * 0.35) end
+                if lv then (lv :: LinearVelocity).VectorVelocity = dir * MOVE_SPEED end
                 if ao then
                     local forward = dir
                     local up = Vector3.yAxis
