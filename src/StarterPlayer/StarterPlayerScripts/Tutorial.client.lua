@@ -11,6 +11,7 @@ local _Functions = require(ReplicatedStorage.Library.Functions)
 local Save = require(ReplicatedStorage.Library.Client.Save)
 local Network = require(ReplicatedStorage.Library.Client.Network)
 local _PlotTypesDup = require(ReplicatedStorage.Game.Library.Types.Plots)
+local Audio = require(ReplicatedStorage.Library.Audio)
 
 local DISABLE_IN_STUDIO = false
 
@@ -187,20 +188,58 @@ local function tutorialMain(initialState: string?)
     end
 
     local currentTyperCancel: (() -> ())? = nil
+    local TYPING_SOUND_ID = "rbxassetid://123638861486059"
+    local typingSound: Sound? = nil
+    local function stopTypingSound()
+        if typingSound and typingSound.Parent then
+            typingSound.Looped = false
+            typingSound:Stop()
+            typingSound:Destroy()
+        end
+        typingSound = nil
+    end
+    local function startTypingSound()
+        stopTypingSound()
+        Audio.Play(TYPING_SOUND_ID, script, 1, 0.3, nil, true)
+        task.spawn(function()
+            for _ = 1, 25 do
+                local found: Sound? = nil
+                for _, child in ipairs(script:GetChildren()) do
+                    if child:IsA("Sound") and child.SoundId == TYPING_SOUND_ID then
+                        found = child
+                        break
+                    end
+                end
+                if found then
+                    typingSound = found
+                    break
+                end
+                task.wait(0.02)
+            end
+        end)
+    end
     local function typeMessage(text: string)
         if currentTyperCancel then currentTyperCancel() currentTyperCancel = nil end
         if not messageLabel or not messageLabel:IsA("TextLabel") then return end
         messageLabel.Text = ""
         local cancelled = false
+
         currentTyperCancel = function() cancelled = true end
         task.spawn(function()
             local out = ""
+            startTypingSound()
+            task.wait(0.2)
+
             for i = 1, #text do
-                if cancelled then return end
+                if cancelled then
+                    stopTypingSound()
+                    return
+                end
                 out ..= string.sub(text, i, i)
                 messageLabel.Text = out
-                task.wait(0.075)
+                task.wait(0.05)
             end
+            stopTypingSound()
         end)
     end
 
