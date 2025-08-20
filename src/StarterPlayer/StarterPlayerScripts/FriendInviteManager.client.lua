@@ -12,6 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Library = ReplicatedStorage:WaitForChild("Library")
 local GUI = require(game.ReplicatedStorage.Game.Library.Client.GUI)
 local ButtonFX = require(Library.Client.GUIFX.ButtonFX)
+local Network = require(Library.Client.Network)
 
 -- to track button connections
 local buttonConnections = {}
@@ -20,7 +21,7 @@ local buttonConnections = {}
 -- This prevents spamming the same friend repeatedly.
 
 -- Constants
-local BASE_INTERVAL = 60 * 10 -- 10 minutes
+local BASE_INTERVAL = 60 * 15 -- 15 minutes
 local EXTENSION_INTERVAL = 30 -- 30 seconds
 
 -- Type Definition
@@ -157,6 +158,7 @@ local function showRandomFriendInvite()
 			local inviteSuccess, _ = pcall(SocialService.PromptGameInvite, SocialService, localPlayer)
 			if inviteSuccess then
 				closeGui()
+				Network.Fire("PlayerInvitedFriend", randomFriend.Id)
 			else
 				warn(`[FriendInvite] Failed to send game invite to {randomFriend.DisplayName}.`)
 			end
