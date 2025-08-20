@@ -22,6 +22,24 @@ local Audio = require(game.ReplicatedStorage.Library.Audio)
 local CLAIM_TWEEN_TOTAL_TIME = 0.3 -- seconds for full down-and-up cycle
 local CLAIM_TWEEN_DEPTH = 0.2 -- studs to move down
 
+-- Configurable audio pitch ramp when claiming repeatedly (local-only)
+local CLAIM_PITCH_MAX_STREAK = 8 -- max consecutive steps to raise pitch
+local CLAIM_PITCH_WINDOW_S = 1.5 -- time window to consider claims consecutive
+local _claimPitchStreak = 0
+local _lastClaimSoundTime = 0
+
+local function nextClaimPlaybackSpeed(): number
+	local now = time()
+	if (now - _lastClaimSoundTime) <= CLAIM_PITCH_WINDOW_S then
+		_claimPitchStreak = math.min(_claimPitchStreak + 1, CLAIM_PITCH_MAX_STREAK)
+	else
+		_claimPitchStreak = 0
+	end
+	_lastClaimSoundTime = now
+	-- Raise by semitone per streak step: 2^(n/12)
+	return 2 ^ (_claimPitchStreak / 12)
+end
+
 local function playClaimBounce(claimPart: BasePart)
     if not claimPart or not claimPart.Parent then return end
     if claimPart:GetAttribute("_ClaimTweenActive") then return end
@@ -288,16 +306,17 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
                         touchingParts[other] = true
                     end
                     if model:GetAttribute("_ClaimActive") ~= true then
+                        -- Set active immediately to debounce before any yields
+                        model:SetAttribute("_ClaimActive", true)
                         -- Play pedestal claim bounce animation only for unlocked pedestals
                         if pedestalId <= pedestalCount then
                             playClaimBounce(claim)
                         end
-
                         local success, amount = plot:Invoke("ClaimEarnings", pedestalId)
-                        model:SetAttribute("_ClaimActive", true)
                         -- Play claim sound (coins collected)
                         if success and (amount or 0) > 0 then
-                            Audio.Play("rbxassetid://76559039302900", game:GetService("SoundService"), 1, 0.2)
+                            local playbackSpeed = nextClaimPlaybackSpeed()
+                            Audio.Play("rbxassetid://76559039302900", game:GetService("SoundService"), playbackSpeed, 0.2)
                         end
                     end
                 end)
