@@ -4,7 +4,7 @@ local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
 local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
-    DisplayName = "Puffer Fish",
+    DisplayName = "Hammerhead Shark",
     Rarity = Rarity.Epic,
     MoneyPerSecond = 18,
     BaseUpgradeCost = 540,

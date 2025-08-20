@@ -4,7 +4,7 @@ local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
 local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
-    DisplayName = "Depth Serpent",
+    DisplayName = "Crystalite Fish",
     Rarity = Rarity.Secret,
     MoneyPerSecond = 65357,
     BaseUpgradeCost = 1960710,
