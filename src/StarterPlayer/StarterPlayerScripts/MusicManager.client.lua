@@ -12,9 +12,8 @@ local Save = require(ReplicatedStorage.Library.Client.Save)
 local Signal = require(ReplicatedStorage.Library.Signal)
 
 local MUSIC_IDS = {
-    "rbxassetid://101791676294835",
-    "rbxassetid://18408656896",
-    "rbxassetid://18408657033",
+    "rbxassetid://1841647093",
+    "rbxassetid://1848354536",
 }
 local lastIndex: number? = nil
 
