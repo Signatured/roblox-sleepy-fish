@@ -351,11 +351,15 @@ local function tutorialMain()
             print("YOU DID IT!")
             destroyBeam()
             task.delay(3, function()
-                -- Request server to mark tutorial finished
-                Network.Fire("SetFinishedTutorial")
-                if tutorialGui and tutorialGui:IsA("ScreenGui") then
-                    tutorialGui.Enabled = false
-                end
+                -- Show a final tip after the completion message sits for 3s
+                typeMessage("Buy tools to be faster in the water!")
+                task.delay(6, function()
+                    -- End tutorial and mark as finished
+                    Network.Fire("SetFinishedTutorial")
+                    if tutorialGui and tutorialGui:IsA("ScreenGui") then
+                        tutorialGui.Enabled = false
+                    end
+                end)
             end)
             if beamUpdater then beamUpdater:Disconnect() end
         end
