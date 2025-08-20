@@ -18,6 +18,33 @@ local ProductDirectory = require(game.ReplicatedStorage.Game.Library.Directory.P
 local Marketplace = require(game.ReplicatedStorage.Library.Marketplace)
 local Audio = require(game.ReplicatedStorage.Library.Audio)
 
+-- Configurable claim bounce tween settings
+local CLAIM_TWEEN_TOTAL_TIME = 0.3 -- seconds for full down-and-up cycle
+local CLAIM_TWEEN_DEPTH = 0.2 -- studs to move down
+
+local function playClaimBounce(claimPart: BasePart)
+    if not claimPart or not claimPart.Parent then return end
+    if claimPart:GetAttribute("_ClaimTweenActive") then return end
+    claimPart:SetAttribute("_ClaimTweenActive", true)
+
+    local startPosition = claimPart.Position
+    local downPosition = startPosition - Vector3.new(0, CLAIM_TWEEN_DEPTH, 0)
+    local halfDuration = CLAIM_TWEEN_TOTAL_TIME / 2
+    local tweenInfo = TweenInfo.new(halfDuration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+
+    task.spawn(function()
+        -- Down
+        local t1 = Functions.Tween(claimPart, { Position = downPosition }, tweenInfo)
+        if t1 and t1.Completed then t1.Completed:Wait() end
+        -- Up
+        if claimPart.Parent then
+            local t2 = Functions.Tween(claimPart, { Position = startPosition }, tweenInfo)
+            if t2 and t2.Completed then t2.Completed:Wait() end
+        end
+        claimPart:SetAttribute("_ClaimTweenActive", false)
+    end)
+end
+
 type PedestalModel = {
     Model: Model,
     Billboard: BillboardGui,
@@ -261,11 +288,16 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
                         touchingParts[other] = true
                     end
                     if model:GetAttribute("_ClaimActive") ~= true then
+                        -- Play pedestal claim bounce animation only for unlocked pedestals
+                        if pedestalId <= pedestalCount then
+                            playClaimBounce(claim)
+                        end
+
                         local success, amount = plot:Invoke("ClaimEarnings", pedestalId)
                         model:SetAttribute("_ClaimActive", true)
                         -- Play claim sound (coins collected)
                         if success and (amount or 0) > 0 then
-                            Audio.Play("rbxassetid://76559039302900", game:GetService("SoundService"), 1, 0.3)
+                            Audio.Play("rbxassetid://76559039302900", game:GetService("SoundService"), 1, 0.2)
                         end
                     end
                 end)
