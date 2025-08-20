@@ -5,11 +5,12 @@ local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientPlot = require(ReplicatedStorage.Plot.ClientPlot)
+local PlotTypes = require(ReplicatedStorage.Game.Library.Types.Plots)
 local GUI = require(ReplicatedStorage.Game.Library.Client.GUI)
 local _Functions = require(ReplicatedStorage.Library.Functions)
 local Save = require(ReplicatedStorage.Library.Client.Save)
 local Network = require(ReplicatedStorage.Library.Client.Network)
-local PlotTypes = require(ReplicatedStorage.Game.Library.Types.Plots)
+local _PlotTypesDup = require(ReplicatedStorage.Game.Library.Types.Plots)
 
 local DISABLE_IN_STUDIO = false
 
@@ -165,14 +166,14 @@ local function waitForGoToWater(): BasePart
     return inter:WaitForChild("GoToWater") :: BasePart
 end
 
-local function tutorialMain()
+local function tutorialMain(initialState: string?)
     if isStudio() and DISABLE_IN_STUDIO then return end
     local stats = getTutorialSave()
     if not stats or stats.FinishedTutorial == true then return end
 
     local goToWater = waitForGoToWater()
 
-    local state: string = "GoToWater"
+    local state: string = initialState or "GoToWater"
     local trackedFish: Model? = nil
     local pedestalTargetId: number? = nil
     local nextPedestalId: number? = nil
@@ -180,10 +181,6 @@ local function tutorialMain()
     -- Tutorial GUI setup
     local tutorialGui = GUI.Tutorial()
     tutorialGui.Enabled = true
-    print(tutorialGui.Enabled)
-    task.delay(2, function()
-        print(tutorialGui.Enabled)
-    end)
     local messageLabel: TextLabel? = tutorialGui:FindFirstChild("Frame") and tutorialGui.Frame:FindFirstChild("Message") :: TextLabel?
     if messageLabel and messageLabel:IsA("TextLabel") then
         messageLabel.Text = ""
@@ -270,7 +267,7 @@ local function tutorialMain()
                 local deadline = time() + 5
                 while time() < deadline do
                     local s = getTutorialSave()
-                    if s and s.TutorialState == 1 then break end
+                    if s and #s.Inventory >= 1 then break end
                     task.wait(0.25)
                 end
                 state = "FindEmptyPedestal"
@@ -315,6 +312,21 @@ local function tutorialMain()
         elseif state == "PointClaim" then
             local plot = ClientPlot.GetLocal()
             if not plot then return end
+            -- Ensure we have a target pedestal: pick the first pedestal that has fish
+            if pedestalTargetId == nil then
+                local pedCount = plot:Save("Pedestals") :: number
+                local fishNow = plot:Save("Fish") :: {[string]: any}
+                for i = 1, pedCount do
+                    if fishNow[tostring(i)] ~= nil then
+                        pedestalTargetId = i
+                        break
+                    end
+                end
+                if pedestalTargetId == nil then
+                    -- Fallback to first pedestal
+                    pedestalTargetId = 1
+                end
+            end
             local plotModel = plot:WaitModel()
             local pedsFolder = plotModel:WaitForChild("Pedestals")
             local pedModel = pedsFolder:FindFirstChild(tostring(pedestalTargetId :: number))
@@ -324,8 +336,9 @@ local function tutorialMain()
                     pointBeamToWorldPosition(claim.Position)
                 end
             end
-            nextPedestalId = (pedestalTargetId :: number) + 1
-            local cost = PlotTypes.PedestalCost(nextPedestalId::number)
+            local pedCountForCost = plot:Save("Pedestals") :: number
+            nextPedestalId = (pedCountForCost :: number) + 1
+            local cost = PlotTypes.PedestalCost(nextPedestalId :: number)
             task.spawn(function()
                 while true do
                     task.wait(0.1)
@@ -378,17 +391,46 @@ local function tutorialMain()
     end)
 end
 
-task.spawn(function()
+ClientPlot.OnLocalAndCreated(function(plot: ClientPlot.Type)
     local save = Save.Get()
     if not save then
-        local conn
-        conn = Save.SaveAdded:Connect(function()
-            if conn then conn:Disconnect() end
-            tutorialMain()
-        end)
-    else
-        tutorialMain()
+        return
     end
-end)
 
+    if save.FinishedTutorial then
+        return
+    end
+
+    -- Determine starting state
+    local inventory = save.Inventory or {}
+    local pedestals = plot:Save("Pedestals") :: number
+    local fishMap = plot:Save("Fish") :: {[string]: any}
+    local allPedestalsEmpty = true
+    for i = 1, pedestals do
+        if fishMap[tostring(i)] ~= nil then
+            allPedestalsEmpty = false
+            break
+        end
+    end
+
+    local startState = "GoToWater"
+    if (#inventory == 0) and allPedestalsEmpty then
+        startState = "GoToWater"
+    elseif (#inventory > 0) and allPedestalsEmpty then
+        startState = "FindEmptyPedestal"
+    else
+        -- At least one pedestal has a fish; decide between claim vs next pedestal
+        local nextId = pedestals + 1
+        local cost = PlotTypes.PedestalCost(nextId)
+        local money = plot:Save("Money")
+        if typeof(money) ~= "number" then money = 0 end
+        if money >= (cost or 0) then
+            startState = "PointNextPedestalNameplate"
+        else
+            startState = "PointClaim"
+        end
+    end
+
+    tutorialMain(startState)
+end)
 

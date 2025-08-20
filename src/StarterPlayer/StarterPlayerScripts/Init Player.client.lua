@@ -30,7 +30,6 @@ local function platformStandDisable()
             local humanoid = Player.Optional.Humanoid()
             if humanoid and not flying then
                 humanoid.PlatformStand = false
-                print("disabled")
             end
         end
     end)

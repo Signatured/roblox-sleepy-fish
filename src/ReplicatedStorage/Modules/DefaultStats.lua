@@ -28,7 +28,6 @@ export type schema = {
 	Products: {[string]: boolean},
 	Joins: number,
 	Playtime: number,
-	TutorialState: number,
 	FinishedTutorial: boolean,
 }
 
@@ -51,7 +50,6 @@ local DefaultStats = {
 	Products = {},
 	Joins = 0,
 	Playtime = 0,
-	TutorialState = 1,
 	FinishedTutorial = false,
 }::schema
 
