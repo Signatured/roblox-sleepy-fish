@@ -38,15 +38,27 @@ local function createOrGetBeam(): Beam
     end
     local beam = hrp:FindFirstChild("TutorialBeam") :: any
     if not (beam and beam:IsA("Beam")) then
-        beam = Instance.new("Beam")
-        beam.Name = "TutorialBeam"
-        beam.FaceCamera = true
-        beam.Width0 = 0.2
-        beam.Width1 = 0.2
-        beam.Transparency = NumberSequence.new(0.1)
-        beam.Color = ColorSequence.new(Color3.fromRGB(255, 255, 0))
-        beam.Attachment0 = a0
-        beam.Parent = hrp
+        local assets = ReplicatedStorage:FindFirstChild("Assets")
+        local template = assets and assets:FindFirstChild("TutorialBeam")
+        if template and template:IsA("Beam") then
+            local cloned = template:Clone()
+            cloned.Name = "TutorialBeam"
+            cloned.Attachment0 = a0
+            cloned.Parent = hrp
+            beam = cloned
+        else
+            -- Fallback if the asset is missing
+            local newBeam = Instance.new("Beam")
+            newBeam.Name = "TutorialBeam"
+            newBeam.FaceCamera = true
+            newBeam.Width0 = 0.2
+            newBeam.Width1 = 0.2
+            newBeam.Transparency = NumberSequence.new(0.1)
+            newBeam.Color = ColorSequence.new(Color3.fromRGB(255, 255, 0))
+            newBeam.Attachment0 = a0
+            newBeam.Parent = hrp
+            beam = newBeam
+        end
     end
     return beam
 end
