@@ -13,5 +13,6 @@ function module.Tools() return PlayerGui:WaitForChild("Tools", WAIT_TIME) end
 function module.Message() return PlayerGui:WaitForChild("Message", WAIT_TIME) end
 function module.Shop() return PlayerGui:WaitForChild("Shop", WAIT_TIME) end
 function module.DropButton() return PlayerGui:WaitForChild("DropButton", WAIT_TIME) end
+function module.Settings() return PlayerGui:WaitForChild("Settings", WAIT_TIME) end
 
 return module

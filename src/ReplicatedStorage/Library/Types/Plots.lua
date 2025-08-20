@@ -41,7 +41,7 @@ export type Fish = {
 }
 
 function module.PedestalCost(index: number)
-    return 1000 * index
+    return 10 * index
 end
 
 return module
