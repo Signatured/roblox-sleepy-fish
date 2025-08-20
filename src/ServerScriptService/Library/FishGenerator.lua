@@ -42,6 +42,10 @@ local typeChances = {
 }
 
 local FishGen = {}
+-- Internal scheduling state (real-time aligned)
+FishGen._nextEpicAt = nil :: number?
+FishGen._nextLegendaryAt = nil :: number?
+FishGen._nextMythicalAt = nil :: number?
 
 type Swimming = FishTypes.swimming_fish_schema & {
     UID: string,
@@ -229,6 +233,57 @@ local function getRoot(type: string): Model
         return ROOT_RAINBOW
     end
     return ROOT
+end
+
+local function chooseSpawnPart(): BasePart
+    if math.random() < HARD_RATIO then
+        return HARD
+    end
+    return EASY
+end
+
+-- Force-spawn a fish constrained to a given rarity id (e.g., "Epic", "Legendary", "Mythical").
+local function spawnForcedByRarity(rarityId: string)
+    local schema = chooseFishByRarity(rarityId)
+    if not schema then return end
+    local fishModelTemplate = schema._script:WaitForChild("Model")
+    if not fishModelTemplate or not fishModelTemplate:IsA("Model") then return end
+
+    local uid = Functions.GenerateUID()
+    local fishType = Functions.Lottery(typeChances)
+
+    local fishData: FishTypes.data_schema = {
+        UID = uid,
+        FishId = schema._id,
+        Type = fishType,
+        Shiny = false,
+        Level = 1,
+        CreateTime = os.clock(),
+        BaseTime = os.clock(),
+    }
+
+    local fishInstance: Swimming = {
+        UID = uid,
+        FishData = fishData,
+        SpawnTime = os.clock(),
+        Carrier = nil,
+        Model = fishModelTemplate:Clone(),
+        Gui = nil,
+    }
+    uidToFish[uid] = fishInstance
+
+    local into = chooseSpawnPart()
+    local cf = randomPointIn(into)
+    local yaw = math.rad(math.random(0, 359))
+    local spawnCFrame = CFrame.new(cf.Position) * CFrame.Angles(0, yaw, 0)
+    fishInstance.Model:PivotTo(spawnCFrame)
+    setModelAnchored(fishInstance.Model, true)
+    fishInstance.Model.Parent = getRoot(fishType)
+    fishInstance.Model:AddTag("SwimmingFish")
+    fishInstance.Model:SetAttribute("UID", uid)
+    fishInstance.Model:SetAttribute("CFrame", spawnCFrame)
+    attachGui(fishInstance, schema)
+    makePrompt(fishInstance)
 end
 
 local function spawnOne(into: BasePart, backdate: number?)
@@ -432,6 +487,35 @@ RunService.Heartbeat:Connect(function()
 				end
 			end
         end
+    end
+    -- Guaranteed spawns aligned to real-world clock
+    -- Compute next targets lazily and step forward as crossed
+    local unixNow = DateTime.now().UnixTimestamp
+
+    -- Mythical: at top of every hour
+    if not FishGen._nextMythicalAt then
+        local base = math.floor(unixNow / 3600) * 3600
+        FishGen._nextMythicalAt = base + 3600
+    end
+    -- Epic/Legendary: start at bottom of the hour (:30)
+    if not FishGen._nextEpicAt or not FishGen._nextLegendaryAt then
+        local hourStart = math.floor(unixNow / 3600) * 3600
+        local bottom = hourStart + 1800
+        FishGen._nextEpicAt = (unixNow <= bottom) and bottom or (bottom + math.ceil((unixNow - bottom) / (2*60)) * (2*60))
+        FishGen._nextLegendaryAt = (unixNow <= bottom) and bottom or (bottom + math.ceil((unixNow - bottom) / (5*60)) * (5*60))
+    end
+
+    while unixNow >= (FishGen._nextEpicAt or 0) do
+        spawnForcedByRarity("Epic")
+        FishGen._nextEpicAt = (FishGen._nextEpicAt :: number) + 2*60
+    end
+    while unixNow >= (FishGen._nextLegendaryAt or 0) do
+        spawnForcedByRarity("Legendary")
+        FishGen._nextLegendaryAt = (FishGen._nextLegendaryAt :: number) + 5*60
+    end
+    while unixNow >= (FishGen._nextMythicalAt or 0) do
+        spawnForcedByRarity("Mythical")
+        FishGen._nextMythicalAt = (FishGen._nextMythicalAt :: number) + 60*60
     end
 end)
 

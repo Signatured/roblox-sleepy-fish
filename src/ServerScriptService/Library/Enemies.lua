@@ -318,7 +318,7 @@ RunService.Heartbeat:Connect(function()
                 local toTarget = hrpPart.Position - primaryPart.Position
                 local d = toTarget.Magnitude
                 local dir = if d > 0 then toTarget / d else Vector3.zero
-                if lv then (lv :: LinearVelocity).VectorVelocity = dir * MOVE_SPEED end
+                if lv then (lv :: LinearVelocity).VectorVelocity = dir * (MOVE_SPEED) end
                 if ao then
                     local forward = dir
                     local up = Vector3.yAxis
@@ -367,7 +367,7 @@ RunService.Heartbeat:Connect(function()
                 local toHome = rec.SpawnCFrame.Position - primaryPart.Position
                 local dHome = toHome.Magnitude
                 local dir = if dHome > 0 then toHome / dHome else Vector3.zero
-                if lv then (lv :: LinearVelocity).VectorVelocity = dir * MOVE_SPEED end
+                if lv then (lv :: LinearVelocity).VectorVelocity = dir * (MOVE_SPEED * 0.35) end
                 if ao then
                     local forward = dir
                     local up = Vector3.yAxis
