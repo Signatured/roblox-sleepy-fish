@@ -92,12 +92,36 @@ end
 
 local function randomPointIn(part: BasePart): CFrame
     local size = part.Size
-    local offset = Vector3.new(
-        (math.random() - 0.5) * size.X,
-        (math.random() - 0.5) * size.Y,
-        (math.random() - 0.5) * size.Z
-    )
-    return part.CFrame * CFrame.new(offset)
+    local lastCF = part.CFrame
+    for attempt = 1, 5 do
+        local offset = Vector3.new(
+            (math.random() - 0.5) * size.X,
+            (math.random() - 0.5) * size.Y,
+            (math.random() - 0.5) * size.Z
+        )
+        local cf = part.CFrame * CFrame.new(offset)
+        lastCF = cf
+
+        -- Check against NoFishZones
+        local inter = workspace:FindFirstChild("Interact")
+        local zonesFolder = inter and inter:FindFirstChild("NoFishZones")
+        local blocked = false
+        if zonesFolder then
+            for _, inst in ipairs(zonesFolder:GetDescendants()) do
+                if inst:IsA("BasePart") then
+                    if Functions.IsPositionInPart(cf.Position, inst :: BasePart) then
+                        blocked = true
+                        break
+                    end
+                end
+            end
+        end
+        if not blocked then
+            return cf
+        end
+    end
+    -- Give up and use the last attempted point
+    return lastCF
 end
 
 local function weldToBack(model: Model, player: Player)
