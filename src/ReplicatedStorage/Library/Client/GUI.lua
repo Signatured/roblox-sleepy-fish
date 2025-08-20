@@ -16,5 +16,6 @@ function module.DropButton() return PlayerGui:WaitForChild("DropButton", WAIT_TI
 function module.Settings() return PlayerGui:WaitForChild("Settings", WAIT_TIME) end
 function module.Tutorial() return PlayerGui:WaitForChild("Tutorial", WAIT_TIME) end
 function module.FriendInvite() return PlayerGui:WaitForChild("FriendInvite", WAIT_TIME) end
+function module.Index() return PlayerGui:WaitForChild("Index", WAIT_TIME) end
 
 return module

@@ -16,6 +16,13 @@ export type PlotSave = {
 	PaidIndex: number,
 }
 
+export type IndexData = {
+	Normal: boolean?,
+	Shiny: boolean?,
+	Gold: boolean?,
+	Rainbow: boolean?,
+}
+
 export type schema = {
 	Inventory: {FishTypes.data_schema},
 	Tools: {[string]: boolean},
@@ -29,6 +36,7 @@ export type schema = {
 	Joins: number,
 	Playtime: number,
 	FinishedTutorial: boolean,
+	Index: {[string]: IndexData}
 }
 
 local DefaultStats = {
@@ -51,6 +59,7 @@ local DefaultStats = {
 	Joins = 0,
 	Playtime = 0,
 	FinishedTutorial = false,
+	Index = {},
 }::schema
 
 return DefaultStats
