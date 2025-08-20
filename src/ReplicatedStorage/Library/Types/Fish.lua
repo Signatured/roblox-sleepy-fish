@@ -11,6 +11,7 @@ export type raw_dir = {
     MoneyPerSecond: number,
     BaseUpgradeCost: number,
     BillboardOffset: number,
+    PedestalOffset: number?,
 }
 
 export type data_schema = {

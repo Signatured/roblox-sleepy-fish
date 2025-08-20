@@ -11,6 +11,7 @@ local Functions = require(ReplicatedStorage.Library.Functions)
 local EnemyTypes = require(ReplicatedStorage.Game.Library.Types.Enemy)
 local ServerPlot = require(game.ServerScriptService.Plot.ServerPlot)
 local Signal = require(ReplicatedStorage.Library.Signal)
+local Audio = require(ReplicatedStorage.Library.Audio)
 
 local ROOT = workspace:WaitForChild("__THINGS")
 local ENEMY_LOCATIONS = ROOT:WaitForChild("EnemyLocations")
@@ -45,6 +46,10 @@ local Enemies = {}
 
 local ATTACK_RANGE = 10
 local MOVE_SPEED = 20
+
+local ALERT_SOUNDS = {
+	"rbxassetid://107509119621196", "rbxassetid://83823205190198"
+}
 
 local enemies: { [string]: EnemyRecord } = {}
 
@@ -246,6 +251,14 @@ local function tryAdoptAlert(rec: EnemyRecord)
 				if isPlayerInWater(alert.player) then
 					beginChasing(rec, alert.player, true)
 					rec.LastAlertSeenT = alert.t
+
+					task.spawn(function()
+						local id = ALERT_SOUNDS[math.random(1, #ALERT_SOUNDS)]
+						local pos = rec.Model:GetPivot()
+						for _, player in ipairs(Players:GetPlayers()) do
+							Audio.Play(id, pos, nil, nil, 999999, false, nil, player)
+						end
+					end)
 				end
 				return
 			end

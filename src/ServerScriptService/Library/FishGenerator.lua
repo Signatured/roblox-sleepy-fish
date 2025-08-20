@@ -35,7 +35,7 @@ local EASY_COUNT = TOTAL_FISH - HARD_COUNT
 local DESPAWN_SECONDS = 60
 
 local typeChances = {
-    ["Normal"] = 1,--79,
+    ["Normal"] = 79,
     ["Shiny"] = 15,
     ["Gold"] = 5,
     ["Rainbow"] = 1,

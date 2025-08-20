@@ -8,7 +8,7 @@ return {
     Rarity = Rarity.Legendary,
     MoneyPerSecond = 848,
     BaseUpgradeCost = 25440,
-    BillboardOffset = 7,
+    BillboardOffset = 5.5,
 }::FishTypes.raw_dir
 
 
