@@ -5,6 +5,7 @@ local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientPlot = require(ReplicatedStorage.Plot.ClientPlot)
+local GUI = require(ReplicatedStorage.Game.Library.Client.GUI)
 local _Functions = require(ReplicatedStorage.Library.Functions)
 local Save = require(ReplicatedStorage.Library.Client.Save)
 local Network = require(ReplicatedStorage.Library.Client.Network)
@@ -164,12 +165,63 @@ local function tutorialMain()
     local pedestalTargetId: number? = nil
     local nextPedestalId: number? = nil
 
+    -- Tutorial GUI setup
+    local tutorialGui = GUI.Tutorial()
+    tutorialGui.Enabled = true
+    print(tutorialGui.Enabled)
+    task.delay(2, function()
+        print(tutorialGui.Enabled)
+    end)
+    local messageLabel: TextLabel? = tutorialGui:FindFirstChild("Frame") and tutorialGui.Frame:FindFirstChild("Message") :: TextLabel?
+    if messageLabel and messageLabel:IsA("TextLabel") then
+        messageLabel.Text = ""
+    end
+
+    local currentTyperCancel: (() -> ())? = nil
+    local function typeMessage(text: string)
+        if currentTyperCancel then currentTyperCancel() currentTyperCancel = nil end
+        if not messageLabel or not messageLabel:IsA("TextLabel") then return end
+        messageLabel.Text = ""
+        local cancelled = false
+        currentTyperCancel = function() cancelled = true end
+        task.spawn(function()
+            local out = ""
+            for i = 1, #text do
+                if cancelled then return end
+                out ..= string.sub(text, i, i)
+                messageLabel.Text = out
+                task.wait(0.075)
+            end
+        end)
+    end
+
+    local lastMessagedState: string? = nil
     local beamUpdater
     beamUpdater = RunService.RenderStepped:Connect(function()
         local character = localPlayer.Character
         local hrp = character and character:FindFirstChild("HumanoidRootPart") :: BasePart
         if not hrp then return end
         local playerPos = hrp.Position
+
+        -- Only (re)type the message when the state changes
+        if state ~= lastMessagedState then
+            if state == "GoToWater" then
+                typeMessage("Go to the water!")
+            elseif state == "FindClownFish" then
+                typeMessage("Catch a Clown Fish!")
+            elseif state == "ReturnToWaterWithFish" then
+                typeMessage("Return to safety!")
+            elseif state == "FindEmptyPedestal" then
+                typeMessage("Place your fish in your base!")
+            elseif state == "PointClaim" then
+                typeMessage("Claim money from your fish!")
+            elseif state == "PointNextPedestalNameplate" then
+                typeMessage("Buy the next platform so you can catch more fish!")
+            elseif state == "Complete" then
+                typeMessage("Catch more fish now!")
+            end
+            lastMessagedState = state
+        end
 
         if state == "GoToWater" then
             local closest = getClosestPointOnPart(goToWater, playerPos)
@@ -301,6 +353,9 @@ local function tutorialMain()
             task.delay(3, function()
                 -- Request server to mark tutorial finished
                 Network.Fire("SetFinishedTutorial")
+                if tutorialGui and tutorialGui:IsA("ScreenGui") then
+                    tutorialGui.Enabled = false
+                end
             end)
             if beamUpdater then beamUpdater:Disconnect() end
         end
