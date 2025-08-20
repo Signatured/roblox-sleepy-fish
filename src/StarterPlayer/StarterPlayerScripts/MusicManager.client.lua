@@ -16,11 +16,12 @@ local MUSIC_IDS = {
     "rbxassetid://1848354536",
 }
 local lastIndex: number? = nil
+local defaultVolume = 0.25
 
 local musicSound = Instance.new("Sound")
 musicSound.Name = "BackgroundMusic"
 musicSound.Looped = true
-musicSound.Volume = 0.25 -- Default volume
+musicSound.Volume = defaultVolume -- Default volume
 musicSound.Parent = SoundService
 
 local function pickNextTrackIndex(): number
@@ -48,7 +49,7 @@ local function updateMusicState()
 
 	if musicEnabled and not musicSound.Playing then
 		setRandomTrack()
-		musicSound.Volume = 0.25
+		musicSound.Volume = defaultVolume
 		musicSound:Play()
 	elseif not musicEnabled and musicSound.Playing then
 		musicSound:Stop()
