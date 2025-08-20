@@ -19,7 +19,7 @@ TagHook(TAG, function(instance: Instance)
         end
     end)
     return function()
-        pcall(function() conn:Disconnect() end)
+        pcall(function() conn.Disconnect() end)
         pcall(function() pad:Destroy() end)
     end
 end)
