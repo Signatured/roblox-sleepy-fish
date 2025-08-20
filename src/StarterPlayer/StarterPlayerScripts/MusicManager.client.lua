@@ -11,14 +11,34 @@ local SoundService = game:GetService("SoundService")
 local Save = require(ReplicatedStorage.Library.Client.Save)
 local Signal = require(ReplicatedStorage.Library.Signal)
 
-local MUSIC_ID = "rbxassetid://101791676294835" -- Placeholder music ID
+local MUSIC_IDS = {
+    "rbxassetid://101791676294835",
+    "rbxassetid://18408656896",
+    "rbxassetid://18408657033",
+}
+local lastIndex: number? = nil
 
 local musicSound = Instance.new("Sound")
 musicSound.Name = "BackgroundMusic"
-musicSound.SoundId = MUSIC_ID
 musicSound.Looped = true
 musicSound.Volume = 0.25 -- Default volume
 musicSound.Parent = SoundService
+
+local function pickNextTrackIndex(): number
+    if #MUSIC_IDS == 0 then return 1 end
+    if #MUSIC_IDS == 1 then return 1 end
+    local idx = math.random(1, #MUSIC_IDS)
+    if lastIndex ~= nil and idx == lastIndex then
+        idx = (idx % #MUSIC_IDS) + 1
+    end
+    return idx
+end
+
+local function setRandomTrack()
+    local idx = pickNextTrackIndex()
+    lastIndex = idx
+    musicSound.SoundId = MUSIC_IDS[idx]
+end
 
 local function updateMusicState()
 	local saveData = Save.Get()
@@ -28,6 +48,7 @@ local function updateMusicState()
 	local soundEnabled = saveData.Settings.Sound
 
 	if musicEnabled and not musicSound.Playing then
+		setRandomTrack()
 		musicSound.Volume = 0.25
 		musicSound:Play()
 	elseif not musicEnabled and musicSound.Playing then
@@ -48,6 +69,13 @@ local function init()
 		if key == "Settings" then
 			updateMusicState()
 		end
+	end)
+
+	musicSound.Ended:Connect(function()
+		-- If the sound is set to loop, Roblox will restart it automatically; we only change when stopped
+		if musicSound.Looped then return end
+		setRandomTrack()
+		musicSound:Play()
 	end)
 
 	if Save.Get() then
