@@ -16,6 +16,7 @@ local Network = require(game.ReplicatedStorage.Library.Client.Network)
 local GameSettings = require(game.ReplicatedStorage.Game.Library.GameSettings)
 local ProductDirectory = require(game.ReplicatedStorage.Game.Library.Directory.Products)
 local Marketplace = require(game.ReplicatedStorage.Library.Marketplace)
+local Audio = require(game.ReplicatedStorage.Library.Audio)
 
 type PedestalModel = {
     Model: Model,
@@ -260,8 +261,12 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
                         touchingParts[other] = true
                     end
                     if model:GetAttribute("_ClaimActive") ~= true then
-                        plot:Invoke("ClaimEarnings", pedestalId)
+                        local success, amount = plot:Invoke("ClaimEarnings", pedestalId)
                         model:SetAttribute("_ClaimActive", true)
+                        -- Play claim sound (coins collected)
+                        if success and (amount or 0) > 0 then
+                            Audio.Play("rbxassetid://76559039302900", game:GetService("SoundService"), 1, 0.3)
+                        end
                     end
                 end)
                 claim.TouchEnded:Connect(function(other: BasePart)
