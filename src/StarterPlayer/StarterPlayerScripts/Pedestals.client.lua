@@ -40,6 +40,23 @@ local function nextClaimPlaybackSpeed(): number
 	return 2 ^ (_claimPitchStreak / 12)
 end
 
+-- Boost pitch ramp (same timing/logic as claim)
+local BOOST_PITCH_MAX_STREAK = 8
+local BOOST_PITCH_WINDOW_S = 1.5
+local _boostPitchStreak = 0
+local _lastBoostSoundTime = 0
+
+local function nextBoostPlaybackSpeed(): number
+	local now = time()
+	if (now - _lastBoostSoundTime) <= BOOST_PITCH_WINDOW_S then
+		_boostPitchStreak = math.min(_boostPitchStreak + 1, BOOST_PITCH_MAX_STREAK)
+	else
+		_boostPitchStreak = 0
+	end
+	_lastBoostSoundTime = now
+	return 2 ^ (_boostPitchStreak / 12)
+end
+
 local function playClaimBounce(claimPart: BasePart)
     if not claimPart or not claimPart.Parent then return end
     if claimPart:GetAttribute("_ClaimTweenActive") then return end
@@ -277,7 +294,9 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame
             return
         end
 
-        --TODO: play sound effect
+        -- Play boost sound (local-only)
+        local boostSpeed = nextBoostPlaybackSpeed()
+        Audio.Play("rbxassetid://133458542234750", game:GetService("SoundService"), boostSpeed, 0.3)
     end)
 end
 
@@ -485,7 +504,9 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
                     return
                 end
         
-                --TODO: play sound effect
+                -- Play boost sound (local-only)
+                local boostSpeed = nextBoostPlaybackSpeed()
+                Audio.Play("rbxassetid://133458542234750", game:GetService("SoundService"), boostSpeed, 0.3)
             end)
         end
        
