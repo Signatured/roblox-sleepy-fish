@@ -90,6 +90,9 @@ local function setup(plot: ClientPlot.Type)
 
 	if indexButton and indexButton:IsA("GuiButton") then
 		ButtonFX(indexButton)
+		indexButton.Activated:Connect(function()
+			TabController.OpenTab("Index")
+		end)
 	end
 
 	local sideRight = mainGui:FindFirstChild("SideRight")

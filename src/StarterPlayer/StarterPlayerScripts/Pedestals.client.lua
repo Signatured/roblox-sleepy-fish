@@ -145,13 +145,18 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
     local fishType = frame:WaitForChild("FishType")::TextLabel
     local offlineFrame = frame:WaitForChild("OfflineEarnings")::TextLabel
 
+    local boosts = plot:Session("PlayerBoosts")::{[string]: number}
+    local boostedTime = boosts[tostring(index)]
+	local isBoosted = boostedTime and workspace:GetServerTimeNow() < boostedTime
+    local multiplier = plot:GetMultiplier()
     local typeMultiplier = GameSettings.TypeMultipliers[fishData.FishData.Type] or 1
+    local fishMultiplier = (multiplier * typeMultiplier) + (isBoosted and 0.5 or 0)
 
     displayName.Text = dir.DisplayName
     rarity.Text = dir.Rarity.DisplayName
     rarity.TextColor3 = dir.Rarity.Color
     level.Text = `Level {fishData.FishData.Level}`
-    moneyPerSecond.Text = `${Functions.NumberShorten(math.ceil((plot:GetMoneyPerSecond(index) or 0) * typeMultiplier))}/s`
+    moneyPerSecond.Text = `${Functions.NumberShorten(math.ceil((plot:GetMoneyPerSecond(index) or 0) * fishMultiplier))}/s`
     money.Text = `${Functions.NumberShorten(earnings)}`
 
     if offlineEarnings > 0 then
@@ -484,6 +489,12 @@ function plotCreated(plot: ClientPlot.Type)
     end
 
     plot:SaveChanged("Fish"):Connect(function(newFish: {[string]: PlotTypes.Fish})
+        for _, child in pedestals:GetChildren() do
+            UpdatePedestal(plot, child::Model)
+        end
+    end)
+
+    plot:SaveChanged("PaidIndex"):Connect(function(newIndex: number)
         for _, child in pedestals:GetChildren() do
             UpdatePedestal(plot, child::Model)
         end
