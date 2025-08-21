@@ -12,6 +12,7 @@ local Save = require(ReplicatedStorage.Library.Client.Save)
 local Network = require(ReplicatedStorage.Library.Client.Network)
 local _PlotTypesDup = require(ReplicatedStorage.Game.Library.Types.Plots)
 local Audio = require(ReplicatedStorage.Library.Audio)
+local GameSettings = require(ReplicatedStorage.Game.Library.GameSettings)
 
 local DISABLE_IN_STUDIO = false
 
@@ -314,10 +315,9 @@ local function tutorialMain(initialState: string?)
         elseif state == "FindEmptyPedestal" then
             local plot = ClientPlot.GetLocal()
             if not plot then return end
-            local pedestals = plot:Save("Pedestals") :: number
             local fishMap = plot:Save("Fish") :: {[string]: any}
             pedestalTargetId = nil
-            for i = 1, pedestals do
+            for i = 1, GameSettings.PedestalCount do
                 local key = tostring(i)
                 if not fishMap[key] then
                     pedestalTargetId = i
@@ -353,9 +353,8 @@ local function tutorialMain(initialState: string?)
             if not plot then return end
             -- Ensure we have a target pedestal: pick the first pedestal that has fish
             if pedestalTargetId == nil then
-                local pedCount = plot:Save("Pedestals") :: number
                 local fishNow = plot:Save("Fish") :: {[string]: any}
-                for i = 1, pedCount do
+                for i = 1, GameSettings.PedestalCount do
                     if fishNow[tostring(i)] ~= nil then
                         pedestalTargetId = i
                         break
@@ -375,7 +374,6 @@ local function tutorialMain(initialState: string?)
                     pointBeamToWorldPosition(claim.Position)
                 end
             end
-            local pedCountForCost = plot:Save("Pedestals") :: number
             nextPedestalId = (pedCountForCost :: number) + 1
             local cost = PlotTypes.PedestalCost(nextPedestalId :: number)
             task.spawn(function()
@@ -417,7 +415,6 @@ local function tutorialMain(initialState: string?)
                 end
             end)
         elseif state == "Complete" then
-            print("YOU DID IT!")
             Network.Fire("SetFinishedTutorial")
             destroyBeam()
             task.delay(3, function()

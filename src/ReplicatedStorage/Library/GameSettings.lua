@@ -1,9 +1,7 @@
 --!strict
 
 local Settings = {
-	PedestalCount = 28,
-    PedestalTier1Count = 8,
-    PedestalTier2Count = 17,
+	PedestalCount = 12,
     TypeMultipliers = {
         ["Normal"] = 1,
         ["Shiny"] = 1.5,

@@ -102,27 +102,6 @@ local function getFishType(type: string): (string?, Color3?)
     return nil
 end
 
-function TogglePedestal(model: Model, toggle: boolean, transparency: number?)
-    if not transparency then
-        transparency = toggle and 0 or 1
-    end
-
-    if not toggle then
-        transparency = 1
-    end
-
-    assert(transparency)
-
-    for _, child in pairs(model:GetDescendants()) do
-        if child:IsA("BasePart") then
-            child.Transparency = transparency
-            child.CanCollide = toggle
-        elseif child:IsA("SurfaceGui") then
-            child.Enabled = toggle
-        end
-    end
-end
-
 function SetupProximity(text: string, holdDuration: number, keyboardKeyCode: Enum.KeyCode, attachment: Attachment): ProximityPrompt
     local prompt = Instance.new("ProximityPrompt")
 	prompt.ActionText = text
@@ -194,56 +173,12 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
     end
 end
 
-function GetPedestalTierProduct(pedestalId: number): ProductDirectory.dir_schema
-    if pedestalId <= GameSettings.PedestalTier1Count then
-        return ProductDirectory["Buy Pedestal Tier 1"]
-    elseif pedestalId <= GameSettings.PedestalTier2Count then
-        return ProductDirectory["Buy Pedestal Tier 2"]
-    else
-        return ProductDirectory["Buy Pedestal Tier 3"]
-    end
-end
-
-local function SetupButtons(plot: ClientPlot.Type, model: Model, buyFrame: Frame, upgradeFrame: Frame, placeFrame: Frame, boostFrame: Frame)
+local function SetupButtons(plot: ClientPlot.Type, model: Model, upgradeFrame: Frame, placeFrame: Frame, boostFrame: Frame)
     if model:GetAttribute("_ButtonsInit") then
         return
     end
     model:SetAttribute("_ButtonsInit", true)
     local pedestalId = tonumber(model.Name)::number
-
-    local buyButton = buyFrame:WaitForChild("ButtonMoney")::GuiButton
-    ButtonFX(buyButton)
-    buyButton.MouseButton1Click:Connect(function()
-        local success, msg = plot:Invoke("BuyPedestal", pedestalId)
-        if not success and not msg then
-            return
-        end
-
-        if not success and msg then
-            NotificationCmds.Message(msg, {
-                Color = Color3.fromRGB(255, 0, 0),
-            })
-        end
-    end)
-
-    local robuxButton = buyFrame:WaitForChild("ButtonRobux")::GuiButton
-    ButtonFX(robuxButton)
-    robuxButton.MouseButton1Click:Connect(function()
-        local pedestals = plot:Save("Pedestals")::number
-        if pedestals >= GameSettings.PedestalCount then
-            return
-        end
-
-        local product = GetPedestalTierProduct(pedestalId)
-        Marketplace.Prompt(LocalPlayer, product.ProductId, true)
-    end)
-    
-    local robuxText = robuxButton:WaitForChild("TextLabel")::TextLabel
-    task.spawn(function()
-        local product = GetPedestalTierProduct(pedestalId)
-        local price = Functions.GetRobuxPrice(product.ProductId, true)
-        robuxText.Text = ` {price}`
-    end)
 
     local upgradeButton = upgradeFrame:WaitForChild("Button")::GuiButton
     ButtonFX(upgradeButton)
@@ -302,7 +237,6 @@ end
 
 function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     local pedestalId = tonumber(model.Name)::number
-    local pedestalCount = plot:Save("Pedestals")::number
     local fish = plot:Save("Fish")::{[string]: PlotTypes.Fish}
 
     local nameplate = model:WaitForChild("Nameplate")::BasePart
@@ -328,9 +262,7 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
                         -- Set active immediately to debounce before any yields
                         model:SetAttribute("_ClaimActive", true)
                         -- Play pedestal claim bounce animation only for unlocked pedestals
-                        if pedestalId <= pedestalCount then
-                            playClaimBounce(claim)
-                        end
+                        playClaimBounce(claim)
                         local success, amount = plot:Invoke("ClaimEarnings", pedestalId)
                         -- Play claim sound (coins collected)
                         if success and (amount or 0) > 0 then
@@ -358,7 +290,6 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     end
 
     local frame = surfaceGui:WaitForChild("Frame")::Frame
-    local buyFrame = frame:WaitForChild("Buy")::Frame
     local upgradeFrame = frame:WaitForChild("Upgrade")::Frame
     local placeFrame = frame:WaitForChild("Place")::Frame
     local boostFrame = frame:WaitForChild("Boost")::Frame
@@ -368,76 +299,44 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     local boostedTime = boosts[tostring(pedestalId)]
     local isBoosted = boostedTime and workspace:GetServerTimeNow() < boostedTime
 
-    SetupButtons(plot, model, buyFrame, upgradeFrame, placeFrame, boostFrame)
+    SetupButtons(plot, model, upgradeFrame, placeFrame, boostFrame)
 
-    if pedestalId > pedestalCount + 1 then
-        TogglePedestal(model, false)
-        return
-    end
-
-    if pedestalId == pedestalCount + 1 then
-        if plot:IsLocal() then
-            TogglePedestal(model, true, 0.5)
-
-            buyFrame.Visible = true
-            upgradeFrame.Visible = false
+    if plot:IsLocal() then
+        local fishData = fish[tostring(pedestalId)]
+        if fishData then
+            upgradeFrame.Visible = true
             placeFrame.Visible = false
             boostFrame.Visible = false
-    
-            local buyButton = buyFrame:FindFirstChild("ButtonMoney")::ImageButton
-            local buttonText = buyButton:FindFirstChild("TextLabel")::TextLabel
-    
-            local cost = PlotTypes.PedestalCost(pedestalId)
+
+            local textLabel = upgradeFrame:WaitForChild("TextLabel")::TextLabel
+            textLabel.Text = `Level {fishData.FishData.Level} -> Level {fishData.FishData.Level + 1}`
+
+            local upgradeButton = upgradeFrame:FindFirstChild("Button")::ImageButton
+            local buttonText = upgradeButton:FindFirstChild("TextLabel")::TextLabel
+
+            local cost = plot:GetUpgradeCost(pedestalId)
             if not cost then
                 buttonText.Text = "Max!"
                 return
             end
-    
-            buttonText.Text = `${Functions.NumberShorten(cost)}` 
-        end
-    else
-        TogglePedestal(model, true)
 
-        if plot:IsLocal() then
-            local fishData = fish[tostring(pedestalId)]
-            if fishData then
-                buyFrame.Visible = false
-                upgradeFrame.Visible = true
-                placeFrame.Visible = false
-                boostFrame.Visible = false
-    
-                local textLabel = upgradeFrame:WaitForChild("TextLabel")::TextLabel
-                textLabel.Text = `Level {fishData.FishData.Level} -> Level {fishData.FishData.Level + 1}`
-    
-                local upgradeButton = upgradeFrame:FindFirstChild("Button")::ImageButton
-                local buttonText = upgradeButton:FindFirstChild("TextLabel")::TextLabel
-    
-                local cost = plot:GetUpgradeCost(pedestalId)
-                if not cost then
-                    buttonText.Text = "Max!"
-                    return
-                end
-    
-                buttonText.Text = `${Functions.NumberShorten(cost)}`
-            else
-                buyFrame.Visible = false
-                upgradeFrame.Visible = false
-                placeFrame.Visible = true
-                boostFrame.Visible = false
-            end 
+            buttonText.Text = `${Functions.NumberShorten(cost)}`
         else
-            buyFrame.Visible = false
             upgradeFrame.Visible = false
-            placeFrame.Visible = false
-            boostFrame.Visible = true
+            placeFrame.Visible = true
+            boostFrame.Visible = false
+        end 
+    else
+        upgradeFrame.Visible = false
+        placeFrame.Visible = false
+        boostFrame.Visible = true
 
-            if isBoosted then
-                boostTimer.Text = `{Functions.FormatTime(boostedTime - workspace:GetServerTimeNow())}`
-                boostTimer.TextColor3 = Color3.fromRGB(255, 255, 0)
-            else
-                boostTimer.Text = "00:00"
-                boostTimer.TextColor3 = Color3.fromRGB(255, 0, 0)
-            end
+        if isBoosted then
+            boostTimer.Text = `{Functions.FormatTime(boostedTime - workspace:GetServerTimeNow())}`
+            boostTimer.TextColor3 = Color3.fromRGB(255, 255, 0)
+        else
+            boostTimer.Text = "00:00"
+            boostTimer.TextColor3 = Color3.fromRGB(255, 0, 0)
         end
     end
 
@@ -553,12 +452,6 @@ function plotCreated(plot: ClientPlot.Type)
     for _, child in pedestals:GetChildren() do
         UpdatePedestal(plot, child::Model)
     end
-
-    plot:SaveChanged("Pedestals"):Connect(function(newCount: number)
-        for _, child in pedestals:GetChildren() do
-            UpdatePedestal(plot, child::Model)
-        end
-    end)
 
     plot:SaveChanged("Fish"):Connect(function(newFish: {[string]: PlotTypes.Fish})
         for _, child in pedestals:GetChildren() do

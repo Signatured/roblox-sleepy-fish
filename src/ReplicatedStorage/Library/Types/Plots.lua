@@ -40,8 +40,4 @@ export type Fish = {
 	OfflineEarnings: number,
 }
 
-function module.PedestalCost(index: number)
-    return 10 * index
-end
-
 return module
