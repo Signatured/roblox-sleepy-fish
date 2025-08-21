@@ -499,16 +499,20 @@ RunService.Heartbeat:Connect(function()
 					if Functions.IsPositionInPart(hrp.Position, homeBase) then
 						-- Award fish to player inventory and despawn world fish
 						local data = Fish.Give(player, fish)
-                        if data then
-                            Fish.ForceHoldFish(player, data)
-                        end
+						if data then
+							Fish.ForceHoldFish(player, data)
+							-- Notify client of fish caught for local UI/SFX sync
+							local schema = Directory.Fish[data.FishId]
+							local displayName = (schema and schema.DisplayName) or data.FishId
+							Network.Fire(player, "Fish_Caught", displayName)
+						end
 						despawn(uid)
-                        task.spawn(function()
-                            local success = BadgeManager.GiveBadgeByName(player, "FirstCatch")
-                            if success then
-                                Network.Fire(player, "PromptFavorite", 3)
-                            end
-                        end)
+						task.spawn(function()
+							local success = BadgeManager.GiveBadgeByName(player, "FirstCatch")
+							if success then
+								Network.Fire(player, "PromptFavorite", 3)
+							end
+						end)
 					end
 				end
 			end

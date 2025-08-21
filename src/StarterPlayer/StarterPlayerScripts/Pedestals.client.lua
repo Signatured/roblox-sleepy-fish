@@ -231,7 +231,7 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, upgradeFrame: F
 
         -- Play boost sound (local-only)
         local boostSpeed = nextBoostPlaybackSpeed()
-        Audio.Play("rbxassetid://133458542234750", game:GetService("SoundService"), boostSpeed, 0.3)
+        Audio.Play("rbxassetid://133458542234750", script, boostSpeed, 0.3)
     end)
 end
 
@@ -267,7 +267,7 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
                         -- Play claim sound (coins collected)
                         if success and (amount or 0) > 0 then
                             local playbackSpeed = nextClaimPlaybackSpeed()
-                            Audio.Play("rbxassetid://76559039302900", game:GetService("SoundService"), playbackSpeed, 0.2)
+                            Audio.Play("rbxassetid://76559039302900", script, playbackSpeed, 0.2)
                         end
                     end
                 end)
@@ -405,7 +405,7 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
         
                 -- Play boost sound (local-only)
                 local boostSpeed = nextBoostPlaybackSpeed()
-                Audio.Play("rbxassetid://133458542234750", game:GetService("SoundService"), boostSpeed, 0.3)
+                Audio.Play("rbxassetid://133458542234750", script, boostSpeed, 0.3)
             end)
         end
        
