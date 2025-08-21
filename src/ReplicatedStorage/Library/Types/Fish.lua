@@ -14,10 +14,12 @@ export type raw_dir = {
     PedestalOffset: number?,
 }
 
+export type fish_type = "Normal" | "Shiny" | "Gold" | "Rainbow"
+
 export type data_schema = {
     UID: string,
     FishId: string,
-    Type: "Normal" | "Shiny" | "Gold" | "Rainbow",
+    Type: fish_type,
     Shiny: boolean?,
     Level: number,
     CreateTime: number,
@@ -26,7 +28,7 @@ export type data_schema = {
 
 export type create_params = {
     FishId: string,
-    Type: "Normal" | "Shiny" | "Gold" | "Rainbow",
+    Type: fish_type,
     Shiny: boolean?,
     Level: number?,
 }
