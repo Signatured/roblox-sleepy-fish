@@ -198,6 +198,8 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, upgradeFrame: F
             return
         end
 
+        Audio.Play("rbxassetid://124249358188422", script, 1, 0.6)
+
         plot:Invoke("UpgradeFish", pedestalId)
     end)
 
