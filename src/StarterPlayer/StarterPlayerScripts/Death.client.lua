@@ -12,6 +12,12 @@ local config = {
     TravelTime = 1.5
 }
 
+-- Death SFX configuration (ids and per-sound volume)
+local DEATH_SOUNDS = {
+	{ Id = "rbxassetid://83561525465892", Volume = 0.6 },
+	{ Id = "rbxassetid://85226925115980", Volume = 0.3 },
+}
+
 local localPlayer = Players.LocalPlayer
 
 local function AnchorLocally()
@@ -140,7 +146,8 @@ ClientPlot.OnLocalAndCreated(function(plot)
     local spawnPos = plot:GetSpawnCFrame() + Vector3.new(0, 5, 0)
 
 	plot:Fired("Death", function()
-		Audio.Play("rbxassetid://83561525465892", script, 1, 0.6)
+		local choice = DEATH_SOUNDS[math.random(1, #DEATH_SOUNDS)]
+		Audio.Play(choice.Id, script, 1, choice.Volume)
 		Death(spawnPos)
 	end)
 end)
