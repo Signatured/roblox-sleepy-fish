@@ -1,11 +1,11 @@
 --!strict
 
 return {
-	ProductId = 3379183131,
-	DisplayName = "[OP] Skip Level!",
+	ProductId = 3379337315,
+	DisplayName = "More Space",
 	Icon = "",
-	Description = "Skip a level for a fish!",
-	OneTimePurchase = false,
+	Description = "Gives more inventory space!",
+	OneTimePurchase = true,
 	ClientTest = function(player: Player)
 		local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
 
@@ -23,12 +23,15 @@ return {
 		return true
 	end,
 	Callback = function(player: Player): (boolean, string?)
-		local PurchaseLevel = require(game.ServerScriptService.Game.Library.PurchaseLevel)
+		local ServerPlot = require(game.ServerScriptService.Plot.ServerPlot)
+		local GameSettings = require(game.ReplicatedStorage.Game.Library.GameSettings)
 
-		local success = PurchaseLevel.ExecuteLevelUp(player)
-		if not success then
-			return false, "That fish no longer exists!"
+		local plot = ServerPlot.GetByPlayer(player)
+		if not plot then
+			return false, "No plot found!"
 		end
+
+		plot:SaveSet("InventorySize", GameSettings.MaxInventoryUpgraded)
 
 		return true
 	end,

@@ -14,6 +14,9 @@ local PlotTypes = require(game.ReplicatedStorage.Game.Library.Types.Plots)
 local Directory = require(game.ReplicatedStorage.Game.Library.Directory)
 local Network = require(game.ReplicatedStorage.Library.Client.Network)
 local GameSettings = require(game.ReplicatedStorage.Game.Library.GameSettings)
+local Save = require(game.ReplicatedStorage.Library.Client.Save)
+local Marketplace = require(game.ReplicatedStorage.Library.Marketplace)
+local ProductCmds = require(game.ReplicatedStorage.Library.Client.ProductCmds)
 local Audio = require(game.ReplicatedStorage.Library.Audio)
 
 -- Upgrade button images
@@ -470,6 +473,21 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             end)
 
             assert(pickupProximity).Triggered:Connect(function(player: Player)
+                -- Inventory capacity check before attempting pickup
+                local invLimit = plot:Save("InventorySize")::number?
+                local saveData = Save.Get()
+                if typeof(invLimit) == "number" and saveData and typeof(saveData.Inventory) == "table" then
+                    local invCount = #(saveData.Inventory :: {any})
+                    if invCount >= (invLimit :: number) then
+                        NotificationCmds.Message("Your inventory is full!", { Color = Color3.fromRGB(255, 0, 0) })
+                        local productId = ProductCmds.GetProductId("More Space")
+                        if productId then
+                            Marketplace.Prompt(Players.LocalPlayer, productId, true)
+                        end
+                        return
+                    end
+                end
+
                 local success = plot:Invoke("PickupFish", pedestalId)
                 if success then
                     Audio.Play("rbxassetid://128246360956937", script, 1, 0.1)

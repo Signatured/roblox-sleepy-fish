@@ -3,6 +3,8 @@
 local PlotTypes = require(game.ReplicatedStorage.Game.Library.Types.Plots)
 local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
 
+local GameSettings = require(game.ReplicatedStorage.Game.Library.GameSettings)
+
 --[[
 	Defines the default stats for a new player.
 	This is the master schema for all player data.
@@ -13,6 +15,7 @@ export type PlotSave = {
 	Inventory: {FishTypes.data_schema},
 	Fish: {[string]: PlotTypes.Fish},
 	PaidIndex: number,
+	InventorySize: number,
 }
 
 export type IndexData = {
@@ -47,7 +50,8 @@ local DefaultStats = {
 		Variables = {
 			Money = 0,
 			Fish = {},
-			PaidIndex = 0
+			PaidIndex = 0,
+			InventorySize = GameSettings.MaxInventory,
 		},
 	},
 	Settings = {

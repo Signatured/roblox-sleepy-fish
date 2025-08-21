@@ -8,10 +8,13 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local RunService = game:GetService("RunService")
 
 local Signal = require(ReplicatedStorage.Library.Signal)
+local ProductDirectory = require(ReplicatedStorage.Game.Library.Directory.Products)
+local Marketplace = require(ReplicatedStorage.Library.Marketplace)
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
 local FishTypes = require(ReplicatedStorage.Game.Library.Types.Fish)
 local Functions = require(ReplicatedStorage.Library.Functions)
 local Fish = require(ServerScriptService.Game.Library.Fish)
+local ServerPlot = require(game.ServerScriptService.Plot.ServerPlot)
 local Network = require(ServerScriptService.Library.Network)
 local Enemies = require(ServerScriptService.Game.Library.Enemies)
 local Notifications = require(ServerScriptService.Library.Notifications)
@@ -56,6 +59,26 @@ type Swimming = FishTypes.swimming_fish_schema & {
 
 local uidToFish: {[string]: Swimming} = {}
 local playerCarry: {[Player]: string} = {}
+
+local function canPickupFish(player: Player): boolean
+    local plot = ServerPlot.GetByPlayer(player)
+    if not plot then return true end
+    local invSize = plot:Save("InventorySize")
+    if typeof(invSize) ~= "number" then return true end
+    local save = Saving.Get(player)
+    if not save or typeof(save.Inventory) ~= "table" then return true end
+    local invCount = #((save.Inventory) :: {any})
+    if invCount >= invSize then
+        Notifications.Message(player, "Your inventory is full!", { Color = Color3.fromRGB(255, 0, 0) })
+        local product = ProductDirectory["More Space"]
+        local productId = product and product.ProductId
+        if typeof(productId) == "number" then
+            Marketplace.Prompt(player, productId, true)
+        end
+        return false
+    end
+    return true
+end
 
 local function chooseRarityId(): string
     local dir = Directory.Rarity
@@ -171,6 +194,10 @@ local function makePrompt(fish: Swimming)
     prompt.RequiresLineOfSight = false
     prompt.Parent = primary
     prompt.Triggered:Connect(function(player)
+        -- Inventory capacity gate
+        if not canPickupFish(player) then
+            return
+        end
         local character = player.Character
         local hrp = character and character:FindFirstChild("HumanoidRootPart")::BasePart
         if not hrp or not Functions.IsPositionInPart(hrp.Position, TARGET_ZONE) then
