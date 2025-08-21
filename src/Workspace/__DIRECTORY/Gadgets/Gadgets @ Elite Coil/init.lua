@@ -2,7 +2,7 @@
 
 return {
 	DisplayName = "Elite Coil",
-	Icon = "",
+	Icon = "rbxassetid://79566910579531",
 	Description = "Swim 50% faster!",
 	Index = 4,
 	Cost = 7_500_000,

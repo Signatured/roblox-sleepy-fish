@@ -32,12 +32,16 @@ return {
 			return false, "No plot found!"
 		end
 
-		Fish.Give(player, {
+		local data = Fish.Give(player, {
 			FishId = "Anglerfish",
 			Type = "Normal"
 		})
 		plot:AddMoney(5_000)
 		Gadgets.GiveAndInventory(player, "Springy Coil")
+
+		if data then
+			Fish.ForceHoldFish(player, data)
+		end
 
 		return true
 	end,

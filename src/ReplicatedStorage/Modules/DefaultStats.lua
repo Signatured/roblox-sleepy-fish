@@ -35,7 +35,8 @@ export type schema = {
 	Joins: number,
 	Playtime: number,
 	FinishedTutorial: boolean,
-	Index: {[string]: IndexData}
+	Index: {[string]: IndexData},
+	GroupReward: boolean,
 }
 
 local DefaultStats = {
@@ -58,6 +59,7 @@ local DefaultStats = {
 	Playtime = 0,
 	FinishedTutorial = false,
 	Index = {},
+	GroupReward = false,
 }::schema
 
 return DefaultStats

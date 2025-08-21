@@ -2,7 +2,7 @@
 
 return {
 	DisplayName = "Mini Coil",
-	Icon = "",
+	Icon = "rbxassetid://108701630542840",
 	Description = "Swim 10% faster!",
 	Index = 1,
 	Cost = 1_500,
