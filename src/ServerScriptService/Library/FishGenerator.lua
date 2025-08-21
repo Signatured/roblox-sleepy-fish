@@ -24,6 +24,7 @@ local ROOT = THINGS:WaitForChild("SwimmingFish")
 local ROOT_SHINY = THINGS:WaitForChild("SwimmingFish"):WaitForChild("Shiny")
 local ROOT_GOLD = THINGS:WaitForChild("SwimmingFish"):WaitForChild("Gold")
 local ROOT_RAINBOW = THINGS:WaitForChild("SwimmingFish"):WaitForChild("Rainbow")
+local TARGET_ZONE = THINGS:WaitForChild("TargetZone")::BasePart
 local SPAWNS = THINGS:WaitForChild("FishSpawns")
 local EASY = SPAWNS:WaitForChild("Easy")::BasePart
 local HARD = SPAWNS:WaitForChild("Hard")::BasePart
@@ -170,6 +171,15 @@ local function makePrompt(fish: Swimming)
     prompt.RequiresLineOfSight = false
     prompt.Parent = primary
     prompt.Triggered:Connect(function(player)
+        local character = player.Character
+        local hrp = character and character:FindFirstChild("HumanoidRootPart")::BasePart
+        if not hrp or not Functions.IsPositionInPart(hrp.Position, TARGET_ZONE) then
+            Notifications.Message(player, "You have to be in the water to pick up a fish!", {
+                Color = Color3.fromRGB(255, 0, 0),
+            })
+            return
+        end
+
         -- Prevent multiple carriers and prevent a player from carrying more than one
         if fish.Carrier then return end
 
@@ -183,8 +193,6 @@ local function makePrompt(fish: Swimming)
         setModelAnchored(fish.Model, false)
         -- Alert sphere at pickup
         local dir = Directory.Fish[fish.FishData.FishId]
-        local character = player.Character
-        local hrp = character and character:FindFirstChild("HumanoidRootPart")
         if dir and hrp and hrp:IsA("BasePart") then
             Network.FireAll("AlertPart", hrp.Position, dir.Rarity.AlertRange)
             -- Notify enemies server-side to begin tracking this alert
