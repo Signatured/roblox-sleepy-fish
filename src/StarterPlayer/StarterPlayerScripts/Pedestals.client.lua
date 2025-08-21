@@ -215,7 +215,7 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, upgradeFrame: F
         end
 
         -- playing here as verification from the server takes too long and sounds bad
-        Audio.Play("rbxassetid://134182180985783", script, 1, 0.6)
+        Audio.Play("rbxassetid://134182180985783", script, 1, 0.4)
         NotificationCmds.Message(`You placed down a {fishData.FishId}!`, {
             Color = Color3.fromRGB(11, 206, 255),
         })
@@ -408,7 +408,10 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             end)
 
             assert(pickupProximity).Triggered:Connect(function(player: Player)
-                plot:Invoke("PickupFish", pedestalId)
+                local success = plot:Invoke("PickupFish", pedestalId)
+                if success then
+                    Audio.Play("rbxassetid://128246360956937", script, 1, 0.1)
+                end
             end)
         else
             stealProximity = SetupProximity("Steal", 3, Enum.KeyCode.E, sellAttachment)

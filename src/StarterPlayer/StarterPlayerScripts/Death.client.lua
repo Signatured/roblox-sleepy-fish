@@ -5,6 +5,7 @@ local Players = game:GetService("Players")
 local Player = require(game.ReplicatedStorage.Library.Player)
 local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
 local Functions = require(game.ReplicatedStorage.Library.Functions)
+local Audio = require(game.ReplicatedStorage.Library.Audio)
 
 local config = {
 	JumpPower = 50,
@@ -139,6 +140,7 @@ ClientPlot.OnLocalAndCreated(function(plot)
     local spawnPos = plot:GetSpawnCFrame() + Vector3.new(0, 5, 0)
 
 	plot:Fired("Death", function()
+		Audio.Play("rbxassetid://83561525465892", script, 1, 0.6)
 		Death(spawnPos)
 	end)
 end)
