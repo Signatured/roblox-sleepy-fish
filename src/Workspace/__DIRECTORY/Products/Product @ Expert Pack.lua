@@ -33,7 +33,7 @@ return {
 		end
 
 		Fish.Give(player, {
-			FishId = "Clown Fish",
+			FishId = "Giant Jellyfish",
 			Type = "Normal"
 		})
 		plot:AddMoney(100_000)
