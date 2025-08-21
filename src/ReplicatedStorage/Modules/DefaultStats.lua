@@ -37,6 +37,7 @@ export type schema = {
 	FinishedTutorial: boolean,
 	Index: {[string]: IndexData},
 	GroupReward: boolean,
+	PromptedNotifications: boolean,
 }
 
 local DefaultStats = {
@@ -60,6 +61,7 @@ local DefaultStats = {
 	FinishedTutorial = false,
 	Index = {},
 	GroupReward = false,
+	PromptedNotifications = false,
 }::schema
 
 return DefaultStats

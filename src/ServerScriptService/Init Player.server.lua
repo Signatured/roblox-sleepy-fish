@@ -34,3 +34,10 @@ Saving.SaveAdded:Connect(function(player)
         end
     end)
 end)
+
+Network.Fired("PromptedNotifications", function(player)
+    local save = Saving.Get(player)
+    if save then
+        save.PromptedNotifications = true
+    end
+end)
