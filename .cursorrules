@@ -16,6 +16,7 @@
 - Use absolute `game.*` paths for all requires at the top of the file
 - No `script.Parent`, no WaitForChild in require, no pcall(require)
 - Require all modules at the top of each Lua file using direct paths; no lazy or inline requires inside functions
+- Never use os.time() use workspace:GetServerTimeNow() instead
 
 ## Project Structure
 - Framework code is in framework/ directory
