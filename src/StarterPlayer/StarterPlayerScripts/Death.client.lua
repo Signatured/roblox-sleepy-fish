@@ -80,7 +80,7 @@ function Death(spawnPos: CFrame)
 	AnchorLocally()
 
     local camera = workspace.CurrentCamera
-    local fieldOfView = camera.FieldOfView
+    local fieldOfView = 70
 
     local character = Player.Character()
     local humanoid = Player.Humanoid()
@@ -143,7 +143,7 @@ function Death(spawnPos: CFrame)
 end
 
 ClientPlot.OnLocalAndCreated(function(plot)
-    local spawnPos = plot:GetSpawnCFrame() + Vector3.new(0, 5, 0)
+    local spawnPos = plot:WaitSpawnCFrame() + Vector3.new(0, 5, 0)
 
 	plot:Fired("Death", function()
 		-- always play the boom sound
