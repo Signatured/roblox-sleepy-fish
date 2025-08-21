@@ -275,7 +275,7 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
                         -- Play claim sound (coins collected)
                         if success and (amount or 0) > 0 then
                             local playbackSpeed = nextClaimPlaybackSpeed()
-                            Audio.Play("rbxassetid://76559039302900", script, playbackSpeed, 0.2)
+                            Audio.Play("rbxassetid://132697192191142", script, playbackSpeed, 0.6)
                         end
                     end
                 end)
