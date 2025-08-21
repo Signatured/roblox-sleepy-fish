@@ -188,6 +188,13 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, upgradeFrame: F
     local upgradeButton = upgradeFrame:WaitForChild("Button")::GuiButton
     ButtonFX(upgradeButton)
     upgradeButton.MouseButton1Click:Connect(function()
+        local fish = plot:Save("Fish")::{[string]: PlotTypes.Fish}
+        local fishData = fish[tostring(pedestalId)]
+
+        if not fishData then
+            return
+        end
+
         local cost = plot:GetUpgradeCost(pedestalId)
         if not cost then
             NotificationCmds.Message("Fish is already at max level!", {
@@ -197,6 +204,8 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, upgradeFrame: F
         end
 
         if not plot:CanAfford(cost) then
+            Network.Fire("LevelUp", plot:GetId(), pedestalId, fishData.UID)
+
             NotificationCmds.Message("Not enough money!", {
                 Color = Color3.fromRGB(255, 0, 0),
             })

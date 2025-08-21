@@ -7,6 +7,7 @@ local TagHook = require(ReplicatedStorage.Library.Functions.TagHook)
 local Marketplace = require(ReplicatedStorage.Library.Marketplace)
 local ProductCmds = require(ReplicatedStorage.Library.Client.ProductCmds)
 local Save = require(ReplicatedStorage.Library.Client.Save)
+local Message = require(ReplicatedStorage.Library.Client.Message)
 
 local TAG = "PackOfferPad"
 local OFFER_DISPLAY_TAG = "OfferDisplay"
@@ -141,6 +142,10 @@ TagHook(TAG, function(instance: Instance)
     local pad = Pad.new(instance)
     local conn = pad:AddEnterListener(function(player: Player)
         local function offer()
+            if ProductCmds.Owns("Expert Pack") then
+                Message.new("You already own this!")
+                return
+            end
             local ownsStarter = ProductCmds.Owns("Starter Pack")
             local offerId = ownsStarter and ProductCmds.GetProductId("Expert Pack") or ProductCmds.GetProductId("Starter Pack")
             if offerId then

@@ -23,9 +23,9 @@ return {
 		return true
 	end,
 	Callback = function(player: Player): (boolean, string?)
-		local Steal = require(game.ServerScriptService.Game.Library.Steal)
+		local PurchaseLevel = require(game.ServerScriptService.Game.Library.PurchaseLevel)
 
-		local success = Steal.ExecuteSteal(player)
+		local success = PurchaseLevel.ExecuteLevelUp(player)
 		if not success then
 			return false, "That fish no longer exists!"
 		end
