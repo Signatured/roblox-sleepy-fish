@@ -5,7 +5,7 @@ local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClientPlot = require(ReplicatedStorage.Plot.ClientPlot)
-local PlotTypes = require(ReplicatedStorage.Game.Library.Types.Plots)
+local _PlotTypes = require(ReplicatedStorage.Game.Library.Types.Plots)
 local GUI = require(ReplicatedStorage.Game.Library.Client.GUI)
 local _Functions = require(ReplicatedStorage.Library.Functions)
 local Save = require(ReplicatedStorage.Library.Client.Save)
@@ -178,7 +178,7 @@ local function tutorialMain(initialState: string?)
     local state: string = initialState or "GoToWater"
     local trackedFish: Model? = nil
     local pedestalTargetId: number? = nil
-    local nextPedestalId: number? = nil
+    local _nextPedestalId: number? = nil
 
     -- Tutorial GUI setup
     local tutorialGui = GUI.Tutorial()
@@ -264,8 +264,8 @@ local function tutorialMain(initialState: string?)
                 typeMessage("Place your fish in your base!")
             elseif state == "PointClaim" then
                 typeMessage("Claim money from your fish!")
-            elseif state == "PointNextPedestalNameplate" then
-                typeMessage("Buy the next platform so you can catch more fish!")
+            elseif state == "PointToUpgradeButton" then
+                typeMessage("Upgrade your fish!")
             elseif state == "Complete" then
                 typeMessage("Catch more fish now!")
             end
@@ -374,43 +374,71 @@ local function tutorialMain(initialState: string?)
                     pointBeamToWorldPosition(claim.Position)
                 end
             end
-            nextPedestalId = (pedCountForCost :: number) + 1
-            local cost = PlotTypes.PedestalCost(nextPedestalId :: number)
+            -- New behavior: progress when you can afford to upgrade any fish to level 2
             task.spawn(function()
                 while true do
                     task.wait(0.1)
+                    local fishNow = plot:Save("Fish") :: {[string]: any}?
                     local money = plot:Save("Money")
-                    if type(money) == "number" and cost and money >= cost then
-                        state = "PointNextPedestalNameplate"
-                        break
+                    local moneyNum = if type(money) == "number" then money :: number else 0
+                    if fishNow then
+                        for key, _ in pairs(fishNow) do
+                            local pid = tonumber(key)
+                            if pid then
+                                local cost = plot:GetUpgradeCost(pid)
+                                if type(cost) == "number" and moneyNum >= (cost :: number) then
+                                    state = "PointToUpgradeButton"
+                                    return
+                                end
+                            end
+                        end
                     end
                 end
             end)
-        elseif state == "PointNextPedestalNameplate" then
+        elseif state == "PointToUpgradeButton" then
             local plot = ClientPlot.GetLocal()
             if not plot then return end
             local plotModel = plot:WaitModel()
             local pedsFolder = plotModel:WaitForChild("Pedestals")
-            -- Ensure next pedestal id is defined when entering this state directly
-            if nextPedestalId == nil then
-                local currentCount = plot:Save("Pedestals") :: number
-                nextPedestalId = (currentCount :: number) + 1
-            end
-            local pedModel = pedsFolder:FindFirstChild(tostring(nextPedestalId :: number))
-            if pedModel then
-                local nameplate = pedModel:FindFirstChild("Nameplate") :: BasePart
-                if nameplate then
-                    pointBeamToWorldPosition(nameplate.Position)
+            -- Select a pedestal we can afford to upgrade right now
+            local fishNow = plot:Save("Fish") :: {[string]: any}
+            local money = plot:Save("Money")
+            local moneyNum = if type(money) == "number" then money :: number else 0
+            local targetPid: number? = nil
+            if fishNow then
+                for key, _ in pairs(fishNow) do
+                    local pid = tonumber(key)
+                    if pid then
+                        local cost = plot:GetUpgradeCost(pid)
+                        if type(cost) == "number" and moneyNum >= (cost :: number) then
+                            targetPid = pid
+                            break
+                        end
+                    end
                 end
             end
-            local initialCount = plot:Save("Pedestals") :: number
+            if targetPid then
+                local pedModel = pedsFolder:FindFirstChild(tostring(targetPid))
+                if pedModel then
+                    local nameplate = pedModel:FindFirstChild("Nameplate") :: BasePart
+                    if nameplate then
+                        pointBeamToWorldPosition(nameplate.Position)
+                    end
+                end
+            end
+            -- Advance to complete when any fish is above level 1
             task.spawn(function()
                 while true do
                     task.wait(0.1)
-                    local count = plot:Save("Pedestals")
-                    if type(count) == "number" and count > initialCount then
-                        state = "Complete"
-                        break
+                    local fm = plot:Save("Fish")
+                    if fm then
+                        for _, data in pairs(fm) do
+                            local level = (type(data) == "table" and (data :: any).Level) or 1
+                            if type(level) == "number" and level > 1 then
+                                state = "Complete"
+                                return
+                            end
+                        end
                     end
                 end
             end)
@@ -444,10 +472,9 @@ ClientPlot.OnLocalAndCreated(function(plot: ClientPlot.Type)
 
     -- Determine starting state
     local inventory = save.Inventory or {}
-    local pedestals = plot:Save("Pedestals") :: number
     local fishMap = plot:Save("Fish") :: {[string]: any}
     local allPedestalsEmpty = true
-    for i = 1, pedestals do
+    for i = 1, GameSettings.PedestalCount do
         if fishMap[tostring(i)] ~= nil then
             allPedestalsEmpty = false
             break
@@ -460,16 +487,21 @@ ClientPlot.OnLocalAndCreated(function(plot: ClientPlot.Type)
     elseif (#inventory > 0) and allPedestalsEmpty then
         startState = "FindEmptyPedestal"
     else
-        -- At least one pedestal has a fish; decide between claim vs next pedestal
-        local nextId = pedestals + 1
-        local cost = PlotTypes.PedestalCost(nextId)
+        -- At least one pedestal has a fish; decide based on ability to afford an upgrade to level 2
+        local canAffordUpgrade = false
         local money = plot:Save("Money")
-        if typeof(money) ~= "number" then money = 0 end
-        if money >= (cost or 0) then
-            startState = "PointNextPedestalNameplate"
-        else
-            startState = "PointClaim"
+        local moneyNum = if type(money) == "number" then money :: number else 0
+        for key, _ in pairs(fishMap) do
+            local pid = tonumber(key)
+            if pid then
+                local cost = plot:GetUpgradeCost(pid)
+                if type(cost) == "number" and moneyNum >= (cost :: number) then
+                    canAffordUpgrade = true
+                    break
+                end
+            end
         end
+        startState = if canAffordUpgrade then "PointToUpgradeButton" else "PointClaim"
     end
 
     tutorialMain(startState)
