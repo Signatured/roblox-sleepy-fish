@@ -48,7 +48,9 @@ local ATTACK_RANGE = 10
 local MOVE_SPEED = 20
 
 local ALERT_SOUNDS = {
-	"rbxassetid://107509119621196", "rbxassetid://83823205190198"
+	-- "rbxassetid://107509119621196",
+	 "rbxassetid://83823205190198",
+	--   "rbxassetid://139871930665325"
 }
 
 local enemies: { [string]: EnemyRecord } = {}
