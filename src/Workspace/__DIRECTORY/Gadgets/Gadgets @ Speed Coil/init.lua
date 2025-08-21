@@ -3,8 +3,8 @@
 return {
 	DisplayName = "Speed Coil",
 	Icon = "",
-	Description = "Swim 30% faster!",
+	Description = "Swim 35% faster!",
 	Index = 3,
-	Cost = 5000,
-	SpeedMultiplier = 1.3
+	Cost = 500_000,
+	SpeedMultiplier = 1.35
 }

@@ -33,11 +33,11 @@ return {
 		end
 
 		Fish.Give(player, {
-			FishId = "Clown Fish",
+			FishId = "Anglerfish",
 			Type = "Normal"
 		})
-		plot:AddMoney(10_000)
-		Gadgets.GiveAndInventory(player, "Speed Coil")
+		plot:AddMoney(5_000)
+		Gadgets.GiveAndInventory(player, "Springy Coil")
 
 		return true
 	end,

@@ -3,8 +3,8 @@
 return {
 	DisplayName = "Elite Coil",
 	Icon = "",
-	Description = "Swim 60% faster!",
+	Description = "Swim 50% faster!",
 	Index = 4,
-	Cost = 450000,
-	SpeedMultiplier = 1.6
+	Cost = 7_500_000,
+	SpeedMultiplier = 1.5
 }

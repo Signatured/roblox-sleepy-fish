@@ -5,6 +5,6 @@ return {
 	Icon = "",
 	Description = "Swim 10% faster!",
 	Index = 1,
-	Cost = 50,
+	Cost = 1_500,
 	SpeedMultiplier = 1.1
 }
