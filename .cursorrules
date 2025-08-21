@@ -1,0 +1,29 @@
+# Roblox Sleepy Fish Project Rules & Context
+
+## Project Architecture
+- Framework is implemented with game-specific dependencies decoupled for easy reuse across multiple games
+- All module methods on server and client use PascalCase (first letter of each word uppercase)
+- NEVER use _G globals - always create and require modules for shared state or cross-script functions
+
+## FFlags Usage
+- Use FFlags via concise API: require server FFlags module once at top and call FFlags.GetBoolean(FFlags.Keys.FlagName)/GetNumber/GetString
+- Do not access SharedFFlags.Options directly in server code
+
+## Module Requirements
+- All require() calls must be top-of-file, standalone lines
+- Never inline require as function args or inside tables
+- Group requires by service: game.ReplicatedStorage.*, game.ServerScriptService.*, then local modules
+- Use absolute `game.*` paths for all requires at the top of the file
+- No `script.Parent`, no WaitForChild in require, no pcall(require)
+- Require all modules at the top of each Lua file using direct paths; no lazy or inline requires inside functions
+
+## Project Structure
+- Framework code is in framework/ directory
+- Game-specific code is in game/ directory
+- Uses Rojo for project management
+- Follows Roblox best practices for module organization
+
+## Development Workflow
+- Always follow the established coding standards when making changes
+- Test changes thoroughly before committing
+- Update this file when adding new important project knowledge
