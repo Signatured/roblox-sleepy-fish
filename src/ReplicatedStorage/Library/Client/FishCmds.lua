@@ -22,8 +22,6 @@ local function onToolAddedToCharacter(tool: Tool)
         activeHighlightCleanup = nil
     end
 
-    print("adding tool", tool)
-
     -- Attach highlight based on tool Type attribute
     local toolType = tool:GetAttribute("Type")
     local assets = ReplicatedStorage:FindFirstChild("Assets")
@@ -68,11 +66,8 @@ local function onToolAddedToCharacter(tool: Tool)
 
     task.defer(function()
         -- Ensure tool is still current and valid when deferred runs
-        print("here1", currentTool, tool)
         if currentTool ~= tool then return end
-        print("here2")
         if not tool or not tool.Parent then return end
-        print("here3")
         if toolType == "Gold" then
             attachAndAnimate("GoldHighlight", "Gold")
         elseif toolType == "Rainbow" then
@@ -84,7 +79,6 @@ local function onToolAddedToCharacter(tool: Tool)
     tool.Unequipped:Connect(function()
         if currentTool == tool then
             currentTool = nil
-            print("nil current tool")
             if activeHighlightCleanup then
                 activeHighlightCleanup()
                 activeHighlightCleanup = nil
@@ -111,7 +105,6 @@ local function startTracking()
         character.ChildRemoved:Connect(function(child)
             if child == currentTool then
                 currentTool = nil
-                print("nil current tool")
             end
         end)
     end

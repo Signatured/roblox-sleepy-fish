@@ -433,7 +433,8 @@ local function tutorialMain(initialState: string?)
                     local fm = plot:Save("Fish")
                     if fm then
                         for _, data in pairs(fm) do
-                            local level = (type(data) == "table" and (data :: any).Level) or 1
+                            local fishData = data and data.FishData
+                            local level = (type(fishData) == "table" and (fishData :: any).Level) or 1
                             if type(level) == "number" and level > 1 then
                                 state = "Complete"
                                 return
