@@ -6,5 +6,5 @@ return {
     Priority = 1,
     RarityWeight = 2,
     SpeedModifier = 0.7,
-    AlertRange = 200,
+    AlertRange = 225,
 }

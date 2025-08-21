@@ -14,8 +14,6 @@ local PlotTypes = require(game.ReplicatedStorage.Game.Library.Types.Plots)
 local Directory = require(game.ReplicatedStorage.Game.Library.Directory)
 local Network = require(game.ReplicatedStorage.Library.Client.Network)
 local GameSettings = require(game.ReplicatedStorage.Game.Library.GameSettings)
-local ProductDirectory = require(game.ReplicatedStorage.Game.Library.Directory.Products)
-local Marketplace = require(game.ReplicatedStorage.Library.Marketplace)
 local Audio = require(game.ReplicatedStorage.Library.Audio)
 
 -- Upgrade button images
@@ -184,6 +182,20 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
     displayName.Text = dir.DisplayName
     rarity.Text = dir.Rarity.DisplayName
     rarity.TextColor3 = dir.Rarity.Color
+
+    -- Mythical rarity rainbow gradient effect on rarity label
+    local rarityId = (dir.Rarity and (dir.Rarity :: any)._id) or nil
+    if rarityId == "Mythical" then
+        local existing = rarity:FindFirstChild("RainbowGradientWrapped")
+        if not existing or not existing:IsA("UIGradient") then
+            local template = Assets:FindFirstChild("RainbowGradientWrapped")
+            if template and template:IsA("UIGradient") then
+                local gradient = template:Clone()
+                gradient.Parent = rarity
+                Functions.GradientScroll(gradient, 2.5)
+            end
+        end
+    end
     level.Text = `Level {fishData.FishData.Level}`
     moneyPerSecond.Text = `${Functions.NumberShorten(math.ceil((plot:GetMoneyPerSecond(index) or 0) * fishMultiplier))}/s`
     money.Text = `${Functions.NumberShorten(earnings)}`

@@ -24,6 +24,7 @@ local ROOT = THINGS:WaitForChild("SwimmingFish")
 local ROOT_SHINY = THINGS:WaitForChild("SwimmingFish"):WaitForChild("Shiny")
 local ROOT_GOLD = THINGS:WaitForChild("SwimmingFish"):WaitForChild("Gold")
 local ROOT_RAINBOW = THINGS:WaitForChild("SwimmingFish"):WaitForChild("Rainbow")
+local TARGET_ZONE = THINGS:WaitForChild("TargetZone")::BasePart
 local SPAWNS = THINGS:WaitForChild("FishSpawns")
 local EASY = SPAWNS:WaitForChild("Easy")::BasePart
 local HARD = SPAWNS:WaitForChild("Hard")::BasePart
@@ -44,7 +45,6 @@ local typeChances = {
 
 local FishGen = {}
 -- Internal scheduling state (real-time aligned)
-FishGen._nextEpicAt = nil :: number?
 FishGen._nextLegendaryAt = nil :: number?
 FishGen._nextMythicalAt = nil :: number?
 
@@ -171,6 +171,15 @@ local function makePrompt(fish: Swimming)
     prompt.RequiresLineOfSight = false
     prompt.Parent = primary
     prompt.Triggered:Connect(function(player)
+        local character = player.Character
+        local hrp = character and character:FindFirstChild("HumanoidRootPart")::BasePart
+        if not hrp or not Functions.IsPositionInPart(hrp.Position, TARGET_ZONE) then
+            Notifications.Message(player, "You have to be in the water to pick up a fish!", {
+                Color = Color3.fromRGB(255, 0, 0),
+            })
+            return
+        end
+
         -- Prevent multiple carriers and prevent a player from carrying more than one
         if fish.Carrier then return end
 
@@ -184,8 +193,6 @@ local function makePrompt(fish: Swimming)
         setModelAnchored(fish.Model, false)
         -- Alert sphere at pickup
         local dir = Directory.Fish[fish.FishData.FishId]
-        local character = player.Character
-        local hrp = character and character:FindFirstChild("HumanoidRootPart")
         if dir and hrp and hrp:IsA("BasePart") then
             Network.FireAll("AlertPart", hrp.Position, dir.Rarity.AlertRange)
             -- Notify enemies server-side to begin tracking this alert
@@ -323,6 +330,9 @@ local function spawnForcedByRarity(rarityId: string)
     fishInstance.Model:SetAttribute("CFrame", spawnCFrame)
     attachGui(fishInstance, schema)
     makePrompt(fishInstance)
+    -- Broadcast notification to all players about the forced spawn
+    local displayName = schema.DisplayName or schema._id
+    Notifications.MessageAll(`A {displayName} has spawned!`)
 end
 
 local function spawnOne(into: BasePart, backdate: number?)
@@ -542,22 +552,16 @@ RunService.Heartbeat:Connect(function()
     -- Compute next targets lazily and step forward as crossed
     local unixNow = DateTime.now().UnixTimestamp
 
-    -- Mythical: at top of every hour
+    -- Mythical: every 15 minutes (quarter-hour aligned)
     if not FishGen._nextMythicalAt then
-        local base = math.floor(unixNow / 3600) * 3600
-        FishGen._nextMythicalAt = base + 3600
+        local quarter = 15 * 60
+        FishGen._nextMythicalAt = (math.floor(unixNow / quarter) + 1) * quarter
     end
     -- Epic/Legendary: start at bottom of the hour (:30)
-    if not FishGen._nextEpicAt or not FishGen._nextLegendaryAt then
+    if not FishGen._nextLegendaryAt then
         local hourStart = math.floor(unixNow / 3600) * 3600
         local bottom = hourStart + 1800
-        FishGen._nextEpicAt = (unixNow <= bottom) and bottom or (bottom + math.ceil((unixNow - bottom) / (2*60)) * (2*60))
         FishGen._nextLegendaryAt = (unixNow <= bottom) and bottom or (bottom + math.ceil((unixNow - bottom) / (5*60)) * (5*60))
-    end
-
-    while unixNow >= (FishGen._nextEpicAt or 0) do
-        spawnForcedByRarity("Epic")
-        FishGen._nextEpicAt = (FishGen._nextEpicAt :: number) + 2*60
     end
     while unixNow >= (FishGen._nextLegendaryAt or 0) do
         spawnForcedByRarity("Legendary")
@@ -565,7 +569,7 @@ RunService.Heartbeat:Connect(function()
     end
     while unixNow >= (FishGen._nextMythicalAt or 0) do
         spawnForcedByRarity("Mythical")
-        FishGen._nextMythicalAt = (FishGen._nextMythicalAt :: number) + 60*60
+        FishGen._nextMythicalAt = (FishGen._nextMythicalAt :: number) + 15*60
     end
 end)
 
