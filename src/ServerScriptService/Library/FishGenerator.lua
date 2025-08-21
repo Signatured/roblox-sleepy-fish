@@ -191,6 +191,8 @@ local function makePrompt(fish: Swimming)
             -- Notify enemies server-side to begin tracking this alert
             Enemies.Alert(player, hrp.Position, dir.Rarity.AlertRange)
         end
+
+        Network.Fire(player, "Fish_Grabbed_In_Water", fish.FishData.FishId)
         FishGen.SetCarrying(player, fish.UID)
         prompt.Enabled = false
     end)
