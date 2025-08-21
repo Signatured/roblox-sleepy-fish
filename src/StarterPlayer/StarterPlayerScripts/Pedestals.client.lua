@@ -385,7 +385,26 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             pickupProximity = SetupProximity("Pickup", 1, Enum.KeyCode.F, pickupAttachment)
 
             assert(sellProximity).Triggered:Connect(function(player: Player)
-                plot:Invoke("SellFish", pedestalId)
+                local success = plot:Invoke("SellFish", pedestalId)
+                if success then
+                    local schema = Directory.Fish[fishData.FishId]
+                    if not schema then
+                        NotificationCmds.Message("Could not find fish data!", {
+                            Color = Color3.fromRGB(255, 0, 0),
+                        })
+                        return
+                    end
+
+                    local displayName = (schema and schema.DisplayName) or fishData.FishId
+                    Audio.Play("rbxassetid://132697192191142", script, 1, 0.6)
+                    NotificationCmds.Message(`You sold a {displayName}!`, {
+                        Color = Color3.fromRGB(0, 255, 0),
+                    })
+                else
+                    NotificationCmds.Message("Something went wrong!", {
+                        Color = Color3.fromRGB(255, 0, 0),
+                    })
+                end
             end)
 
             assert(pickupProximity).Triggered:Connect(function(player: Player)
