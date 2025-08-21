@@ -189,6 +189,30 @@ end
 
 Functions.TagHook("SwimmingFish", animate)
 
+-- Apply mythical rarity gradient scrolling on fish GUI rarity labels
+Functions.TagHook("FishSwimmingGui", function(gui: BillboardGui)
+    if not gui or not gui:IsA("BillboardGui") then return function() end end
+
+    local frame = gui:FindFirstChild("Frame")
+    local rarity = frame and frame:FindFirstChild("Rarity")
+    if rarity and rarity:IsA("TextLabel") then
+        local text = rarity.Text
+        if text == "Mythical" then
+            local existing = rarity:FindFirstChild("RainbowGradientWrapped")
+            if not existing or not existing:IsA("UIGradient") then
+                local template = ReplicatedStorage.Assets:FindFirstChild("RainbowGradientWrapped")
+                if template and template:IsA("UIGradient") then
+                    local gradient = template:Clone()
+                    gradient.Parent = rarity
+                    Functions.GradientScroll(gradient, 2.5)
+                end
+            end
+        end
+    end
+
+    return function() end
+end)
+
 Functions.TagHook("RainbowFishType", function(label: TextLabel)
     task.defer(function()
         if label.Text == "Rainbow" then

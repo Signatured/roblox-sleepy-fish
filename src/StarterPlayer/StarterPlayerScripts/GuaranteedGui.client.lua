@@ -6,9 +6,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Functions = require(ReplicatedStorage.Library.Functions)
 
 -- Periods in seconds
-local EPIC_PERIOD = 2 * 60 -- 2 minutes
 local LEGENDARY_PERIOD = 5 * 60 -- 5 minutes
-local MYTHICAL_PERIOD = 60 * 60 -- hourly at :00
+local MYTHICAL_PERIOD = 15 * 60 -- every 15 minutes
 
 local function nowUnix(): number
     return DateTime.now().UnixTimestamp
@@ -35,13 +34,16 @@ local function setupSurfaceGui(gui: SurfaceGui)
     local frame = gui:FindFirstChild("Frame")
     if not frame or not frame:IsA("Frame") then return function() end end
 
-    local epic = frame:FindFirstChild("Epic")
+    print(frame)
+
     local legendary = frame:FindFirstChild("Legendary")
     local mythical = frame:FindFirstChild("Mythical")
 
-    local epicTimer = epic and epic:FindFirstChild("Timer")
-    local legendaryTimer = legendary and legendary:FindFirstChild("Timer")
-    local mythicalTimer = mythical and mythical:FindFirstChild("Timer")
+    local legendaryTimer = legendary and legendary:FindFirstChild("TextLabel")
+    local mythicalTimer = mythical and mythical:FindFirstChild("TextLabel")
+    assert(mythicalTimer)
+
+    Functions.GradientScroll(mythicalTimer:FindFirstChild("RainbowGradientWrapped")::UIGradient, 2.5)
 
     local conn
     conn = RunService.RenderStepped:Connect(function()
@@ -51,22 +53,17 @@ local function setupSurfaceGui(gui: SurfaceGui)
         end
         local now = nowUnix()
 
-        local epicNext = nextFromBottomOfHour(EPIC_PERIOD)
         local legNext = nextFromBottomOfHour(LEGENDARY_PERIOD)
         local mytNext = nextMythicalSpawn()
 
-        local epicLeft = math.max(0, epicNext - now)
         local legLeft = math.max(0, legNext - now)
         local mytLeft = math.max(0, mytNext - now)
 
-        if epicTimer and epicTimer:IsA("TextLabel") then
-            epicTimer.Text = Functions.FormatTime(epicLeft)
-        end
         if legendaryTimer and legendaryTimer:IsA("TextLabel") then
-            legendaryTimer.Text = Functions.FormatTime(legLeft)
+            legendaryTimer.Text = `Gauranteed <font color="##ff8800">Legendary</font> in {Functions.FormatTime(legLeft)}`
         end
         if mythicalTimer and mythicalTimer:IsA("TextLabel") then
-            mythicalTimer.Text = Functions.FormatTime(mytLeft)
+            mythicalTimer.Text = `Gauranteed Mythical in {Functions.FormatTime(mytLeft)}`
         end
     end)
 

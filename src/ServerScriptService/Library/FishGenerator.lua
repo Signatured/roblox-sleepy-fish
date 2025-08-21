@@ -44,7 +44,6 @@ local typeChances = {
 
 local FishGen = {}
 -- Internal scheduling state (real-time aligned)
-FishGen._nextEpicAt = nil :: number?
 FishGen._nextLegendaryAt = nil :: number?
 FishGen._nextMythicalAt = nil :: number?
 
@@ -321,6 +320,9 @@ local function spawnForcedByRarity(rarityId: string)
     fishInstance.Model:SetAttribute("CFrame", spawnCFrame)
     attachGui(fishInstance, schema)
     makePrompt(fishInstance)
+    -- Broadcast notification to all players about the forced spawn
+    local displayName = schema.DisplayName or schema._id
+    Notifications.MessageAll(`A {displayName} has spawned!`)
 end
 
 local function spawnOne(into: BasePart, backdate: number?)
@@ -540,22 +542,16 @@ RunService.Heartbeat:Connect(function()
     -- Compute next targets lazily and step forward as crossed
     local unixNow = DateTime.now().UnixTimestamp
 
-    -- Mythical: at top of every hour
+    -- Mythical: every 15 minutes (quarter-hour aligned)
     if not FishGen._nextMythicalAt then
-        local base = math.floor(unixNow / 3600) * 3600
-        FishGen._nextMythicalAt = base + 3600
+        local quarter = 15 * 60
+        FishGen._nextMythicalAt = (math.floor(unixNow / quarter) + 1) * quarter
     end
     -- Epic/Legendary: start at bottom of the hour (:30)
-    if not FishGen._nextEpicAt or not FishGen._nextLegendaryAt then
+    if not FishGen._nextLegendaryAt then
         local hourStart = math.floor(unixNow / 3600) * 3600
         local bottom = hourStart + 1800
-        FishGen._nextEpicAt = (unixNow <= bottom) and bottom or (bottom + math.ceil((unixNow - bottom) / (2*60)) * (2*60))
         FishGen._nextLegendaryAt = (unixNow <= bottom) and bottom or (bottom + math.ceil((unixNow - bottom) / (5*60)) * (5*60))
-    end
-
-    while unixNow >= (FishGen._nextEpicAt or 0) do
-        spawnForcedByRarity("Epic")
-        FishGen._nextEpicAt = (FishGen._nextEpicAt :: number) + 2*60
     end
     while unixNow >= (FishGen._nextLegendaryAt or 0) do
         spawnForcedByRarity("Legendary")
@@ -563,7 +559,7 @@ RunService.Heartbeat:Connect(function()
     end
     while unixNow >= (FishGen._nextMythicalAt or 0) do
         spawnForcedByRarity("Mythical")
-        FishGen._nextMythicalAt = (FishGen._nextMythicalAt :: number) + 60*60
+        FishGen._nextMythicalAt = (FishGen._nextMythicalAt :: number) + 15*60
     end
 end)
 
