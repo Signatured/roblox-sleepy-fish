@@ -17,6 +17,7 @@ local Enemies = require(ServerScriptService.Game.Library.Enemies)
 local Notifications = require(ServerScriptService.Library.Notifications)
 local BadgeManager = require(ServerScriptService.Game.Library.BadgeManager)
 local SharedGameSettings = require(ReplicatedStorage.Game.Library.GameSettings)
+local Saving = require(ServerScriptService.Library.Saving)
 
 local THINGS = workspace:WaitForChild("__THINGS")
 local ROOT = THINGS:WaitForChild("SwimmingFish")
@@ -282,14 +283,14 @@ local function spawnForcedByRarity(rarityId: string)
         Type = fishType,
         Shiny = false,
         Level = 1,
-        CreateTime = os.clock(),
-        BaseTime = os.clock(),
+        CreateTime = workspace:GetServerTimeNow(),
+        BaseTime = workspace:GetServerTimeNow(),
     }
 
     local fishInstance: Swimming = {
         UID = uid,
         FishData = fishData,
-        SpawnTime = os.clock(),
+        SpawnTime = workspace:GetServerTimeNow(),
         Carrier = nil,
         Model = fishModelTemplate:Clone(),
         Gui = nil,
@@ -327,14 +328,14 @@ local function spawnOne(into: BasePart, backdate: number?)
         Type = fishType,
         Shiny = false,
         Level = 1,
-        CreateTime = os.clock(),
-        BaseTime = os.clock(),
+        CreateTime = workspace:GetServerTimeNow(),
+        BaseTime = workspace:GetServerTimeNow(),
     }
 
     local fishInstance: Swimming = {
         UID = uid,
         FishData = fishData,
-        SpawnTime = os.clock() - (backdate or 0),
+        SpawnTime = workspace:GetServerTimeNow() - (backdate or 0),
         Carrier = nil,
         Model = fishModelTemplate:Clone(),
         Gui = nil,
@@ -400,6 +401,15 @@ function FishGen.SetCarrying(player: Player, uid: string): boolean
     if playerCarry[player] then return false end
     local fish = uidToFish[uid]
     if not fish then return false end
+
+    local save = Saving.Get(player)
+    if save and not save.FinishedTutorial and fish.FishData.FishId == "Clown Fish" then
+        local timeAlive = workspace:GetServerTimeNow() - fish.SpawnTime
+        if timeAlive > 30 then
+            fish.SpawnTime = workspace:GetServerTimeNow() - 30
+        end
+    end
+
     playerCarry[player] = uid
     fish.Carrier = player
     -- Set attribute with the directory FishId while carrying
@@ -472,7 +482,7 @@ end
 
 -- Heartbeat: despawn and respawn
 RunService.Heartbeat:Connect(function()
-    local now = os.clock()
+    local now = workspace:GetServerTimeNow()
     local homeBase = workspace:WaitForChild("__THINGS"):WaitForChild("HomeBase")::BasePart
     for uid, fish in pairs(uidToFish) do
         if (now - fish.SpawnTime) >= DESPAWN_SECONDS then
@@ -508,10 +518,7 @@ RunService.Heartbeat:Connect(function()
 						end
 						despawn(uid)
 						task.spawn(function()
-							local success = BadgeManager.GiveBadgeByName(player, "FirstCatch")
-							if success then
-								Network.Fire(player, "PromptFavorite", 3)
-							end
+							BadgeManager.GiveBadgeByName(player, "FirstCatch")
 						end)
 					end
 				end
