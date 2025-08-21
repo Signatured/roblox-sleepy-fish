@@ -17,5 +17,8 @@ Network.Fired("SetFinishedTutorial", function(player)
     local saveData = Saving.Get(player)
     if not saveData then return false end
     saveData.FinishedTutorial = true
+
+    Network.Fire(player, "PromptFavorite", 5)
+
     return true
 end)

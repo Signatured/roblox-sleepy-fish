@@ -13,6 +13,7 @@ local Library = ReplicatedStorage:WaitForChild("Library")
 local GUI = require(game.ReplicatedStorage.Game.Library.Client.GUI)
 local ButtonFX = require(Library.Client.GUIFX.ButtonFX)
 local Network = require(Library.Client.Network)
+local Save = require(Library.Client.Save)
 
 -- to track button connections
 local buttonConnections = {}
@@ -185,6 +186,12 @@ RunService.Heartbeat:Connect(function(deltaTime)
 		
 		-- If the GUI is already open, add extension time and skip this cycle
 		if friendInviteGui and friendInviteGui.Enabled then
+			timer += EXTENSION_INTERVAL
+			return
+		end
+
+		local save = Save.Get()
+		if save and not save.FinishedTutorial then
 			timer += EXTENSION_INTERVAL
 			return
 		end
