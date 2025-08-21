@@ -18,7 +18,6 @@ Network.Fired("Fish_Caught", function(displayName: string)
 end)
 
 Network.Fired("Fish_Grabbed_In_Water", function(fishId: string)
-	print("HERE!!!!", fishId)
 	Audio.Play("rbxassetid://85747710232715", script, 1, 0.3)
 
 	if typeof(fishId) == "string" and #fishId > 0 then
