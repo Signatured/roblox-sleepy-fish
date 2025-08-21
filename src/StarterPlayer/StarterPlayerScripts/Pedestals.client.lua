@@ -212,6 +212,12 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, upgradeFrame: F
             return
         end
 
+        -- playing here as verification from the server takes too long and sounds bad
+        Audio.Play("rbxassetid://134182180985783", script, 1, 0.6)
+        NotificationCmds.Message(`You placed down a {fishData.FishId}!`, {
+            Color = Color3.fromRGB(11, 206, 255),
+        })
+
         plot:Invoke("CreateFish", pedestalId, fishData.UID)
     end)
 
