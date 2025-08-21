@@ -331,7 +331,11 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             boostFrame.Visible = false
 
             local textLabel = upgradeFrame:WaitForChild("TextLabel")::TextLabel
-            textLabel.Text = `Level {fishData.FishData.Level} -> Level {fishData.FishData.Level + 1}`
+            if fishData.FishData.Level == GameSettings.MaxLevel then
+                textLabel.Text = `Level {fishData.FishData.Level}`
+            else
+                textLabel.Text = `Level {fishData.FishData.Level} -> Level {fishData.FishData.Level + 1}`
+            end
 
             local upgradeButton = upgradeFrame:FindFirstChild("Button")::ImageButton
             local buttonText = upgradeButton:FindFirstChild("TextLabel")::TextLabel
