@@ -21,7 +21,7 @@ local Command = {
         local gadgetId = args[2]
 
 		for _, targetPlayer in ipairs(targetPlayers) do
-			GadgetManager.Give(targetPlayer, gadgetId:gsub("_", " "))
+			GadgetManager.GiveAndInventory(targetPlayer, gadgetId:gsub("_", " "))
 		end
 	end,
 } :: CommandType.Command

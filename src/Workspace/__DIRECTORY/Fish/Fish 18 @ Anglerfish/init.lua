@@ -5,10 +5,11 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Anglerfish",
-    Rarity = Rarity.Mythical,
-    MoneyPerSecond = 3600,
+    Rarity = Rarity.Legendary,
+    MoneyPerSecond = 85,
     BaseUpgradeCost = 108000,
     BillboardOffset = 7,
+    RarityWeight = 30,
 }::FishTypes.raw_dir
 
 

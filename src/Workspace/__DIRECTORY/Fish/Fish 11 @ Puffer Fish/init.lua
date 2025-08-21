@@ -5,10 +5,11 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Puffer Fish",
-    Rarity = Rarity.Epic,
-    MoneyPerSecond = 123,
+    Rarity = Rarity.Rare,
+    MoneyPerSecond = 24,
     BaseUpgradeCost = 3690,
     BillboardOffset = 6.5,
+    RarityWeight = 20,
 }::FishTypes.raw_dir
 
 

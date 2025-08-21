@@ -5,10 +5,11 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Trippi Troppi",
-    Rarity = Rarity.Rare,
-    MoneyPerSecond = 11,
+    Rarity = Rarity.Uncommon,
+    MoneyPerSecond = 8,
     BaseUpgradeCost = 330,
     BillboardOffset = 7,
+    RarityWeight = 30,
 }::FishTypes.raw_dir
 
 

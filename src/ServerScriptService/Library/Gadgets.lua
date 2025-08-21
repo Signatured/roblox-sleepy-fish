@@ -134,6 +134,34 @@ local function onCharacterAdded(character: Model, player: Player)
 	end)
 end
 
+function Gadgets.GiveAndInventory(player: Player, id: string | GadgetTypes.dir_schema)
+	local schema = getGadgetSchema(id)
+    if not schema then
+        warn("[Gadgets] Invalid gadget id provided to Buy")
+        return false
+    end
+
+    local save = Saving.Get(player)
+    if not save then return false end
+
+    local plot = ServerPlot.GetByPlayer(player)
+    if not plot then
+        warn("[Gadgets] No plot found for", player.Name)
+        return false
+    end
+
+    -- Already owned in save?
+    if save.Tools[schema._id] then
+        return false
+    end
+
+    -- Mark owned, and give the gadget
+    save.Tools[schema._id] = true
+    Gadgets.Give(player, schema)
+
+    return true
+end
+
 --// Attempts to buy a gadget for the player. Returns true if purchased.
 function Gadgets.Buy(player: Player, id: string | GadgetTypes.dir_schema): boolean
     local schema = getGadgetSchema(id)

@@ -5,10 +5,11 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Seahorse",
-    Rarity = Rarity.Legendary,
-    MoneyPerSecond = 524,
+    Rarity = Rarity.Epic,
+    MoneyPerSecond = 42,
     BaseUpgradeCost = 15720,
     BillboardOffset = 7,
+    RarityWeight = 30,
 }::FishTypes.raw_dir
 
 

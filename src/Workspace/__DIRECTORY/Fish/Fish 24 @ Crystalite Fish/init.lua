@@ -5,10 +5,11 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Crystalite Fish",
-    Rarity = Rarity.Secret,
-    MoneyPerSecond = 65357,
+    Rarity = Rarity.Mythical,
+    MoneyPerSecond = 350,
     BaseUpgradeCost = 1960710,
     BillboardOffset = 6,
+    RarityWeight = 10,
 }::FishTypes.raw_dir
 
 

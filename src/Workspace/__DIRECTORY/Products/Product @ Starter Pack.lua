@@ -1,10 +1,10 @@
 --!strict
 
 return {
-	ProductId = 3372113026,
-	DisplayName = "+0.5x Multi",
+	ProductId = 3379060688,
+	DisplayName = "Starter Pack",
 	Icon = "",
-	Description = "+0.5x Multi",
+	Description = "Gives a free fish, money and coil!",
 	OneTimePurchase = true,
 	ClientTest = function(player: Player)
 		local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
@@ -20,25 +20,24 @@ return {
 			return false, "No plot found!"
 		end
 
-		if plot:Save("PaidIndex") ~= 0 then
-			return false, "You cannot buy this right now!"
-		end
-
 		return true
 	end,
 	Callback = function(player: Player): (boolean, string?)
 		local ServerPlot = require(game.ServerScriptService.Plot.ServerPlot)
+		local Fish = require(game.ServerScriptService.Game.Library.Fish)
+		local Gadgets = require(game.ServerScriptService.Game.Library.Gadgets)
 
 		local plot = ServerPlot.GetByPlayer(player)
 		if not plot then
 			return false, "No plot found!"
 		end
 
-		if plot:Save("PaidIndex") ~= 0 then
-			return false, "You cannot buy this right now!"
-		end
-
-		plot:SaveSet("PaidIndex", 1)
+		Fish.Give(player, {
+			FishId = "Clown Fish",
+			Type = "Normal"
+		})
+		plot:AddMoney(10_000)
+		Gadgets.GiveAndInventory(player, "Speed Coil")
 
 		return true
 	end,

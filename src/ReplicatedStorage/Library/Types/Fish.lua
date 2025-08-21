@@ -11,6 +11,7 @@ export type raw_dir = {
     MoneyPerSecond: number,
     BaseUpgradeCost: number,
     BillboardOffset: number,
+    RarityWeight: number,
     PedestalOffset: number?,
 }
 

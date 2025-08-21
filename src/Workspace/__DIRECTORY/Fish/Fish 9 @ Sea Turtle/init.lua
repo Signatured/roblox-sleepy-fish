@@ -5,10 +5,11 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Sea Turtle",
-    Rarity = Rarity.Epic,
-    MoneyPerSecond = 47,
+    Rarity = Rarity.Rare,
+    MoneyPerSecond = 15,
     BaseUpgradeCost = 1410,
     BillboardOffset = 5.5,
+    RarityWeight = 40,
 }::FishTypes.raw_dir
 
 

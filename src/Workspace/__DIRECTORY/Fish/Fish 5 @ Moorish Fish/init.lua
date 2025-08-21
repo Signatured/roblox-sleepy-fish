@@ -5,10 +5,11 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Moorish Fish",
-    Rarity = Rarity.Rare,
-    MoneyPerSecond = 7,
+    Rarity = Rarity.Uncommon,
+    MoneyPerSecond = 6,
     BaseUpgradeCost = 210,
     BillboardOffset = 7,
+    RarityWeight = 40,
 }::FishTypes.raw_dir
 
 

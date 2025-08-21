@@ -192,7 +192,7 @@ RunService.Heartbeat:Connect(function(deltaTime)
 
 		local save = Save.Get()
 		if save and not save.FinishedTutorial then
-			timer += EXTENSION_INTERVAL
+			timer += EXTENSION_INTERVAL * 2
 			return
 		end
 		

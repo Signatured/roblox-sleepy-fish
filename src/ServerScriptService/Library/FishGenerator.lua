@@ -82,13 +82,24 @@ end
 
 local function chooseFishByRarity(rarityId: string): FishTypes.dir_schema?
     local candidates = {}
-    for id, f in pairs(Directory.Fish) do
+    local totalWeight = 0
+    for _, f in pairs(Directory.Fish) do
         if f.Rarity and f.Rarity._id == rarityId then
             table.insert(candidates, f)
+            totalWeight += (f.RarityWeight or 0)
         end
     end
     if #candidates == 0 then return nil end
-    return candidates[math.random(1, #candidates)]
+    if totalWeight <= 0 then
+        return candidates[math.random(1, #candidates)]
+    end
+    local roll = math.random() * totalWeight
+    local acc = 0
+    for _, f in ipairs(candidates) do
+        acc += (f.RarityWeight or 0)
+        if roll <= acc then return f end
+    end
+    return candidates[#candidates]
 end
 
 local function randomPointIn(part: BasePart): CFrame
