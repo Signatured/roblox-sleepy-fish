@@ -38,6 +38,7 @@ return {
 			return false, "You cannot buy this right now!"
 		end
 
+		print("FIRED??")
 		plot:SaveSet("PaidIndex", 1)
 
 		return true
