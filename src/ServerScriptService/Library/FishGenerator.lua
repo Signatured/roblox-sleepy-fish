@@ -166,7 +166,7 @@ local function makePrompt(fish: Swimming)
     prompt.ActionText = "Pick Up"
     prompt.ObjectText = fish.FishData.FishId
     prompt.KeyboardKeyCode = Enum.KeyCode.E
-    prompt.HoldDuration = 0
+    prompt.HoldDuration = 1.5
     prompt.MaxActivationDistance = 12
     prompt.RequiresLineOfSight = false
     prompt.Parent = primary

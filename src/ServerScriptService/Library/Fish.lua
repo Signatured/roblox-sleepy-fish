@@ -162,6 +162,7 @@ function Fish.Give(player: Player, params: FishTypes.create_params | FishTypes.s
 
     local tool = toolTemplate:Clone()
     tool.Name = schema.DisplayName
+    tool.ToolTip = `Level {fishData.Level}`
     tool:SetAttribute("UID", fishData.UID)
     tool:SetAttribute("Type", fishData.Type)
     tool.Parent = backpack

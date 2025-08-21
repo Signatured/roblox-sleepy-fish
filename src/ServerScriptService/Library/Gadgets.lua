@@ -64,6 +64,7 @@ function Gadgets.Give(player: Player, id: string | GadgetTypes.dir_schema)
 	
 	local newTool = tool:Clone()
 	newTool.Name = schema._id
+	newTool.ToolTip = schema.DisplayName
 	newTool.Parent = backpack
 	
 	if schema.Icon and schema.Icon ~= "" then
