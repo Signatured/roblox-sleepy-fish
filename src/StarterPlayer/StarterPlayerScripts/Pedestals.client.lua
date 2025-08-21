@@ -18,6 +18,10 @@ local ProductDirectory = require(game.ReplicatedStorage.Game.Library.Directory.P
 local Marketplace = require(game.ReplicatedStorage.Library.Marketplace)
 local Audio = require(game.ReplicatedStorage.Library.Audio)
 
+-- Upgrade button images
+local UPGRADE_IMAGE_GREEN = "rbxassetid://85004105467436"
+local UPGRADE_IMAGE_GREY = "rbxassetid://95787790482910"
+
 -- Configurable claim bounce tween settings
 local CLAIM_TWEEN_TOTAL_TIME = 0.3 -- seconds for full down-and-up cycle
 local CLAIM_TWEEN_DEPTH = 0.2 -- studs to move down
@@ -78,6 +82,31 @@ local function playClaimBounce(claimPart: BasePart)
         end
         claimPart:SetAttribute("_ClaimTweenActive", false)
     end)
+end
+
+-- Update the upgrade button image based on whether the player can afford the next level
+local function UpdateUpgradeButtonImage(plot: ClientPlot.Type, model: Model)
+    local pedestalId = tonumber(model.Name)
+    if not pedestalId then return end
+
+    local nameplate = model:FindFirstChild("Nameplate")
+    if not nameplate or not nameplate:IsA("BasePart") then return end
+    local surfaceGui = nameplate:FindFirstChild("SurfaceGui")
+    if not surfaceGui or not surfaceGui:IsA("SurfaceGui") then return end
+    local frame = surfaceGui:FindFirstChild("Frame")
+    if not frame or not frame:IsA("Frame") then return end
+    local upgradeFrame = frame:FindFirstChild("Upgrade")
+    if not upgradeFrame or not upgradeFrame:IsA("Frame") then return end
+    local upgradeButton = upgradeFrame:FindFirstChild("Button")
+    if not upgradeButton or not upgradeButton:IsA("ImageButton") then return end
+
+    local cost = plot:GetUpgradeCost(pedestalId)
+    if not cost then return end -- Max level, leave as-is
+
+    local targetImage = plot:CanAfford(cost) and UPGRADE_IMAGE_GREEN or UPGRADE_IMAGE_GREY
+    if (upgradeButton :: ImageButton).Image ~= targetImage then
+        (upgradeButton :: ImageButton).Image = targetImage
+    end
 end
 
 type PedestalModel = {
@@ -347,6 +376,9 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             end
 
             buttonText.Text = `${Functions.NumberShorten(cost)}`
+
+            -- Ensure button image reflects affordability on first render
+            UpdateUpgradeButtonImage(plot, model)
         else
             upgradeFrame.Visible = false
             placeFrame.Visible = true
@@ -510,6 +542,13 @@ function plotCreated(plot: ClientPlot.Type)
     plot:SaveChanged("PaidIndex"):Connect(function(newIndex: number)
         for _, child in pedestals:GetChildren() do
             UpdatePedestal(plot, child::Model)
+        end
+    end)
+
+    -- Money changes: flip the upgrade button image when affordability changes
+    plot:SaveChanged("Money"):Connect(function(_value: number)
+        for _, child in pedestals:GetChildren() do
+            UpdateUpgradeButtonImage(plot, child::Model)
         end
     end)
 
