@@ -9,6 +9,8 @@ local Marketplace = require(ReplicatedStorage.Library.Marketplace)
 local Products = require(ReplicatedStorage.Game.Library.Directory.Products)
 local Fish = require(game.ServerScriptService.Game.Library.Fish)
 local Index = require(game.ServerScriptService.Game.Library.Index)
+local Notifications = require(game.ServerScriptService.Library.Notifications)
+local FishDirectory = require(game.ReplicatedStorage.Game.Library.Directory.Fish)
 
 local module = {}
 
@@ -79,6 +81,17 @@ function module.ExecuteSteal(player: Player): boolean
         Fish.ForceHoldFish(player, data)
         Index.Add(player, data.FishId, data.Type)
     end
+
+    task.spawn(function()
+        local dir = FishDirectory[currentFish.FishData.FishId]
+        Notifications.Message(player, `You stole a {dir.DisplayName} from {plot:GetOwner().DisplayName}!`, {
+            Color = Color3.fromRGB(0, 255, 0),
+        })
+
+        Notifications.Message(player, `{player.DisplayName} stole your {dir.DisplayName}!`, {
+            Color = Color3.fromRGB(255, 0, 0),
+        })
+    end)
 
     waitingPurchase[player] = nil
     return true

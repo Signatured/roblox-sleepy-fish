@@ -374,6 +374,12 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             placeFrame.Visible = false
             boostFrame.Visible = false
 
+            -- If a place prompt exists from previous state, remove it
+            local existingPlacePrompt = sellAttachment:FindFirstChild("PlacePrompt")
+            if existingPlacePrompt and existingPlacePrompt:IsA("ProximityPrompt") then
+                existingPlacePrompt:Destroy()
+            end
+
             local textLabel = upgradeFrame:WaitForChild("TextLabel")::TextLabel
             if fishData.FishData.Level == GameSettings.MaxLevel then
                 textLabel.Text = `Level {fishData.FishData.Level}`
@@ -398,6 +404,32 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             upgradeFrame.Visible = false
             placeFrame.Visible = true
             boostFrame.Visible = false
+
+            -- Ensure a proximity prompt exists to allow placing via prompt too
+            local placePromptAny = sellAttachment:FindFirstChild("PlacePrompt")
+            local placePrompt: ProximityPrompt? = placePromptAny and placePromptAny:IsA("ProximityPrompt") and (placePromptAny :: ProximityPrompt) or nil
+            if not placePrompt then
+                local created = SetupProximity("Place", 0, Enum.KeyCode.E, sellAttachment)
+                created.Name = "PlacePrompt"
+                created.Triggered:Connect(function(_player: Player)
+                    local fishData = FishCmds.GetCurrentFishData()
+                    if not fishData then
+                        NotificationCmds.Message("Equip a fish to place it!", {
+                            Color = Color3.fromRGB(255, 0, 0),
+                        })
+                        return
+                    end
+
+                    -- playing here as verification from the server takes too long and sounds bad
+                    Audio.Play("rbxassetid://134182180985783", script, 1, 0.4)
+                    NotificationCmds.Message(`You placed down a {fishData.FishId}!`, {
+                        Color = Color3.fromRGB(11, 206, 255),
+                    })
+
+                    plot:Invoke("CreateFish", pedestalId, fishData.UID)
+                end)
+                placePrompt = created
+            end
         end 
     else
         upgradeFrame.Visible = false
