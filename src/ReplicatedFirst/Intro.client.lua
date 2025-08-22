@@ -45,6 +45,7 @@ local function main()
     local Bar = Progress:WaitForChild("ProgressBar")
     local SkipButton = Frame:WaitForChild("SkipButton")
     local LoadingText = Frame:WaitForChild("LoadingBar"):WaitForChild("CurrentLoading")
+    local FishIcon = Frame:WaitForChild("Logo")::ImageLabel
 
     -- Function to tween the progress bar
     local function updateProgress(targetProgress: number, text: string, skip: boolean?)
@@ -65,6 +66,33 @@ local function main()
             task.wait(0.25)
         end
     end)
+
+    -- Animate the FishIcon like a 2D swimming fish: bob up/down and wiggle (RenderStepped)
+    do
+        FishIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+        local basePos: UDim2 = FishIcon.Position
+        local baseRot: number = FishIcon.Rotation
+        local bobAmplitude = 8 -- pixels
+        local swayAmplitude = 6 -- pixels
+        local bobHz = 0.5 / 4 -- slowed by 4x
+        local wiggleHz = 1.2 / 4 -- slowed by 4x
+        local rotAmplitude = 10 -- degrees
+
+        local t = 0
+        local conn
+        conn = RunService.RenderStepped:Connect(function(dt)
+            if not loadingScreen.Parent then
+                if conn then conn:Disconnect() end
+                return
+            end
+            t += dt
+            local bob = math.sin(2 * math.pi * bobHz * t) * bobAmplitude
+            local sway = math.cos(2 * math.pi * bobHz * t) * swayAmplitude
+            local rot = math.sin(2 * math.pi * wiggleHz * t) * rotAmplitude
+            FishIcon.Position = UDim2.new(basePos.X.Scale, basePos.X.Offset + sway, basePos.Y.Scale, basePos.Y.Offset + bob)
+            FishIcon.Rotation = baseRot + rot
+        end)
+    end
 
     local function toggleCoreUI(enabled: boolean)
         if viewportY < 550 then
