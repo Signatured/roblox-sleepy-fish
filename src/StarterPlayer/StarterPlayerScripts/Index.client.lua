@@ -10,11 +10,30 @@ local FishTypes = require(ReplicatedStorage.Game.Library.Types.Fish)
 local Save = require(ReplicatedStorage.Library.Client.Save)
 local ExistCountCmds = require(ReplicatedStorage.Game.Library.Client.ExistCountCmds)
 local Functions = require(ReplicatedStorage.Library.Functions)
+local ScreenResolution = require(ReplicatedStorage.Library.Client.ScreenResolution)
 
 local SELECTED_IMG = "rbxassetid://85004105467436"
 local UNSELECTED_IMG = "rbxassetid://72752195568291"
 
 local currentCategory: FishTypes.fish_type = "Normal"
+
+local resolutionSettings = {
+	{
+		ResolutionThreshold = 0.65, 
+		PerRow = 3,
+		Padding = UDim2.new(0.01, 0, 0.01, 0)
+	},
+	{
+		ResolutionThreshold = 1.2,
+		PerRow = 4,
+		Padding = UDim2.new(0.01, 0, 0.01, 0)
+	},
+	{ 
+		ResolutionThreshold = math.huge, 
+		PerRow = 4,
+		Padding = UDim2.new(0.01, 0, 0.01, 0)
+	}
+}
 
 local function getGui()
     local indexGui = GUI.Index()
@@ -162,8 +181,16 @@ local function realRender()
         card.Parent = itemsFrame
     end
 
+    -- task.spawn(function()
+	-- 	while true do
+	-- 		if TabController.GetCurrentTab() ~= "Index" then break end
+	-- 		Functions.AutoGridLayout(itemsFrame, resolutionSettings, true)
+	-- 		task.wait(0.1)
+	-- 	end
+	-- end)
     task.delay(0.1, function()
-        Functions.UpdateCanvasSize(itemsFrame)
+        Functions.AutoGridLayout(itemsFrame, resolutionSettings, true)()
+        -- Functions.UpdateCanvasSize(itemsFrame)
     end)
 end
 
@@ -179,6 +206,23 @@ local function setup()
     realRender()
     initialized = true
 end
+
+ScreenResolution.Changed:Connect(function()
+    if initialized then
+        task.delay(0.1, function()
+            local indexGui = getGui()
+            if not indexGui then return end
+            local frame = indexGui:FindFirstChild("Frame")
+            local main = frame and frame:FindFirstChild("MainFrame")
+            if not (frame and main and main:IsA("Frame")) then return end
+            local contentFrame = main:FindFirstChild("Content")
+            if not (contentFrame and contentFrame:IsA("Frame")) then return end
+            local itemsFrame = contentFrame:FindFirstChild("Items")
+
+            Functions.AutoGridLayout(itemsFrame, resolutionSettings, true)()
+        end)
+    end
+end)
 
 -- Initial and reactive wiring
 Save.SaveAdded:Connect(function()
