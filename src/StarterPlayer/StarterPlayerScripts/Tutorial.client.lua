@@ -220,7 +220,7 @@ local function tutorialMain(initialState: string?)
         end)
     end
     local function typeMessage(text: string)
-        if currentTyperCancel then currentTyperCancel() currentTyperCancel = nil end
+        if currentTyperCancel then currentTyperCancel(); currentTyperCancel = nil end
         if not messageLabel or not messageLabel:IsA("TextLabel") then return end
         messageLabel.Text = ""
         local cancelled = false
@@ -462,6 +462,13 @@ local function tutorialMain(initialState: string?)
 end
 
 ClientPlot.OnLocalAndCreated(function(plot: ClientPlot.Type)
+    -- Wait until the loading screen signals complete before starting tutorial logic
+    local function waitForLoadingComplete()
+        local lp = Players.LocalPlayer
+        if lp:GetAttribute("LoadingScreenComplete") then return end
+        repeat task.wait(0.05) until lp:GetAttribute("LoadingScreenComplete") == true
+    end
+    waitForLoadingComplete()
     local save = Save.Get()
     if not save then
         return

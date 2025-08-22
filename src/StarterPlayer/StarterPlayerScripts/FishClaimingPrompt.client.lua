@@ -15,7 +15,7 @@ local holdTween: Tween? = nil
 local startTime: number = 0
 
 -- Optional: set an attribute "RiserSoundId" / "RiserSoundVolume" on the prompt from the server
-local DEFAULT_RISER_ID = "rbxassetid://105969970404476" -- fallback if attribute not provided
+local DEFAULT_RISER_ID = "rbxassetid://95437214341584" -- fallback if attribute not provided
 local DEFAULT_RISER_VOL = 0.5
 
 local function isFishPrompt(prompt: ProximityPrompt): boolean
