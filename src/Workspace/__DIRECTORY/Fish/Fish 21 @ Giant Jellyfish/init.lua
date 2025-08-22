@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Giant Jellyfish",
-    Icon = "rbxassetid://70797102025293",
+    Icon = "rbxassetid://74298369722425",
     Rarity = Rarity.Mythical,
     MoneyPerSecond = 170,
     BaseUpgradeCost = 459300,

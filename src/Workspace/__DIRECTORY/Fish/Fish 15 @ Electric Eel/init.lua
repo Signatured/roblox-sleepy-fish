@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Electric Eel",
-    Icon = "rbxassetid://86024252567320",
+    Icon = "rbxassetid://81816650499286",
     Rarity = Rarity.Epic,
     MoneyPerSecond = 50,
     BaseUpgradeCost = 25440,

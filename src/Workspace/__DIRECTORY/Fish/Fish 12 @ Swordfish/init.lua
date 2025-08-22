@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Swordfish",
-    Icon = "rbxassetid://121200626306150",
+    Icon = "rbxassetid://88458071940200",
     Rarity = Rarity.Rare,
     MoneyPerSecond = 28,
     BaseUpgradeCost = 6000,

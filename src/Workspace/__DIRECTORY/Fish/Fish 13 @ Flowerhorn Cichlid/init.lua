@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Flowerhorn Cichlid",
-    Icon = "rbxassetid://119049116716527",
+    Icon = "rbxassetid://106319261870683",
     Rarity = Rarity.Epic,
     MoneyPerSecond = 32,
     BaseUpgradeCost = 9720,

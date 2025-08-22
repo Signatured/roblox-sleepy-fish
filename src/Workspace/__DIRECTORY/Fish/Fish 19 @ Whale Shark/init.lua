@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Whale Shark",
-    Icon = "rbxassetid://94100824415467",
+    Icon = "rbxassetid://126935022978658",
     Rarity = Rarity.Legendary,
     MoneyPerSecond = 100,
     BaseUpgradeCost = 174960,
