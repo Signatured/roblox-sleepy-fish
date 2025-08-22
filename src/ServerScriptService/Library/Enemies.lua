@@ -40,6 +40,7 @@ type EnemyRecord = {
 	Attachment: Attachment?,
 	IdleOriginalColors: { [BasePart]: Color3 }?,
 	LastAlertSeenT: number?,
+	AlertedExpireTime: number?,
 }
 
 local Enemies = {}
@@ -194,6 +195,22 @@ local function beginChasing(rec: EnemyRecord, player: Player, fromAlert: boolean
 	rec.TargetPlayer = player
 	rec.TargetFromAlert = fromAlert
 	rec.State = "Chasing"
+    -- Set attribute "Alerted" for 3 seconds if not recently set
+    local nowT = workspace:GetServerTimeNow()
+    if not rec.AlertedExpireTime or nowT >= (rec.AlertedExpireTime :: number) then
+        local expiresAt = nowT + 3
+        rec.AlertedExpireTime = expiresAt
+        pcall(function()
+            rec.Model:SetAttribute("Alerted", true)
+        end)
+        task.delay(3, function()
+            if rec and rec.Model and rec.AlertedExpireTime == expiresAt then
+                pcall(function()
+                    rec.Model:SetAttribute("Alerted", nil)
+                end)
+            end
+        end)
+    end
     clearIdleDark(rec)
     setSleepParticles(rec, false)
     local primary = getPrimaryPart(rec.Model)
