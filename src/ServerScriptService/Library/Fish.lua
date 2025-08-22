@@ -206,7 +206,10 @@ local function populateToolsFromInventory(player: Player)
                 if not backpack:FindFirstChild(fishData.UID) then
                     local newTool = toolTemplate:Clone()
                     newTool.Name = schema.DisplayName
+                    newTool.TextureId = schema.Icon
+                    newTool.ToolTip = `Level {fishData.Level}`
                     newTool:SetAttribute("UID", fishData.UID)
+                    newTool:SetAttribute("Type", fishData.Type)
                     newTool.Parent = backpack
                     playerFishTools[player.UserId][fishData.UID] = newTool
                 end
