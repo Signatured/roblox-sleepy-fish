@@ -437,6 +437,8 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
 
         fishModel:PivotTo((base:GetPivot() + Vector3.new(0, base.Size.Y / 2, 0) + Vector3.new(0, fishModel:GetExtentsSize().Y / 2, 0) + Vector3.new(0, 2, 0) + Vector3.new(0, dir.PedestalOffset or 0, 0)) * CFrame.Angles(0, math.rad(180), 0))
         fishModel:SetAttribute("PedestalFish", true)
+        -- Tie the fish model to this plot for reliable cleanup
+        fishModel:SetAttribute("_PlotId", plot:GetId())
         fishModel:AddTag("SwimmingFish")
         fishModel.Parent = parent
 
@@ -598,22 +600,35 @@ ClientPlot.OnAllAndCreated(function(plot: ClientPlot.Type)
 end)
 
 ClientPlot.Destroying:Connect(function(plot: ClientPlot.Type)
-    for _, model in pairs(pedestalModels[plot]) do
-        model.Model:Destroy()
-        if model.SellProximity then
-            model.SellProximity:Destroy()
+    -- Clean up any pedestal models tracked for this plot
+    if pedestalModels[plot] then
+        for _, model in pairs(pedestalModels[plot]) do
+            if model.Model then pcall(function() model.Model:Destroy() end) end
+            if model.SellProximity then pcall(function() model.SellProximity:Destroy() end) end
+            if model.PickupProximity then pcall(function() model.PickupProximity:Destroy() end) end
+            if model.StealProximity then pcall(function() model.StealProximity:Destroy() end) end
+            if model.BoostProximity then pcall(function() model.BoostProximity:Destroy() end) end
         end
-        if model.PickupProximity then
-            model.PickupProximity:Destroy()
-        end
-        if model.StealProximity then
-            model.StealProximity:Destroy()
-        end
-        if model.BoostProximity then
-            model.BoostProximity:Destroy()
+        pedestalModels[plot] = nil
+    end
+
+    -- Additionally, scan PlotFish folders and destroy any fish models that were tied to this plot
+    local root = workspace:FindFirstChild("__THINGS")
+    local folders = {
+        root and root:FindFirstChild("PlotFish"),
+        root and root:FindFirstChild("Shiny") and (root :: any).PlotFish and (root :: any).PlotFish:FindFirstChild("Shiny"),
+        root and root:FindFirstChild("Rainbow") and (root :: any).PlotFish and (root :: any).PlotFish:FindFirstChild("Rainbow"),
+        root and root:FindFirstChild("Gold") and (root :: any).PlotFish and (root :: any).PlotFish:FindFirstChild("Gold")
+    }
+    for _, folder in ipairs(folders) do
+        if folder and folder:IsA("Instance") then
+            for _, m in ipairs(folder:GetChildren()) do
+                if m:IsA("Model") and m:GetAttribute("_PlotId") == plot:GetId() then
+                    pcall(function() m:Destroy() end)
+                end
+            end
         end
     end
-    pedestalModels[plot] = nil
 end)
 
 task.spawn(function()
