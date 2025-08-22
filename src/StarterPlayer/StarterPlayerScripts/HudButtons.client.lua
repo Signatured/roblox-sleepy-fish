@@ -117,6 +117,25 @@ local function setup(plot: ClientPlot.Type)
 		updateMultiText(paidIndex)
 	end
 
+	-- Settings button in SideBottom
+	local sideBottom = mainGui:FindFirstChild("SideBottom")
+	if sideBottom and sideBottom:IsA("Frame") then
+		local inner = sideBottom:FindFirstChild("Frame")
+		local settingsButton = inner and inner:FindFirstChild("SettingsButton")
+		if settingsButton and settingsButton:IsA("GuiButton") then
+			ButtonFX(settingsButton)
+			settingsButton.Activated:Connect(function()
+				-- Toggle Settings tab using TabController
+				local current = TabController.GetCurrentTab()
+				if current == "Settings" then
+					TabController.CloseTab()
+				else
+					TabController.OpenTab("Settings")
+				end
+			end)
+		end
+	end
+
 	-- MoreSpaceButton setup
 	if sideRight and sideRight:IsA("Frame") then
 		local moreSpaceButton = sideRight:FindFirstChild("MoreSpaceButton")
