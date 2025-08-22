@@ -29,12 +29,12 @@ local serverLuckMultiplier: number = 1
 local serverLuckTimeLeft: number = 0
 local serverLuckLastSync: number = 0
 
--- Specialized: BestCoil purchase tile (Flame Coil)
+-- Specialized: BestCoil purchase tile (Rainbow Coil)
 local bestCoilInitialized = false
 local bestCoilFrame: Frame?
 local _bestCoilButton: GuiButton?
-local FLAME_COIL_KEY = "Flame Coil"
-local flameCoilProductId: number?
+local RAINBOW_COIL_KEY = "Rainbow Coil"
+local rainbowCoilProductId: number?
 
 local function initServerLuckSync()
     task.spawn(function()
@@ -48,6 +48,19 @@ local function initServerLuckSync()
         serverLuckTimeLeft = t
         serverLuckLastSync = workspace:GetServerTimeNow()
     end)
+end
+
+local function packRainbow(shopGui: ScreenGui)
+    local frame = shopGui:WaitForChild("Frame")
+    local mainFrame = frame:WaitForChild("MainFrame")
+    local content = mainFrame:WaitForChild("Content")
+    local scrollingFrame = content:WaitForChild("ScrollingFrame")
+    local starterPack = scrollingFrame:WaitForChild("StarterPack")
+    local expertPack = scrollingFrame:WaitForChild("ExpertPack")
+
+    print("FIRED")
+    Functions.GradientScroll(starterPack:WaitForChild("Background"):WaitForChild("RainbowGradientWrapped")::UIGradient, 3)
+    Functions.GradientScroll(expertPack:WaitForChild("Background"):WaitForChild("RainbowGradientWrapped")::UIGradient, 3)
 end
 
 local function doesOwnGamepass(gamepassId: number): boolean
@@ -251,7 +264,7 @@ local function setupIncreaseLuck(scrollingFrame: Instance)
     refresh()
 end
 
---// Specialized setup for the BestCoil tile (Flame Coil product outside the scrolling list)
+--// Specialized setup for the BestCoil tile (Rainbow Coil product outside the scrolling list)
 local function setupBestCoil(shopGui: ScreenGui)
     if bestCoilInitialized then return end
     local frame = shopGui:FindFirstChild("Frame")
@@ -267,7 +280,7 @@ local function setupBestCoil(shopGui: ScreenGui)
     bestCoilInitialized = true
     bestCoilFrame = bc
     _bestCoilButton = imageButton
-    flameCoilProductId = ProductCmds.GetProductId(FLAME_COIL_KEY)
+    rainbowCoilProductId = ProductCmds.GetProductId(RAINBOW_COIL_KEY)
 
     ButtonFX(imageButton)
 
@@ -275,13 +288,13 @@ local function setupBestCoil(shopGui: ScreenGui)
 
     local function updatePriceLabel()
         if not (priceLabel and priceLabel:IsA("TextLabel")) then return end
-        if not flameCoilProductId then
+        if not rainbowCoilProductId then
             priceLabel.Text = " ???"
             return
         end
         priceLabel.Text = " ???"
         task.spawn(function()
-            local success, info = pcall(MarketplaceService.GetProductInfo, MarketplaceService, flameCoilProductId :: number, Enum.InfoType.Product)
+            local success, info = pcall(MarketplaceService.GetProductInfo, MarketplaceService, rainbowCoilProductId :: number, Enum.InfoType.Product)
             if success and info and priceLabel and priceLabel:IsA("TextLabel") then
                 priceLabel.Text = ` {info.PriceInRobux}`
             end
@@ -289,13 +302,13 @@ local function setupBestCoil(shopGui: ScreenGui)
     end
 
     local function refresh()
-        local owned = ProductCmds.Owns(FLAME_COIL_KEY)
+        local owned = ProductCmds.Owns(RAINBOW_COIL_KEY)
         if bestCoilFrame and bestCoilFrame:IsA("Frame") then
             bestCoilFrame.Visible = not owned
         end
         if not owned then
-            if not flameCoilProductId then
-                flameCoilProductId = ProductCmds.GetProductId(FLAME_COIL_KEY)
+            if not rainbowCoilProductId then
+                rainbowCoilProductId = ProductCmds.GetProductId(RAINBOW_COIL_KEY)
             end
             updatePriceLabel()
         end
@@ -306,13 +319,13 @@ local function setupBestCoil(shopGui: ScreenGui)
         buttonConnections[imageButton] = nil
     end
     buttonConnections[imageButton] = imageButton.Activated:Connect(function()
-        if not flameCoilProductId then
-            flameCoilProductId = ProductCmds.GetProductId(FLAME_COIL_KEY)
+        if not rainbowCoilProductId then
+            rainbowCoilProductId = ProductCmds.GetProductId(RAINBOW_COIL_KEY)
         end
 
         updatePriceLabel()
-        if flameCoilProductId then
-            Marketplace.Prompt(player, flameCoilProductId :: number, true)
+        if rainbowCoilProductId then
+            Marketplace.Prompt(player, rainbowCoilProductId :: number, true)
         end
     end)
 
@@ -346,7 +359,8 @@ local function setupShop()
 
     setupIncreaseLuck(scrollingFrame)
     setupBestCoil(shopGui)
-	
+	packRainbow(shopGui)
+
 	task.delay(0.1, function()
 		Functions.UpdateCanvasSize(scrollingFrame)
 	end)

@@ -1,10 +1,10 @@
 --!strict
 
 return {
-	ProductId = 3379376066,
-	DisplayName = "Flame Coil",
-	Icon = "rbxassetid://75628681748781",
-	Description = "Gives a Flame Coil!",
+	ProductId = 3379949669,
+	DisplayName = "Rainbow Coil",
+	Icon = "rbxassetid://113359210467566",
+	Description = "Gives a Rainbow Coil!",
 	OneTimePurchase = true,
 	ClientTest = function(player: Player)
 		local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
@@ -31,7 +31,7 @@ return {
 			return false, "No plot found!"
 		end
 
-		local ok = Gadgets.GiveAndInventory(player, "Flame Coil")
+		local ok = Gadgets.GiveAndInventory(player, "Rainbow Coil")
 		if not ok then
 			return false, "Already owned or could not grant."
 		end
