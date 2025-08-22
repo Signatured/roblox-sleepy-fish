@@ -35,6 +35,11 @@ musicSound.SoundGroup = SoundService:WaitForChild("Music")
 local isChaseActive = false
 local chaseSound: Sound? = nil
 local chasePreloaded: {[string]: Sound} = {}
+local preChaseState = {
+    wasPlaying = false,
+    soundId = "",
+    timePosition = 0,
+}
 
 -- Preload chase music at script load so it's ready instantly when triggered
 task.spawn(function()
@@ -102,6 +107,9 @@ local function PlayChaseMusic(active: boolean)
         if isChaseActive then return end
         isChaseActive = true
         -- Pause the normal background track
+        preChaseState.wasPlaying = musicSound.Playing
+        preChaseState.soundId = musicSound.SoundId
+        preChaseState.timePosition = musicSound.TimePosition
         if musicSound.Playing then
             pcall(function() musicSound:Pause() end)
         end
@@ -133,7 +141,22 @@ local function PlayChaseMusic(active: boolean)
             local s = chaseSound :: Sound
             pcall(function() s:Stop() end)
         end
-        -- Resume normal background track if music is enabled
+        -- Resume the exact track/time from before the chase, if it was playing
+        if preChaseState.wasPlaying then
+            -- restore id and time in case anything changed while paused
+            if preChaseState.soundId ~= "" then
+                musicSound.SoundId = preChaseState.soundId
+            end
+            musicSound.TimePosition = preChaseState.timePosition
+            pcall(function()
+                if musicSound.IsPaused then
+                    musicSound:Resume()
+                else
+                    musicSound:Play()
+                end
+            end)
+        end
+        -- Apply volumes per current settings
         updateMusicState()
     end
 end

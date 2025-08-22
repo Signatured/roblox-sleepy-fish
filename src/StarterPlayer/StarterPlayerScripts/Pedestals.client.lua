@@ -448,7 +448,9 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
         local boostProximity: ProximityPrompt?
 
         if plot:IsLocal() then
-            sellProximity = SetupProximity("Sell", 3, Enum.KeyCode.E, sellAttachment)
+            local sellPrice = plot:GetSellPrice(pedestalId)
+            local sellPriceString = sellPrice and `Sell: ${Functions.NumberShorten(sellPrice)}` or "Sell"
+            sellProximity = SetupProximity(sellPriceString, 3, Enum.KeyCode.E, sellAttachment)
             pickupProximity = SetupProximity("Pickup", 1, Enum.KeyCode.F, pickupAttachment)
 
             assert(sellProximity).Triggered:Connect(function(player: Player)
