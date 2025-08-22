@@ -93,6 +93,7 @@ local function realRender()
     if not (itemsFrame and itemsFrame:IsA("ScrollingFrame")) then return end
     local template = itemsFrame:FindFirstChild("IndexCard")
     if not (template and template:IsA("Frame")) then return end
+    template.Visible = false
 
     -- clear existing
     for _, child in ipairs(itemsFrame:GetChildren()) do
@@ -116,7 +117,7 @@ local function realRender()
     local fishList = sortFishByMps()
     local counts = ExistCountCmds.GetAll() or {}
 
-    local function renderIntoViewport(view: ViewportFrame, modelTemplate: Model)
+    local function renderIntoViewport(view: ViewportFrame, modelTemplate: Model, dir: FishTypes.dir_schema)
         -- Clear previous
         for _, c in ipairs(view:GetChildren()) do c:Destroy() end
         view.Ambient = Color3.fromRGB(200, 200, 200)
@@ -136,13 +137,22 @@ local function realRender()
 
         local bboxCF, bboxSize = container:GetBoundingBox()
         local target = bboxCF.Position
+        local indexOffset = dir.IndexOffset or 0
+        local indexPositionOffset = dir.IndexPositionOffset or Vector3.new(0, 0, 0)
         -- Compute a camera position directly in front of the model by half Z + 5 studs
-        local camPos = target + bboxCF.LookVector * (bboxSize.Z * 0.5 + 5)
+        local camPos = target + bboxCF.LookVector * (bboxSize.Z + indexOffset)
         -- Pivot the model so its forward (LookVector) faces the camera position
         local modelFaceCF = CFrame.lookAt(target, camPos, bboxCF.UpVector)
-        container:PivotTo(modelFaceCF)
+        -- Rotate fish 90 degrees around Y axis for desired presentation
+        container:PivotTo(modelFaceCF * CFrame.Angles(0, math.rad(45), 0))
         -- Finally, position the camera to look at the model head-on
-        cam.CFrame = CFrame.lookAt(camPos, target, bboxCF.UpVector)
+        cam.CFrame = CFrame.lookAt(camPos, target, bboxCF.UpVector) * CFrame.new(indexPositionOffset.X, indexPositionOffset.Y, indexPositionOffset.Z)
+
+        clone:SetAttribute("BobAmplitude", 0.25)
+        clone:SetAttribute("SwayAmplitude", 0.25)
+        clone:SetAttribute("RollMaxDeg", 5)
+        clone:SetAttribute("YawMaxDeg", 5)
+        clone:AddTag("SwimmingFish")
     end
 
     for _, dir in ipairs(fishList) do
@@ -175,7 +185,7 @@ local function realRender()
         if viewport and viewport:IsA("ViewportFrame") then
             local modelTemplate = dir._script and dir._script:FindFirstChild("Model")
             if modelTemplate and modelTemplate:IsA("Model") then
-                renderIntoViewport(viewport, modelTemplate)
+                renderIntoViewport(viewport, modelTemplate, dir)
             end
         end
         card.Parent = itemsFrame

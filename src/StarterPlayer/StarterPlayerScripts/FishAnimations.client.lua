@@ -27,6 +27,14 @@ local rainbowHighlights: {Highlight} = {}
 local shinyHighlights: {Highlight} = {}
 local lastScanTime = 0
 
+local function getNumberAttributeOrDefault(instance: Instance, attributeName: string, defaultValue: number): number
+	local value = instance:GetAttribute(attributeName)
+	if typeof(value) == "number" then
+		return value :: number
+	end
+	return defaultValue
+end
+
 local function tryGetHighlight(folderName: string, typeName: string): Highlight?
     local folder = ROOT:FindFirstChild(folderName)
     local model = folder and folder:FindFirstChild(typeName)
@@ -85,12 +93,12 @@ local function ensureStep()
             end
 
             local opts = data.options
-            local bobAmp = (opts.BobAmplitude :: number?) or 1
-            local bobSpeed = (opts.BobSpeed :: number?) or (1/6)
-            local swayAmp = (opts.SwayAmplitude :: number?) or 1
-            local swaySpeed = (opts.SwaySpeed :: number?) or 0.3
-            local rollMax = math.rad((opts.RollMaxDeg :: number?) or 10)
-            local yawMax = math.rad((opts.YawMaxDeg :: number?) or 10)
+            local bobAmp = getNumberAttributeOrDefault(model, "BobAmplitude", (opts.BobAmplitude :: number?) or 1)
+            local bobSpeed = getNumberAttributeOrDefault(model, "BobSpeed", (opts.BobSpeed :: number?) or (1/6))
+            local swayAmp = getNumberAttributeOrDefault(model, "SwayAmplitude", (opts.SwayAmplitude :: number?) or 1)
+            local swaySpeed = getNumberAttributeOrDefault(model, "SwaySpeed", (opts.SwaySpeed :: number?) or 0.3)
+            local rollMax = math.rad(getNumberAttributeOrDefault(model, "RollMaxDeg", (opts.RollMaxDeg :: number?) or 10))
+            local yawMax = math.rad(getNumberAttributeOrDefault(model, "YawMaxDeg", (opts.YawMaxDeg :: number?) or 10))
 
             local elapsed = workspace:GetServerTimeNow() - data.startTime
             local omega = 2 * math.pi * bobSpeed

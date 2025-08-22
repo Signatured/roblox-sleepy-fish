@@ -13,6 +13,8 @@ export type raw_dir = {
     BillboardOffset: number,
     RarityWeight: number,
     PedestalOffset: number?,
+    IndexOffset: number?,
+    IndexPositionOffset: Vector3?,
 }
 
 export type fish_type = "Normal" | "Shiny" | "Gold" | "Rainbow"
