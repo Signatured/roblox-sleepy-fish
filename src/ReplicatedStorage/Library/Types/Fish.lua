@@ -15,6 +15,7 @@ export type raw_dir = {
     PedestalOffset: number?,
     IndexOffset: number?,
     IndexPositionOffset: Vector3?,
+    IndexRotationOffset: Vector3?,
 }
 
 export type fish_type = "Normal" | "Shiny" | "Gold" | "Rainbow"

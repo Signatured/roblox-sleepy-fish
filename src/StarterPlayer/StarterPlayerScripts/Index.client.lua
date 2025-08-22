@@ -143,8 +143,9 @@ local function realRender()
         local camPos = target + bboxCF.LookVector * (bboxSize.Z + indexOffset)
         -- Pivot the model so its forward (LookVector) faces the camera position
         local modelFaceCF = CFrame.lookAt(target, camPos, bboxCF.UpVector)
+        local rotationOffset = dir.IndexRotationOffset or Vector3.new(0, 0, 0)
         -- Rotate fish 90 degrees around Y axis for desired presentation
-        container:PivotTo(modelFaceCF * CFrame.Angles(0, math.rad(45), 0))
+        container:PivotTo(modelFaceCF * CFrame.Angles(0, math.rad(45), 0) * CFrame.Angles(rotationOffset.X, rotationOffset.Y, rotationOffset.Z))
         -- Finally, position the camera to look at the model head-on
         cam.CFrame = CFrame.lookAt(camPos, target, bboxCF.UpVector) * CFrame.new(indexPositionOffset.X, indexPositionOffset.Y, indexPositionOffset.Z)
 
