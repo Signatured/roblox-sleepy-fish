@@ -26,6 +26,8 @@ return {
 		local ServerPlot = require(game.ServerScriptService.Plot.ServerPlot)
 		local Fish = require(game.ServerScriptService.Game.Library.Fish)
 		local Gadgets = require(game.ServerScriptService.Game.Library.Gadgets)
+		local ExistCount = require(game.ServerScriptService.Game.Library.ExistCount)
+		local Index = require(game.ServerScriptService.Game.Library.Index)
 
 		local plot = ServerPlot.GetByPlayer(player)
 		if not plot then
@@ -41,6 +43,8 @@ return {
 
 		if data then
 			Fish.ForceHoldFish(player, data)
+			ExistCount.IncrementCount(data.FishId, data.Type)
+			Index.Add(player, data.FishId, data.Type)
 		end
 
 		return true

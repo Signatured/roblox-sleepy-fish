@@ -21,6 +21,8 @@ local Notifications = require(ServerScriptService.Library.Notifications)
 local BadgeManager = require(ServerScriptService.Game.Library.BadgeManager)
 local SharedGameSettings = require(ReplicatedStorage.Game.Library.GameSettings)
 local Saving = require(ServerScriptService.Library.Saving)
+local ExistCount = require(ServerScriptService.Game.Library.ExistCount)
+local Index = require(ServerScriptService.Game.Library.Index)
 
 local THINGS = workspace:WaitForChild("__THINGS")
 local ROOT = THINGS:WaitForChild("SwimmingFish")
@@ -568,6 +570,8 @@ RunService.Heartbeat:Connect(function()
 						end
 						despawn(uid)
 						task.spawn(function()
+                            ExistCount.IncrementCount(fish.FishData.FishId, fish.FishData.Type)
+                            Index.Add(player, fish.FishData.FishId, fish.FishData.Type)
 							BadgeManager.GiveBadgeByName(player, "FirstCatch")
 						end)
 					end

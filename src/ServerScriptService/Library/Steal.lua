@@ -8,6 +8,7 @@ local Network = require(game.ServerScriptService.Library.Network)
 local Marketplace = require(ReplicatedStorage.Library.Marketplace)
 local Products = require(ReplicatedStorage.Game.Library.Directory.Products)
 local Fish = require(game.ServerScriptService.Game.Library.Fish)
+local Index = require(game.ServerScriptService.Game.Library.Index)
 
 local module = {}
 
@@ -76,6 +77,7 @@ function module.ExecuteSteal(player: Player): boolean
     local data = Fish.Give(player, currentFish.FishData)
     if data then
         Fish.ForceHoldFish(player, data)
+        Index.Add(player, data.FishId, data.Type)
     end
 
     waitingPurchase[player] = nil

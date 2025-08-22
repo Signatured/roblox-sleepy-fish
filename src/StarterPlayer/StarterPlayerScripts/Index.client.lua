@@ -8,7 +8,6 @@ local ButtonFX = require(ReplicatedStorage.Library.Client.GUIFX.ButtonFX)
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
 local FishTypes = require(ReplicatedStorage.Game.Library.Types.Fish)
 local Save = require(ReplicatedStorage.Library.Client.Save)
-local ExistCountCmds = require(ReplicatedStorage.Game.Library.Client.ExistCountCmds)
 local Functions = require(ReplicatedStorage.Library.Functions)
 local ScreenResolution = require(ReplicatedStorage.Library.Client.ScreenResolution)
 
@@ -115,7 +114,8 @@ local function realRender()
     end
 
     local fishList = sortFishByMps()
-    local counts = ExistCountCmds.GetAll() or {}
+    local saveForIndex = Save.Get()
+    local playerIndex = (saveForIndex and saveForIndex.Index) or {}
 
     local function renderIntoViewport(view: ViewportFrame, modelTemplate: Model, dir: FishTypes.dir_schema, hasSeen: boolean)
         -- Clear previous
@@ -167,21 +167,21 @@ local function realRender()
     for _, dir in ipairs(fishList) do
         local fishId = dir._id
         local display = dir.DisplayName or fishId
-        local countForId = counts[fishId]
-        local countVal = 0
-        if countForId then
-            if currentCategory == "Normal" then countVal = countForId.Normal
-            elseif currentCategory == "Gold" then countVal = countForId.Gold
-            elseif currentCategory == "Shiny" then countVal = countForId.Shiny
-            elseif currentCategory == "Rainbow" then countVal = countForId.Rainbow end
+        local entry = playerIndex[fishId]
+        local hasSeen = false
+        if entry then
+            if currentCategory == "Normal" then hasSeen = entry.Normal == true
+            elseif currentCategory == "Gold" then hasSeen = entry.Gold == true
+            elseif currentCategory == "Shiny" then hasSeen = entry.Shiny == true
+            elseif currentCategory == "Rainbow" then hasSeen = entry.Rainbow == true end
         end
+        local countVal = hasSeen and 1 or 0
 
         local card = template:Clone()
         card.Visible = true
         local nameLabel = card:FindFirstChild("Name")
         local existLabel = card:FindFirstChild("Exist")
         local viewport = card:FindFirstChild("ViewportFrame")
-        local hasSeen = countVal > 0
         if nameLabel and nameLabel:IsA("TextLabel") then
             nameLabel.Text = display
             nameLabel.Visible = true
@@ -301,5 +301,3 @@ end)
 if Save.Get() and TabController.GetCurrentTab and TabController.GetCurrentTab() == "Index" then
     setup()
 end
-
-

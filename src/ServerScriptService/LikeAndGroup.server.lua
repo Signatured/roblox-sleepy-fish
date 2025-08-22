@@ -6,6 +6,8 @@ local Network = require(ServerScriptService.Library.Network)
 local Saving = require(ServerScriptService.Library.Saving)
 local Notifications = require(ServerScriptService.Library.Notifications)
 local Fish = require(ServerScriptService.Game.Library.Fish)
+local ExistCount = require(ServerScriptService.Game.Library.ExistCount)
+local Index = require(ServerScriptService.Game.Library.Index)
 
 local GROUP_ID = 535442508
 
@@ -35,6 +37,8 @@ Network.Fired("LikeAndGroup_Claim", function(player: Player)
 
     if data then
         Fish.ForceHoldFish(player, data)
+        ExistCount.IncrementCount(data.FishId, data.Type)
+        Index.Add(player, data.FishId, data.Type)
     end
 
     Notifications.Message(player, "Thanks for playing! 💖")

@@ -6,31 +6,18 @@
 local Players = game:GetService("Players")
 local BadgeService = game:GetService("BadgeService")
 
-local Directory = require(game.ReplicatedStorage.Game.Library.Directory)
-local Saving = require(game.ServerScriptService.Library.Saving)
+local Index = require(game.ServerScriptService.Game.Library.Index)
 
 local LEGEND_BADGE_ID = 2611268647815735
 
-local function isIndexEntryComplete(entry: any): boolean
+local function _isIndexEntryComplete(entry: any): boolean
     if type(entry) ~= "table" then return false end
     -- All four variants must be true
     return (entry.Normal == true) and (entry.Shiny == true) and (entry.Gold == true) and (entry.Rainbow == true)
 end
 
 local function isPlayerIndexComplete(player: Player): boolean
-    local save = Saving.Get(player)
-    if not save then return false end
-
-    local indexMap = save.Index :: {[string]: any}
-    if type(indexMap) ~= "table" then return false end
-
-    for fishId, _dir in pairs(Directory.Fish) do
-        local entry = indexMap[fishId]
-        if not isIndexEntryComplete(entry) then
-            return false
-        end
-    end
-    return true
+    return Index.IsCompleted(player)
 end
 
 local function startMonitoringPlayer(player: Player)
