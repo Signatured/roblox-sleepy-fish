@@ -117,7 +117,7 @@ end
 local function runUpdateLoop()
 	task.spawn(function()
 		-- Initial fetch on server startup
-		task.wait(5) -- Give time for directories to load
+		task.wait(2) -- Give time for directories to load
 		for id in pairs(LeaderboardDirectory) do
 			Leaderboards.FetchTopEntries(id)
 		end

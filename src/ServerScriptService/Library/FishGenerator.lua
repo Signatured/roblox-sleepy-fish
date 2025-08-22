@@ -35,7 +35,7 @@ local EASY = SPAWNS:WaitForChild("Easy")::BasePart
 local HARD = SPAWNS:WaitForChild("Hard")::BasePart
 
 local TOTAL_FISH = 80
-local HARD_RATIO = 0.7
+local HARD_RATIO = 0.6
 local HARD_COUNT = math.floor(TOTAL_FISH * HARD_RATIO)
 local EASY_COUNT = TOTAL_FISH - HARD_COUNT
 
