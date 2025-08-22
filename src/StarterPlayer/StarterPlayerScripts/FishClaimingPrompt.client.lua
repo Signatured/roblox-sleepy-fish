@@ -18,6 +18,16 @@ local startTime: number = 0
 local DEFAULT_RISER_ID = "rbxassetid://95437214341584" -- fallback if attribute not provided
 local DEFAULT_RISER_VOL = 0.5
 
+-- debug removed
+
+local activePromptDestroyConn: RBXScriptConnection? = nil
+local activePromptAncestryConn: RBXScriptConnection? = nil
+
+local function clearActivePromptConns()
+    if activePromptDestroyConn then activePromptDestroyConn:Disconnect(); activePromptDestroyConn = nil end
+    if activePromptAncestryConn then activePromptAncestryConn:Disconnect(); activePromptAncestryConn = nil end
+end
+
 local function isFishPrompt(prompt: ProximityPrompt): boolean
     if not prompt or not prompt.Parent then return false end
     if prompt.ActionText ~= "Pick Up" then return false end
@@ -42,11 +52,46 @@ local function tweenFov(toFov: number, duration: number, easing: Enum.EasingStyl
     tween:Play()
 end
 
+local function stopRiser(prompt: ProximityPrompt)
+    local riserId = (prompt:GetAttribute("RiserSoundId") :: string) or DEFAULT_RISER_ID
+    local stopped = 0
+    for _, child in ipairs(script:GetChildren()) do
+        if child:IsA("Sound") and child.SoundId == riserId then
+            stopped += 1
+            pcall(function() child:Stop() end)
+            child:Destroy()
+        end
+    end
+end
+
+local function handlePromptDisappeared(prompt: ProximityPrompt)
+    if activePrompt == prompt then
+        activePrompt = nil
+        cancelTween()
+        tweenFov(BASE_FOV, 0.2, Enum.EasingStyle.Linear)
+    end
+    stopRiser(prompt)
+    clearActivePromptConns()
+end
+
+local function attachActivePromptLifeline(prompt: ProximityPrompt)
+    clearActivePromptConns()
+    activePromptDestroyConn = prompt.Destroying:Connect(function()
+        handlePromptDisappeared(prompt)
+    end)
+    activePromptAncestryConn = prompt.AncestryChanged:Connect(function(_, parent)
+        if parent == nil then
+            handlePromptDisappeared(prompt)
+        end
+    end)
+end
+
 -- When the player begins holding a fish pickup prompt
 ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt: ProximityPrompt)
     if not isFishPrompt(prompt) then return end
     activePrompt = prompt
     startTime = Workspace:GetServerTimeNow()
+    attachActivePromptLifeline(prompt)
     local cam = Workspace.CurrentCamera
     if cam then
         -- Animate inward over the hold duration (fallback to 1.0 if zero)
@@ -71,13 +116,8 @@ ProximityPromptService.PromptButtonHoldEnded:Connect(function(prompt: ProximityP
     tweenFov(BASE_FOV, drainTime, Enum.EasingStyle.Linear)
 
     -- Stop riser audio immediately (find and stop looped sound started on hold-began)
-    local riserId = (prompt:GetAttribute("RiserSoundId") :: string) or DEFAULT_RISER_ID
-    for _, child in ipairs(script:GetChildren()) do
-        if child:IsA("Sound") and child.SoundId == riserId then
-            pcall(function() child:Stop() end)
-            child:Destroy()
-        end
-    end
+    stopRiser(prompt)
+    clearActivePromptConns()
 end)
 
 -- On successful trigger (fish claimed)
@@ -88,13 +128,21 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt,
     tweenFov(BASE_FOV, 0.5, Enum.EasingStyle.Sine)
 
     -- Stop riser so the success SFX can play cleanly
-    local riserId = (prompt:GetAttribute("RiserSoundId") :: string) or DEFAULT_RISER_ID
-    for _, child in ipairs(script:GetChildren()) do
-        if child:IsA("Sound") and child.SoundId == riserId then
-            pcall(function() child:Stop() end)
-            child:Destroy()
-        end
+    stopRiser(prompt)
+    clearActivePromptConns()
+end)
+
+
+-- Ensure cleanup if the prompt disappears (fish expired, moved out of range, destroyed, etc.)
+ProximityPromptService.PromptHidden:Connect(function(prompt: ProximityPrompt)
+    if not isFishPrompt(prompt) then return end
+    if activePrompt == prompt then
+        activePrompt = nil
+        cancelTween()
+        tweenFov(BASE_FOV, 0.2, Enum.EasingStyle.Linear)
     end
+    stopRiser(prompt)
+    clearActivePromptConns()
 end)
 
 
