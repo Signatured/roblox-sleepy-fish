@@ -42,7 +42,6 @@ if game:GetService("RunService"):IsServer() and game:GetService("RunService"):Is
 			assert(type(dir.Description) == "string")
 			assert(type(dir.ScoreGetter) == "function")
 			-- optional fields
-			assert(dir.ScoreType == nil or type(dir.ScoreType) == "string")
 			assert(dir.DisplayAmount == nil or type(dir.DisplayAmount) == "number")
 		end)
 		if not success then

@@ -145,11 +145,13 @@ local function updateLeaderboardDisplay(leaderboardPart: BasePart, data: {[numbe
 		local amountLabel = newEntry:FindFirstChild("Amount")
 		if amountLabel and amountLabel:IsA("TextLabel") then
 			local scoreText = Functions.NumberShorten(score)
-			if isTopThree and leaderboardSchema.ScoreType then
-				amountLabel.Text = scoreText .. " " .. (leaderboardSchema.ScoreType :: string)
-			else
-				amountLabel.Text = scoreText
-			end
+            if leaderboardSchema.IsDollar then
+                scoreText = "$" .. scoreText
+            end
+            if leaderboardSchema.IsTime then
+                scoreText = Functions.FormatTime(score)
+            end
+			amountLabel.Text = scoreText
 		end
 
 		if isTopThree then
@@ -171,7 +173,7 @@ local function updateLeaderboardDisplay(leaderboardPart: BasePart, data: {[numbe
 	
 	-- Update the canvas size to fit the newly rendered content.
 	task.delay(0.1, function()
-		Functions.UpdateCanvasSize(scrollingFrame)
+		-- Functions.UpdateCanvasSize(scrollingFrame)
 	end)
 end
 

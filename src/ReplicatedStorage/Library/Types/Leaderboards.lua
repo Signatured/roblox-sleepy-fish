@@ -8,8 +8,9 @@ export type raw_dir = {
 	DisplayName: string,
 	Description: string,
 	ScoreGetter: (player: Player) -> (number),
-	ScoreType: string?,
 	DisplayAmount: number?,
+    IsDollar: boolean?,
+    IsTime: boolean?,
 }
 
 export type dir_schema = raw_dir & DirectoryTypes.dir_schema

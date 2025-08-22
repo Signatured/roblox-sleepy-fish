@@ -4,7 +4,7 @@ return {
 	DisplayName = "Money Leaderboard",
 	Description = "Most money!",
 	DisplayAmount = 100,
-	ScoreType = "money",
+    IsDollar = true,
 	ScoreGetter = function(player: Player)
 		local ServerPlot = require(game.ServerScriptService.Plot.ServerPlot)
 		local plot = ServerPlot.GetByPlayer(player)
