@@ -8,7 +8,7 @@ return {
     Icon = "rbxassetid://138082211172333",
     Rarity = Rarity.Mythical,
     MoneyPerSecond = 200,
-    BaseUpgradeCost = 744750,
+    BaseUpgradeCost = 5100,
     BillboardOffset = 6,
     RarityWeight = 25,
     IndexRotationOffset = Vector3.new(0, math.rad(-70), 0),

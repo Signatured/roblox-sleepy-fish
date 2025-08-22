@@ -8,7 +8,7 @@ return {
     Icon = "rbxassetid://88458071940200",
     Rarity = Rarity.Rare,
     MoneyPerSecond = 28,
-    BaseUpgradeCost = 6000,
+    BaseUpgradeCost = 450,
     BillboardOffset = 7,
     RarityWeight = 10,
     IndexOffset = 3,

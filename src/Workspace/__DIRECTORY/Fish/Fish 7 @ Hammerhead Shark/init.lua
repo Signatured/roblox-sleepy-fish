@@ -8,7 +8,7 @@ return {
     Icon = "rbxassetid://89376900524787",
     Rarity = Rarity.Uncommon,
     MoneyPerSecond = 10,
-    BaseUpgradeCost = 540,
+    BaseUpgradeCost = 160,
     BillboardOffset = 7,
     RarityWeight = 20,
 }::FishTypes.raw_dir
