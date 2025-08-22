@@ -58,7 +58,7 @@ ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt: ProximityP
     -- Start riser audio locally (attach to this script so only the local client hears it)
     local riserId = (prompt:GetAttribute("RiserSoundId") :: string) or DEFAULT_RISER_ID
     local riserVol = (prompt:GetAttribute("RiserSoundVolume") :: number) or DEFAULT_RISER_VOL
-    Audio.Play(riserId, script, 1, riserVol, 100, true)
+    Audio.Play(riserId, script, 1, riserVol, 100, false)
 end)
 
 -- When the player cancels holding mid-way
