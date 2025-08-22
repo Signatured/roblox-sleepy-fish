@@ -8,6 +8,8 @@ local UserInputService = game:GetService("UserInputService")
 local FishCmds = require(game.ReplicatedStorage.Game.Library.Client.FishCmds)
 local GadgetCmds = require(game.ReplicatedStorage.Game.Library.Client.GadgetCmds)
 local Functions = require(game.ReplicatedStorage.Library.Functions)
+local Audio = require(game.ReplicatedStorage.Library.Audio)
+local Save = require(game.ReplicatedStorage.Library.Client.Save)
 
 local LOCAL_PLAYER = Players.LocalPlayer
 
@@ -36,14 +38,27 @@ local isSwimming = false
 local swim: BodyVelocity? = nil
 local nextSwimEnableAt = 0
 
+-- Returns true if the local player owns the "Double Money" gamepass according to their save
+local function ownsDoubleMoney(): boolean
+    local save = Save.Get()
+    if not save then
+        return false
+    end
+    local gp = save.Gamepasses
+    if not gp then
+        return false
+    end
+    return gp["Double Money"] == true
+end
+
 local function onCharacterAdded(character: Model)
     currentHumanoid = character:WaitForChild("Humanoid")::Humanoid
     currentHRP = character:WaitForChild("HumanoidRootPart")::BasePart
     isSwimming = false
-    if swim then swim:Destroy() swim = nil end
+    if swim then swim:Destroy(); swim = nil end
 end
 
-if LOCAL_PLAYER.Character then onCharacterAdded(LOCAL_PLAYER.Character) end
+if LOCAL_PLAYER.Character then onCharacterAdded(LOCAL_PLAYER.Character); end
 LOCAL_PLAYER.CharacterAdded:Connect(onCharacterAdded)
 
 local function setSwimmingEnabled(enabled: boolean)
@@ -65,7 +80,7 @@ RunService.RenderStepped:Connect(function()
     local inSwimUpArea = swimUpArea and Functions.IsPositionInPart(hrp.Position, swimUpArea)
 
     if isSwimming and (LOCAL_PLAYER:GetAttribute("Dead") or LOCAL_PLAYER:GetAttribute("Flying")) then
-        if swim then swim:Destroy() swim = nil end
+        if swim then swim:Destroy(); swim = nil end
         setSwimmingEnabled(false)
         nextSwimEnableAt = os.clock() + 0.2
         isSwimming = false
@@ -75,7 +90,7 @@ RunService.RenderStepped:Connect(function()
     -- Nothing to test against
     if #waterParts == 0 then
         if isSwimming then
-            if swim then swim:Destroy() swim = nil end
+            if swim then swim:Destroy(); swim = nil end
             setSwimmingEnabled(false)
             nextSwimEnableAt = os.clock() + 0.2
             isSwimming = false
@@ -110,10 +125,12 @@ RunService.RenderStepped:Connect(function()
             s.MaxForce = Vector3.new(1e9, 1e9, 1e9)
             s.Parent = hrp
             isSwimming = true
+            -- Play swim start SFX
+            Audio.Play("rbxassetid://95038957115197", hrp, nil, 0.2)
         end
     else
         if isSwimming then
-            if swim then swim:Destroy() swim = nil end
+            if swim then swim:Destroy(); swim = nil end
             setSwimmingEnabled(false)
             nextSwimEnableAt = os.clock() + 0.2
             isSwimming = false
@@ -129,7 +146,8 @@ RunService.RenderStepped:Connect(function()
         local currentGadget = GadgetCmds.GetCurrent()
         local gadgetMulti = currentGadget and currentGadget.SpeedMultiplier or 1
         local totalMulti = fishMulti * gadgetMulti
-        s.Velocity = ((humanoid.MoveDirection * defaultWalkspeed + Vector3.new(0, upBoost, 0)) * totalMulti) + Vector3.new(0, 0.25, 0) -- add 2 to Y to swim up by default
+        local ownsDoubleMoney = ownsDoubleMoney()
+        s.Velocity = ((humanoid.MoveDirection * (defaultWalkspeed + (ownsDoubleMoney and 3 or 0)) + Vector3.new(0, upBoost, 0)) * totalMulti) + Vector3.new(0, 0.25, 0) -- add 2 to Y to swim up by default
     end
 
     local camera = workspace.CurrentCamera
@@ -147,6 +165,7 @@ RunService.RenderStepped:Connect(function()
 
     local currentGadget = GadgetCmds.GetCurrent()
     local gadgetMulti = currentGadget and currentGadget.SpeedMultiplier or 1
+    local ownsDoubleMoney = ownsDoubleMoney()
 
-    humanoid.WalkSpeed = defaultWalkspeed * gadgetMulti
+    humanoid.WalkSpeed = (defaultWalkspeed * gadgetMulti) + (ownsDoubleMoney and 3 or 0)
 end)

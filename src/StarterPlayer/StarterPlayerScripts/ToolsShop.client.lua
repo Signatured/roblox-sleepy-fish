@@ -10,6 +10,8 @@ local Functions = require(ReplicatedStorage.Library.Functions)
 local Network = require(ReplicatedStorage.Library.Client.Network)
 local Signal = require(ReplicatedStorage.Library.Signal)
 local Save = require(ReplicatedStorage.Library.Client.Save)
+local NotificationCmds = require(ReplicatedStorage.Library.Client.NotificationCmds)
+local ClientPlot = require(ReplicatedStorage.Plot.ClientPlot)
 
 local function getContentContainer(): ScrollingFrame?
 	local toolsGui = GUI.Tools()
@@ -93,13 +95,14 @@ local function buildToolsList()
 
 		-- Button setup
 		local buttons = clone:FindFirstChild("Buttons")
-		local buyButton: GuiButton? = buttons and buttons:FindFirstChild("BuyButton") :: GuiButton?
+		local buyButton: ImageButton? = buttons and buttons:FindFirstChild("BuyButton") :: ImageButton?
 		if buyButton and buyButton:IsA("GuiButton") then
 			ButtonFX(buyButton)
 			local label = buyButton:FindFirstChild("TextLabel")
 			local owned = hasGadget(dir)
 			if label and label:IsA("TextLabel") then
 				label.Text = owned and "Sell" or "Buy"
+				buyButton.Image = owned and "rbxassetid://73232367551124" or "rbxassetid://85004105467436"
 			end
 
 			local busy = false
@@ -108,6 +111,19 @@ local function buildToolsList()
 				busy = true
 
 				local isOwned = hasGadget(dir)
+				if not isOwned then
+					local plot = ClientPlot.GetLocal()
+					local money = plot and plot:Save("Money") or 0
+					if typeof(money) ~= "number" then
+						money = 0
+					end
+					local cost = tonumber(dir.Cost) or 0
+					if (money :: number) < cost then
+						NotificationCmds.Message("You cannot afford this!", { Color = Color3.fromRGB(255, 80, 80)})
+						busy = false
+						return
+					end
+				end
 				local _ok, _
 				if isOwned then
 					_ok = pcall(function()

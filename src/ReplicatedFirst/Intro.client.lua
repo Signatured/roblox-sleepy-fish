@@ -213,6 +213,9 @@ end
 local success, err = pcall(function()
     if not _SKIP then
         main()
+    else
+        local player = Players.LocalPlayer
+        player:SetAttribute("LoadingScreenComplete", true)
     end
 end)
 if not success then

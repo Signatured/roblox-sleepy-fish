@@ -22,7 +22,7 @@ local CHASE_MUSIC_IDS = {
 	"rbxassetid://106684853320177"
 }
 local lastIndex: number? = nil
-local defaultVolume = 0.25
+local defaultVolume = 0.15
 
 local musicSound = Instance.new("Sound")
 musicSound.Name = "BackgroundMusic"
