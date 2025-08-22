@@ -7,6 +7,7 @@ local module = {}
 
 export type raw_dir = {
     DisplayName: string,
+    Icon: string,
     Rarity: RarityTypes.dir_schema,
     MoneyPerSecond: number,
     BaseUpgradeCost: number,

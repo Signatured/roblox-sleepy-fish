@@ -51,16 +51,44 @@ local function initServerLuckSync()
 end
 
 local function packRainbow(shopGui: ScreenGui)
-    local frame = shopGui:WaitForChild("Frame")
-    local mainFrame = frame:WaitForChild("MainFrame")
-    local content = mainFrame:WaitForChild("Content")
-    local scrollingFrame = content:WaitForChild("ScrollingFrame")
-    local starterPack = scrollingFrame:WaitForChild("StarterPack")
-    local expertPack = scrollingFrame:WaitForChild("ExpertPack")
+	local frame = shopGui:WaitForChild("Frame")
+	local mainFrame = frame:WaitForChild("MainFrame")
+	local content = mainFrame:WaitForChild("Content")
+	local scrollingFrame = content:WaitForChild("ScrollingFrame")
+	local starterPack = scrollingFrame:WaitForChild("StarterPack")
+	local expertPack = scrollingFrame:WaitForChild("ExpertPack")
 
-    print("FIRED")
-    Functions.GradientScroll(starterPack:WaitForChild("Background"):WaitForChild("RainbowGradientWrapped")::UIGradient, 3)
-    Functions.GradientScroll(expertPack:WaitForChild("Background"):WaitForChild("RainbowGradientWrapped")::UIGradient, 3)
+	local function refreshPackVisibility()
+		local ownsStarter = ProductCmds.Owns("Starter Pack")
+        local ownsExpert = ProductCmds.Owns("Expert Pack")
+
+        if ownsStarter and ownsExpert then
+            if starterPack and starterPack:IsA("Frame") then
+                starterPack.Visible = false
+            end
+            if expertPack and expertPack:IsA("Frame") then
+                expertPack.Visible = false
+            end
+            return
+        end
+
+		if starterPack and starterPack:IsA("Frame") then
+			starterPack.Visible = not ownsStarter
+		end
+		if expertPack and expertPack:IsA("Frame") then
+			expertPack.Visible = ownsStarter
+		end
+	end
+
+	refreshPackVisibility()
+	Save.Fired(function(key)
+		if key == "Products" then
+			refreshPackVisibility()
+		end
+	end)
+
+	Functions.GradientScroll(starterPack:WaitForChild("Background"):WaitForChild("RainbowGradientWrapped")::UIGradient, 3)
+	Functions.GradientScroll(expertPack:WaitForChild("Background"):WaitForChild("RainbowGradientWrapped")::UIGradient, 3)
 end
 
 local function doesOwnGamepass(gamepassId: number): boolean

@@ -5,6 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Sea Turtle",
+    Icon = "rbxassetid://103663110612958",
     Rarity = Rarity.Rare,
     MoneyPerSecond = 15,
     BaseUpgradeCost = 1410,

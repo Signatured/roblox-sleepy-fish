@@ -36,7 +36,7 @@ return {
 			FishId = "Giant Jellyfish",
 			Type = "Normal"
 		})
-		plot:AddMoney(100_000)
+		plot:AddMoney(50_000)
 		Gadgets.GiveAndInventory(player, "Speed Coil")
 
 		if data then

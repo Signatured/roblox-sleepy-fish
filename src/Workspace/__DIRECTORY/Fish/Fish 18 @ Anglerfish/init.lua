@@ -5,6 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Anglerfish",
+    Icon = "rbxassetid://73113353330459",
     Rarity = Rarity.Legendary,
     MoneyPerSecond = 85,
     BaseUpgradeCost = 108000,
