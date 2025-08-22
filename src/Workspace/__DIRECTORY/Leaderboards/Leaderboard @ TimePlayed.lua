@@ -8,6 +8,6 @@ return {
 	ScoreGetter = function(player: Player)
 		local Saving = require(game.ServerScriptService.Library.Saving)
 		local save = Saving.Get(player)
-		return save and save.Playtime or 0
+		return math.floor(save and save.Playtime or 0)
 	end,
 }

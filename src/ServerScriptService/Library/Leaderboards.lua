@@ -23,6 +23,9 @@ local leaderboardDataStores = {}
 -- {[leaderboardId]: LeaderboardData}
 local leaderboardCache: {[string]: LeaderboardData} = {}
 
+-- {[leaderboardId]: {[userId]: number}} last score we set for each player to avoid redundant writes
+local lastUserScores: {[string]: {[number]: number}} = {}
+
 local leaderboardsReady = false
 local pendingRequests: {{player: Player, leaderboardId: string}} = {}
 local readyEvent = Event.new()
@@ -49,14 +52,29 @@ function Leaderboards.UpdateUserScore(leaderboardId: string, player: Player)
 		return
 	end
 	
+	-- Skip update if the score hasn't changed since last SetAsync for this player/leaderboard
+	local perBoard = lastUserScores[leaderboardId]
+	local last = perBoard and perBoard[player.UserId]
+	if last ~= nil and last == score then
+		return
+	end
+	
 	local dataStore = getDataStore(leaderboardId)
-	local success, err = pcall(function()
+	local success2, err = pcall(function()
 		dataStore:SetAsync(tostring(player.UserId), score)
 	end)
 	
-	if not success then
+	if not success2 then
 		warn(`[Leaderboards] Failed to update score for {player.Name} on '{leaderboardId}': {err}`)
+		return
 	end
+	
+	-- Cache last written score
+	if not perBoard then
+		perBoard = {}
+		lastUserScores[leaderboardId] = perBoard
+	end
+	perBoard[player.UserId] = score
 end
 
 --// Fetches the top entries from a DataStore and updates the server-side cache.
@@ -145,8 +163,8 @@ local function runOnlinePlayerUpdateLoop()
 					Leaderboards.UpdateUserScore(id, player)
 				end
 			end
-			-- Wait 30 seconds before updating online players again.
-			task.wait(30)
+			-- Wait 120 seconds before updating online players again.
+			task.wait(120)
 		end
 	end)
 end

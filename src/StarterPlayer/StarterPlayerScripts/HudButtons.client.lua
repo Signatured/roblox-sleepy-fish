@@ -82,6 +82,7 @@ local function setup(plot: ClientPlot.Type)
 
 	local shopButton = sideLeft:FindFirstChild("ShopButton")
 	local indexButton = sideLeft:FindFirstChild("IndexButton")
+	local toolsButton = sideLeft:FindFirstChild("ToolsButton")
 
 	if shopButton and shopButton:IsA("GuiButton") then
 		ButtonFX(shopButton)
@@ -94,6 +95,18 @@ local function setup(plot: ClientPlot.Type)
 		ButtonFX(indexButton)
 		indexButton.Activated:Connect(function()
 			TabController.OpenTab("Index")
+		end)
+	end
+
+	if toolsButton and toolsButton:IsA("GuiButton") then
+		ButtonFX(toolsButton)
+		toolsButton.Activated:Connect(function()
+			local current = TabController.GetCurrentTab()
+			if current == "Tools" then
+				TabController.CloseTab()
+			else
+				TabController.OpenTab("Tools")
+			end
 		end)
 	end
 
