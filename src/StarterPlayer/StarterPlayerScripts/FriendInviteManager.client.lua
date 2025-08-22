@@ -23,7 +23,7 @@ local buttonConnections = {}
 
 -- Constants
 local BASE_INTERVAL = 60 * 15 -- 15 minutes
-local EXTENSION_INTERVAL = 30 -- 30 seconds
+local EXTENSION_INTERVAL = 60 -- 60 seconds
 
 -- Type Definition
 type FriendOnlineInfo = {
