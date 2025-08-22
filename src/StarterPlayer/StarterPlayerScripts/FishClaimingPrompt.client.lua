@@ -8,7 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Audio = require(ReplicatedStorage.Library.Audio)
 
 local BASE_FOV = 70
-local TARGET_FOV = 55
+local TARGET_FOV = 60
 
 local activePrompt: ProximityPrompt? = nil
 local holdTween: Tween? = nil
