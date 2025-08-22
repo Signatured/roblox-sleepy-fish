@@ -454,6 +454,10 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             pickupProximity = SetupProximity("Pickup", 1, Enum.KeyCode.F, pickupAttachment)
 
             assert(sellProximity).Triggered:Connect(function(player: Player)
+                local sellPrice = plot:GetSellPrice(pedestalId)
+                if not sellPrice then
+                    return
+                end
                 local success = plot:Invoke("SellFish", pedestalId)
                 if success then
                     local schema = Directory.Fish[fishData.FishId]
@@ -466,7 +470,8 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
 
                     local displayName = (schema and schema.DisplayName) or fishData.FishId
                     Audio.Play("rbxassetid://132697192191142", script, 1, 0.6)
-                    NotificationCmds.Message(`You sold a {displayName}!`, {
+                    local textAmount = sellPrice and `You sold a {displayName} for ${Functions.NumberShorten(sellPrice)}!` or `You sold a {displayName}!`
+                    NotificationCmds.Message(textAmount, {
                         Color = Color3.fromRGB(0, 255, 0),
                     })
                 else
