@@ -16,6 +16,8 @@ local _Signal: any = nil
 local MUSIC_IDS = {
     "rbxassetid://1841647093",
     "rbxassetid://1848354536",
+    "rbxassetid://1838457617",
+    "rbxassetid://106841913062814"
 }
 local CHASE_MUSIC_IDS = {
     "rbxassetid://1847683491",
