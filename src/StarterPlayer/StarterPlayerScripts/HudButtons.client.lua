@@ -9,6 +9,8 @@ local TabController = require(ReplicatedStorage.Library.Client.TabController)
 local Products = require(ReplicatedStorage.Game.Library.Directory.Products)
 local ClientPlot = require(ReplicatedStorage.Plot.ClientPlot)
 local Marketplace = require(ReplicatedStorage.Library.Marketplace)
+local Save = require(ReplicatedStorage.Library.Client.Save)
+local GameSettings = require(ReplicatedStorage.Game.Library.GameSettings)
 
 local player = game.Players.LocalPlayer
 
@@ -113,6 +115,37 @@ local function setup(plot: ClientPlot.Type)
 			end)
 		end
 		updateMultiText(paidIndex)
+	end
+
+	-- MoreSpaceButton setup
+	if sideRight and sideRight:IsA("Frame") then
+		local moreSpaceButton = sideRight:FindFirstChild("MoreSpaceButton")
+		if moreSpaceButton and moreSpaceButton:IsA("GuiButton") then
+			ButtonFX(moreSpaceButton)
+			moreSpaceButton.Activated:Connect(function()
+				local product = Products["More Space"]
+				if product then
+					Marketplace.Prompt(player, product.ProductId, true)
+				end
+			end)
+
+			-- visibility updater
+			task.spawn(function()
+				while sideRight and sideRight.Parent do
+					local invLimit = plot:Save("InventorySize")::number?
+					local save = Save.Get()
+					local inv = (save and save.Inventory) or {}
+					local isFull = (type(inv) == "table") and invLimit ~= nil and #inv >= (invLimit :: number)
+
+					if invLimit > GameSettings.MaxInventory then
+						isFull = false
+					end
+
+					moreSpaceButton.Visible = isFull == true
+					task.wait(0.5)
+				end
+			end)
+		end
 	end
 end
 
