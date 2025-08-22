@@ -46,7 +46,7 @@ local function sortFishByMps(): {FishTypes.dir_schema}
         table.insert(items, dir)
     end
     table.sort(items, function(a, b)
-        return (a.MoneyPerSecond or 0) > (b.MoneyPerSecond or 0)
+        return (a.MoneyPerSecond or 0) < (b.MoneyPerSecond or 0)
     end)
     return items
 end
@@ -117,7 +117,7 @@ local function realRender()
     local fishList = sortFishByMps()
     local counts = ExistCountCmds.GetAll() or {}
 
-    local function renderIntoViewport(view: ViewportFrame, modelTemplate: Model, dir: FishTypes.dir_schema)
+    local function renderIntoViewport(view: ViewportFrame, modelTemplate: Model, dir: FishTypes.dir_schema, hasSeen: boolean)
         -- Clear previous
         for _, c in ipairs(view:GetChildren()) do c:Destroy() end
         view.Ambient = Color3.fromRGB(200, 200, 200)
@@ -154,6 +154,14 @@ local function realRender()
         clone:SetAttribute("RollMaxDeg", 5)
         clone:SetAttribute("YawMaxDeg", 5)
         clone:AddTag("SwimmingFish")
+
+        if not hasSeen then
+            for _, inst in ipairs(clone:GetDescendants()) do
+                if inst:IsA("BasePart") then
+                    inst.Color = Color3.new(0, 0, 0)
+                end
+            end
+        end
     end
 
     for _, dir in ipairs(fishList) do
@@ -176,17 +184,45 @@ local function realRender()
         local hasSeen = countVal > 0
         if nameLabel and nameLabel:IsA("TextLabel") then
             nameLabel.Text = display
-            nameLabel.Visible = hasSeen
+            nameLabel.Visible = true
         end
         if existLabel and existLabel:IsA("TextLabel") then
-            existLabel.Text = string.format("%d Exist", countVal)
-            existLabel.Visible = hasSeen
+            if hasSeen then
+                existLabel.Text = string.format("%d Exist", countVal)
+            else
+                existLabel.Text = "???"
+                existLabel.TextColor3 = Color3.new(1, 1, 1)
+            end
+            existLabel.Visible = true
+        end
+        -- Set gradient color to rarity color
+        local bg = card:FindFirstChild("Background")
+        if bg and bg:IsA("ImageLabel") then
+            local grad = bg:FindFirstChild("UIGradient")
+            local rarityName = (dir.Rarity and dir.Rarity.DisplayName) or ""
+            if rarityName == "Mythical" then
+                if grad and grad:IsA("UIGradient") then
+                    grad:Destroy()
+                end
+                local templateFolder = ReplicatedStorage:FindFirstChild("Assets")
+                local gradientTemplate = templateFolder and templateFolder:FindFirstChild("RainbowGradientWrapped")
+                if gradientTemplate and gradientTemplate:IsA("UIGradient") then
+                    local rainbow = gradientTemplate:Clone()
+                    rainbow.Parent = bg
+                    Functions.GradientScroll(rainbow, 2.5)
+                end
+            else
+                if grad and grad:IsA("UIGradient") and dir.Rarity and typeof(dir.Rarity.Color) == "Color3" then
+                    local rc = dir.Rarity.Color
+                    grad.Color = ColorSequence.new(rc, rc)
+                end
+            end
         end
         -- Render the fish model into the viewport
         if viewport and viewport:IsA("ViewportFrame") then
             local modelTemplate = dir._script and dir._script:FindFirstChild("Model")
             if modelTemplate and modelTemplate:IsA("Model") then
-                renderIntoViewport(viewport, modelTemplate, dir)
+                renderIntoViewport(viewport, modelTemplate, dir, hasSeen)
             end
         end
         card.Parent = itemsFrame
