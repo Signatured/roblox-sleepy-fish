@@ -155,14 +155,3 @@ Signal.Fired("StatCacheUpdated"):Connect(function(key: string, value: any)
 		buildToolsList()
 	end
 end)
-
-	-- Preload all ImageLabels in the Tools GUI in the background
-task.spawn(function()
-	local toolsGui = GUI.Tools()
-	if not toolsGui then return end
-	for _, inst in ipairs(toolsGui:GetDescendants()) do
-		if inst:IsA("ImageLabel") then
-			game:GetService("ContentProvider"):PreloadAsync({inst})
-		end
-	end
-end)

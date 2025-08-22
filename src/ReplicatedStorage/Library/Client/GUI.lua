@@ -18,4 +18,18 @@ function module.Tutorial() return PlayerGui:WaitForChild("Tutorial", WAIT_TIME) 
 function module.FriendInvite() return PlayerGui:WaitForChild("FriendInvite", WAIT_TIME) end
 function module.Index() return PlayerGui:WaitForChild("Index", WAIT_TIME) end
 
+task.spawn(function()
+    local images = {}
+
+    for _, module in ipairs(module) do
+        for _, inst in ipairs(module:GetDescendants()) do
+            if inst:IsA("ImageLabel") then
+                table.insert(images, inst)
+            end
+        end
+    end
+
+    game:GetService("ContentProvider"):PreloadAsync(images)
+end)
+
 return module
