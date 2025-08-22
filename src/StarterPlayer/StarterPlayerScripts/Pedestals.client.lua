@@ -201,7 +201,7 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
     end
     level.Text = `Level {fishData.FishData.Level}`
     moneyPerSecond.Text = `${Functions.NumberShorten(math.ceil((plot:GetMoneyPerSecond(index) or 0) * fishMultiplier))}/s`
-    money.Text = `${Functions.NumberShorten(earnings)}`
+    money.Text = `${Functions.NumberShorten(earnings + offlineEarnings)}`
 
     if offlineEarnings > 0 then
         offlineFrame.Visible = true
