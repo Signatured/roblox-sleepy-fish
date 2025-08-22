@@ -198,12 +198,12 @@ local function beginChasing(rec: EnemyRecord, player: Player, fromAlert: boolean
     -- Set attribute "Alerted" for 3 seconds if not recently set
     local nowT = workspace:GetServerTimeNow()
     if not rec.AlertedExpireTime or nowT >= (rec.AlertedExpireTime :: number) then
-        local expiresAt = nowT + 3
+        local expiresAt = nowT + 2
         rec.AlertedExpireTime = expiresAt
         pcall(function()
             rec.Model:SetAttribute("Alerted", true)
         end)
-        task.delay(3, function()
+        task.delay(2, function()
             if rec and rec.Model and rec.AlertedExpireTime == expiresAt then
                 pcall(function()
                     rec.Model:SetAttribute("Alerted", nil)
