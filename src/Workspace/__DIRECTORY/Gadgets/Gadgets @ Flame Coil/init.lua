@@ -1,7 +1,7 @@
 --!strict
 
 return {
-	DisplayName = "Flaming Coil",
+	DisplayName = "Flame Coil",
 	Icon = "rbxassetid://75628681748781",
 	Description = "Swim 100% faster!",
 	Index = 6,

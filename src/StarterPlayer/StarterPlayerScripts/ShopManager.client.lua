@@ -29,6 +29,13 @@ local serverLuckMultiplier: number = 1
 local serverLuckTimeLeft: number = 0
 local serverLuckLastSync: number = 0
 
+-- Specialized: BestCoil purchase tile (Flame Coil)
+local bestCoilInitialized = false
+local bestCoilFrame: Frame?
+local _bestCoilButton: GuiButton?
+local FLAME_COIL_KEY = "Flame Coil"
+local flameCoilProductId: number?
+
 local function initServerLuckSync()
     task.spawn(function()
         local m, t = NetworkClient.Invoke("ServerLuck_Get")
@@ -244,6 +251,82 @@ local function setupIncreaseLuck(scrollingFrame: Instance)
     refresh()
 end
 
+--// Specialized setup for the BestCoil tile (Flame Coil product outside the scrolling list)
+local function setupBestCoil(shopGui: ScreenGui)
+    if bestCoilInitialized then return end
+    local frame = shopGui:FindFirstChild("Frame")
+    if not frame or not frame:IsA("Frame") then return end
+
+    local bc = frame:FindFirstChild("BestCoil")
+    if not bc or not bc:IsA("Frame") then return end
+
+    local coilImage = bc:FindFirstChild("CoilImage")
+    local imageButton = coilImage and coilImage:FindFirstChild("ImageButton")
+    if not (imageButton and imageButton:IsA("GuiButton")) then return end
+
+    bestCoilInitialized = true
+    bestCoilFrame = bc
+    _bestCoilButton = imageButton
+    flameCoilProductId = ProductCmds.GetProductId(FLAME_COIL_KEY)
+
+    ButtonFX(imageButton)
+
+    local priceLabel = bc:FindFirstChild("TextLabel")
+
+    local function updatePriceLabel()
+        if not (priceLabel and priceLabel:IsA("TextLabel")) then return end
+        if not flameCoilProductId then
+            priceLabel.Text = " ???"
+            return
+        end
+        priceLabel.Text = " ???"
+        task.spawn(function()
+            local success, info = pcall(MarketplaceService.GetProductInfo, MarketplaceService, flameCoilProductId :: number, Enum.InfoType.Product)
+            if success and info and priceLabel and priceLabel:IsA("TextLabel") then
+                priceLabel.Text = ` {info.PriceInRobux}`
+            end
+        end)
+    end
+
+    local function refresh()
+        local owned = ProductCmds.Owns(FLAME_COIL_KEY)
+        if bestCoilFrame and bestCoilFrame:IsA("Frame") then
+            bestCoilFrame.Visible = not owned
+        end
+        if not owned then
+            if not flameCoilProductId then
+                flameCoilProductId = ProductCmds.GetProductId(FLAME_COIL_KEY)
+            end
+            updatePriceLabel()
+        end
+    end
+
+    if buttonConnections[imageButton] then
+        buttonConnections[imageButton]:Disconnect()
+        buttonConnections[imageButton] = nil
+    end
+    buttonConnections[imageButton] = imageButton.Activated:Connect(function()
+        if not flameCoilProductId then
+            flameCoilProductId = ProductCmds.GetProductId(FLAME_COIL_KEY)
+        end
+
+        updatePriceLabel()
+        if flameCoilProductId then
+            Marketplace.Prompt(player, flameCoilProductId :: number, true)
+        end
+    end)
+
+    -- Ensure correct visibility on init
+    refresh()
+
+    -- Update when purchases land in save
+    Save.Fired(function(key)
+        if key == "Products" then
+            refresh()
+        end
+    end)
+end
+
 --// Main setup function for the entire shop
 local function setupShop()
 	if shopIsSetup then return end -- Prevent re-running setup
@@ -262,6 +345,7 @@ local function setupShop()
 	end
 
     setupIncreaseLuck(scrollingFrame)
+    setupBestCoil(shopGui)
 	
 	task.delay(0.1, function()
 		Functions.UpdateCanvasSize(scrollingFrame)
@@ -281,6 +365,7 @@ TabController.Opened:Connect(function(tabId)
 		if shopGui then
 			local scrollingFrame = shopGui.Frame.MainFrame.Content.ScrollingFrame
 			setupIncreaseLuck(scrollingFrame)
+			setupBestCoil(shopGui)
 		end
 	end
 end)
