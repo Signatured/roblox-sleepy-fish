@@ -36,7 +36,7 @@ type FriendOnlineInfo = {
 -- State
 local localPlayer = Players.LocalPlayer
 local friendInviteGui: ScreenGui
-local timer = 10 -- Start with a 60-second timer for the first prompt
+local timer = 120 -- Start with a 60-second timer for the first prompt
 
 local function canSendGameInvite(sendingPlayer, invitingUserId)
 	local success, canSend = pcall(function()
