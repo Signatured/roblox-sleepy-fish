@@ -548,7 +548,7 @@ RunService.Heartbeat:Connect(function()
                 local timer = frame and frame:FindFirstChild("Timer")
                 if timer and timer:IsA("TextLabel") then
                     local remaining = math.max(0, DESPAWN_SECONDS - (now - fish.SpawnTime))
-                    timer.Text = tostring(math.ceil(remaining)) .. "s"
+                    timer.Text = "⏰ " .. tostring(math.ceil(remaining)) .. "s"
                 end
             end
 
