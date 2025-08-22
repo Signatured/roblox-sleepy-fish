@@ -4,13 +4,14 @@
 	Manages the background music, respecting the player's in-game settings.
 ]]
 
-local _RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoundService = game:GetService("SoundService")
 local ContentProvider = game:GetService("ContentProvider")
+local RunService = game:GetService("RunService")
 
-local Save = require(ReplicatedStorage.Library.Client.Save)
-local Signal = require(ReplicatedStorage.Library.Signal)
+-- Save/Signal may not be available immediately in ReplicatedFirst
+local Save: any = nil
+local _Signal: any = nil
 
 local MUSIC_IDS = {
     "rbxassetid://1841647093",
@@ -74,10 +75,10 @@ local function setRandomTrack()
 end
 
 local function updateMusicState()
-	local saveData = Save.Get()
+	local saveData = (Save and Save.Get and Save.Get())
 	if not saveData or not saveData.Settings then return end
 
-	local musicEnabled = saveData.Settings.Music-- and not RunService:IsStudio()
+	local musicEnabled = saveData.Settings.Music
 	local soundEnabled = saveData.Settings.Sound
 
 	-- Always ensure a track is playing when not in chase; control audibility via the Music sound group volume
@@ -90,18 +91,10 @@ local function updateMusicState()
 	end
 
 	local musicGroup = SoundService:WaitForChild("Music")
-	if musicEnabled then
-		musicGroup.Volume = 1
-	else
-		musicGroup.Volume = 0
-	end
+	musicGroup.Volume = musicEnabled and 1 or 0
 
 	local soundGroup = SoundService:WaitForChild("Main")
-	if soundEnabled then
-		soundGroup.Volume = 1
-	else
-		soundGroup.Volume = 0
-	end
+	soundGroup.Volume = soundEnabled and 1 or 0
 end
 
 local function PlayChaseMusic(active: boolean)
@@ -146,10 +139,39 @@ local function PlayChaseMusic(active: boolean)
 end
 
 local function init()
-	Save.SaveAdded:Connect(updateMusicState)
-	Save.Fired(function(key: string, value: any)
-		if key == "Settings" then
-			updateMusicState()
+	-- Start playing by default before save/settings are available
+	if not musicSound.Playing then
+		setRandomTrack()
+		musicSound.Volume = defaultVolume
+		musicSound:Play()
+		local musicGroup = SoundService:WaitForChild("Music")
+		musicGroup.Volume = 1
+		local soundGroup = SoundService:WaitForChild("Main")
+		soundGroup.Volume = 1
+	end
+
+	-- When Library replicates, wire Save/Signal and listen for updates
+	task.spawn(function()
+		local lib = ReplicatedStorage:WaitForChild("Library")
+		local okSave, modSave = pcall(function() return require(lib.Client.Save) end)
+		if okSave then Save = modSave end
+		local okSignal, modSignal = pcall(function() return require(lib.Signal) end)
+		if okSignal then _Signal = modSignal end
+
+		if Save then
+			if Save.SaveAdded then
+				Save.SaveAdded:Connect(updateMusicState)
+			end
+			if Save.Fired then
+				Save.Fired(function(key: string, _value: any)
+					if key == "Settings" then
+						updateMusicState()
+					end
+				end)
+			end
+			if Save.Get() then
+				updateMusicState()
+			end
 		end
 	end)
 
@@ -160,13 +182,9 @@ local function init()
 		musicSound:Play()
 	end)
 
-	if Save.Get() then
-		updateMusicState()
-	end
-
 	-- Chase music toggle based on player carrying attribute, checked each render step
 	local lp = game.Players.LocalPlayer
-	_RunService.RenderStepped:Connect(function()
+	RunService.RenderStepped:Connect(function()
 		if not lp or not lp.Parent then return end
 		local carrying = lp:GetAttribute("CarryingFishId")
 		if carrying ~= nil then
@@ -181,9 +199,12 @@ local function init()
 	end)
 end
 
-Signal.Fired("ClientLoaded"):Connect(init) 
-
--- Optional: allow other scripts to toggle via Signal
-Signal.Fired("PlayChaseMusic"):Connect(function(active: boolean)
-    PlayChaseMusic(active)
+-- Try to use Signal if available; otherwise just run init
+local okSigLib, sigLib = pcall(function()
+	return ReplicatedStorage.Library and require(ReplicatedStorage.Library.Signal)
 end)
+if okSigLib and sigLib and sigLib.Fired then
+	sigLib.Fired("ClientLoaded"):Connect(init)
+else
+	init()
+end

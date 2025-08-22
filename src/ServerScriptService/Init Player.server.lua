@@ -15,6 +15,8 @@ end)
 Saving.SaveAdded:Connect(function(player)
     local save = Saving.Get(player)
     if save then
+        save.Settings.Music = true
+        
         if save.Joins == 1 then
             Network.Fire(player, "PromptFavorite", 1)
         end
