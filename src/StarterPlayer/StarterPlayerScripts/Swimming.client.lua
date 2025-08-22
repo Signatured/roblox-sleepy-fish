@@ -125,6 +125,8 @@ RunService.RenderStepped:Connect(function()
             s.MaxForce = Vector3.new(1e9, 1e9, 1e9)
             s.Parent = hrp
             isSwimming = true
+            -- Auto-equip the best coil gadget when entering water
+            GadgetCmds.EquipBestCoil()
             -- Play swim start SFX
             Audio.Play("rbxassetid://95038957115197", hrp, nil, 0.2)
         end

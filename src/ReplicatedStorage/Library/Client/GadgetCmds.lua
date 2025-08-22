@@ -51,7 +51,52 @@ function module.GetCurrent(): GadgetTypes.dir_schema?
     local dir = GadgetDirectory[tool.Name]
     return dir
 end
+-- Equips the best available coil gadget (highest SpeedMultiplier) if owned.
+function module.EquipBestCoil(): boolean
+    local player = Players.LocalPlayer
+    if not player then return false end
+
+    local character = player.Character
+    if not character then return false end
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return false end
+
+    local backpack = player:FindFirstChildOfClass("Backpack")
+
+    local bestTool: Tool? = nil
+    local bestSpeed = -math.huge
+
+    local function considerTool(tool: Tool)
+        local name = tool.Name
+        if not string.find(name, "Coil", 1, true) then return end
+        local dir = GadgetDirectory[name]
+        local speed = (dir and dir.SpeedMultiplier) or 0
+        if speed > bestSpeed then
+            bestSpeed = speed
+            bestTool = tool
+        end
+    end
+
+    for _, child in ipairs(character:GetChildren()) do
+        if child:IsA("Tool") then
+            considerTool(child)
+        end
+    end
+    if backpack then
+        for _, child in ipairs(backpack:GetChildren()) do
+            if child:IsA("Tool") then
+                considerTool(child)
+            end
+        end
+    end
+
+    if not bestTool then return false end
+
+    local ok = pcall(function()
+        humanoid:EquipTool(bestTool :: Tool)
+    end)
+    return ok
+end
 
 return module
-
 
