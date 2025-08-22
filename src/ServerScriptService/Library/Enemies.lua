@@ -48,8 +48,8 @@ local ATTACK_RANGE = 10
 local MOVE_SPEED = 20
 
 local ALERT_SOUNDS = {
-	"rbxassetid://107509119621196",
-	  "rbxassetid://139871930665325"
+	  { Id = "rbxassetid://139871930665325", Volume = .3 },
+	  { Id = "rbxassetid://107509119621196", Volume = .2 },
 }
 
 local enemies: { [string]: EnemyRecord } = {}
@@ -214,10 +214,19 @@ local function beginChasing(rec: EnemyRecord, player: Player, fromAlert: boolean
     rec.TargetAttachment = nil
 
 	task.spawn(function()
-		local id = ALERT_SOUNDS[math.random(1, #ALERT_SOUNDS)]
 		local pos = rec.Model:GetPivot()
+		-- Always play the primary chase sound (index 2)
+		local primary = ALERT_SOUNDS[2]
 		for _, player in ipairs(Players:GetPlayers()) do
-			Audio.Play(id, pos, nil, nil, 999999, false, nil, player)
+			Audio.Play(primary.Id, pos, nil, primary.Volume or 1, 999999, false, nil, player)
+		end
+		-- 30% chance to also play the alternate stinger (index 1)
+		if math.random() < 0.3 then
+			task.wait(0.5)
+			local alt = ALERT_SOUNDS[1]
+			for _, player in ipairs(Players:GetPlayers()) do
+				Audio.Play(alt.Id, pos, nil, alt.Volume or 1, 999999, false, nil, player)
+			end
 		end
 	end)
 end
