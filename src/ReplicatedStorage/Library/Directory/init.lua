@@ -7,6 +7,7 @@ export type schema = {
     Fish: typeof(require(script.Fish)),
     Enemy: typeof(require(script.Enemy)),
     Leaderboards: typeof(require(script.Leaderboards)),
+	Gadgets: typeof(require(script.Gadgets)),
 }
 
 local module: schema = {}::any

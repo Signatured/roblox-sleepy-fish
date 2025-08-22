@@ -426,3 +426,13 @@ Save.Fired(function(key)
 end) 
 
 task.spawn(setupShop)
+
+task.spawn(function()
+	local shopGui = GUI.Shop()
+	if not shopGui then return end
+	for _, inst in ipairs(shopGui:GetDescendants()) do
+		if inst:IsA("ImageLabel") then
+			game:GetService("ContentProvider"):PreloadAsync({inst})
+		end
+	end
+end)
