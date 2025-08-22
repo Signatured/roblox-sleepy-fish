@@ -41,7 +41,7 @@ local function setupSurfaceGui(gui: SurfaceGui)
     local mythicalTimer = mythical and mythical:FindFirstChild("TextLabel")
     assert(mythicalTimer)
 
-    Functions.GradientScroll(mythicalTimer:FindFirstChild("RainbowGradientWrapped")::UIGradient, 2.5)
+    Functions.GradientScroll(mythicalTimer:FindFirstChild("RainbowGradientWrapped")::UIGradient, 4)
 
     local conn
     conn = RunService.RenderStepped:Connect(function()
