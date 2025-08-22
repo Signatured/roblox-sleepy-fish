@@ -34,8 +34,6 @@ local function setupSurfaceGui(gui: SurfaceGui)
     local frame = gui:FindFirstChild("Frame")
     if not frame or not frame:IsA("Frame") then return function() end end
 
-    print(frame)
-
     local legendary = frame:FindFirstChild("Legendary")
     local mythical = frame:FindFirstChild("Mythical")
 

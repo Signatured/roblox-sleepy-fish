@@ -154,7 +154,9 @@ Network.Invoked("ExistCount_GetByIdAndType", function(_player: Player, fishId: s
 end)
 
 -- Periodic tasks: refresh cache from store and persist deltas
-refreshCacheFromStore()
+task.spawn(function()
+    refreshCacheFromStore()
+end)
 
 task.spawn(function()
     while true do
