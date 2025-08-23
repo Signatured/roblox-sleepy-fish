@@ -15,7 +15,7 @@ local Functions = require(ReplicatedStorage.Library.Functions)
 local ServerPlot = require(ServerScriptService.Plot.ServerPlot)
 
 -- Constants
-local REWARD_AMOUNT = 1000
+local REWARD_AMOUNT = 15_000
 
 -- {[InvitingUserId]: {InvitedUserId}}
 local pendingInvites: {[number]: {[number]: boolean}} = {}

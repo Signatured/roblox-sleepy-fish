@@ -141,7 +141,7 @@ local function showRandomFriendInvite()
 	if success then
 		(profileIcon :: ImageLabel).Image = thumb
 	end
-	(onlineLabel :: TextLabel).Text = `{randomFriend.DisplayName} is online! Invite for $1,000`
+	(onlineLabel :: TextLabel).Text = `{randomFriend.DisplayName} is online! Invite for $15,000`
 	if inviteLabel and inviteLabel:IsA("TextLabel") then
 		inviteLabel.Text = "Invite"
 	end
