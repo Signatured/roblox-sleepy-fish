@@ -125,9 +125,7 @@ local function onCharacterAdded(character: Model, player: Player)
 				if toolTemplate and toolTemplate:IsA("Tool") then
 					-- Check if the player already has this tool in their backpack or character by its unique name
 					if not backpack:FindFirstChild(gadgetName) and not character:FindFirstChild(gadgetName) then
-						local newTool = toolTemplate:Clone()
-						newTool.Name = gadgetName
-						newTool.Parent = backpack
+						Gadgets.Give(player, gadgetName)
 					end
 				end
 			end

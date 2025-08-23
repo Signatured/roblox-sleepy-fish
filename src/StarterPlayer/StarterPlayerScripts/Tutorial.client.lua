@@ -13,6 +13,7 @@ local Network = require(ReplicatedStorage.Library.Client.Network)
 local _PlotTypesDup = require(ReplicatedStorage.Game.Library.Types.Plots)
 local Audio = require(ReplicatedStorage.Library.Audio)
 local GameSettings = require(ReplicatedStorage.Game.Library.GameSettings)
+local GadgetDirectory = require(ReplicatedStorage.Game.Library.Directory.Gadgets)
 
 local DISABLE_IN_STUDIO = false
 
@@ -179,6 +180,8 @@ local function tutorialMain(initialState: string?)
     local trackedFish: Model? = nil
     local pedestalTargetId: number? = nil
     local _nextPedestalId: number? = nil
+    local buyToolLoopStarted = false
+    local buyToolCoilShown = false
 
     -- Tutorial GUI setup
     local tutorialGui = GUI.Tutorial()
@@ -267,7 +270,7 @@ local function tutorialMain(initialState: string?)
             elseif state == "PointToUpgradeButton" then
                 typeMessage("Upgrade your fish!")
             elseif state == "Complete" then
-                typeMessage("Catch more fish now!")
+                typeMessage("Buy more coils to get even faster!")
             end
             lastMessagedState = state
         end
@@ -426,7 +429,7 @@ local function tutorialMain(initialState: string?)
                     end
                 end
             end
-            -- Advance to complete when any fish is above level 1
+            -- Advance to next step when any fish is above level 1
             task.spawn(function()
                 while true do
                     task.wait(0.1)
@@ -436,25 +439,76 @@ local function tutorialMain(initialState: string?)
                             local fishData = data and data.FishData
                             local level = (type(fishData) == "table" and (fishData :: any).Level) or 1
                             if type(level) == "number" and level > 1 then
-                                state = "Complete"
+                                state = "BuyTool"
                                 return
                             end
                         end
                     end
                 end
             end)
+        elseif state == "BuyTool" then
+            -- On entering this state, destroy any existing beam and guide the player to buy a coil
+            if not buyToolLoopStarted then
+                buyToolLoopStarted = true
+                destroyBeam()
+                typeMessage("Catch more fish now!")
+                task.delay(3, function()
+                    typeMessage("Buy tools to be faster in the water!")
+                    task.delay(3, function()
+                        if state == "BuyTool" and not buyToolCoilShown then
+                            if messageLabel and messageLabel:IsA("TextLabel") then
+                                messageLabel.Text = ""
+                            end
+                        end
+                    end)
+                end)
+
+                local mini = GadgetDirectory["Mini Coil"]
+                local cost = (mini and mini.Cost) or 0
+                task.spawn(function()
+                    while state == "BuyTool" do
+                        task.wait(0.25)
+                        local plot = ClientPlot.GetLocal()
+                        if not plot then continue end
+                        local money = plot:Save("Money")
+                        local moneyNum = if type(money) == "number" then (money :: number) else 0
+                        if moneyNum >= cost then
+                            if not buyToolCoilShown then
+                                local plotModel = plot:WaitModel()
+                                local toolShop = plotModel and plotModel:FindFirstChild("ToolShop")
+                                if toolShop and toolShop:IsA("Model") then
+                                    local pp = toolShop.PrimaryPart or toolShop:FindFirstChildWhichIsA("BasePart")
+                                    if pp then
+                                        pointBeamToWorldPosition(pp.Position)
+                                    end
+                                end
+                                typeMessage("Buy a coil for more speed!")
+                                buyToolCoilShown = true
+                            end
+                        else
+                            if buyToolCoilShown then
+                                destroyBeam()
+                                if messageLabel and messageLabel:IsA("TextLabel") then
+                                    messageLabel.Text = ""
+                                end
+                                buyToolCoilShown = false
+                            end
+                        end
+                        local s = Save.Get()
+                        if s and s.Tools and s.Tools["Mini Coil"] == true then
+                            state = "Complete"
+                            return
+                        end
+                    end
+                end)
+            end
         elseif state == "Complete" then
             Network.Fire("SetFinishedTutorial")
             destroyBeam()
-            task.delay(3, function()
-                -- Show a final tip after the completion message sits for 3s
-                typeMessage("Buy tools to be faster in the water!")
-                task.delay(6, function()
-                    -- End tutorial and mark as finished
-                    if tutorialGui and tutorialGui:IsA("ScreenGui") then
-                        tutorialGui.Enabled = false
-                    end
-                end)
+            task.delay(4, function()
+                if tutorialGui and tutorialGui:IsA("ScreenGui") then
+                    tutorialGui.Enabled = false
+                end
             end)
             if beamUpdater then beamUpdater:Disconnect() end
         end
@@ -509,7 +563,23 @@ ClientPlot.OnLocalAndCreated(function(plot: ClientPlot.Type)
                 end
             end
         end
-        startState = if canAffordUpgrade then "PointToUpgradeButton" else "PointClaim"
+
+        -- If player already has a fish above level 1 and can afford Mini Coil and doesn't own it, start at BuyTool
+        local hasAboveLevelOne = false
+        for _, data in pairs(fishMap) do
+            local fishData = data and data.FishData
+            local level = (type(fishData) == "table" and (fishData :: any).Level) or 1
+            if type(level) == "number" and level > 1 then
+                hasAboveLevelOne = true
+                break
+            end
+        end
+        local ownsMini = (save.Tools and save.Tools["Mini Coil"] == true)
+        if hasAboveLevelOne and (not ownsMini) then
+            startState = "BuyTool"
+        else
+            startState = if canAffordUpgrade then "PointToUpgradeButton" else "PointClaim"
+        end
     end
 
     tutorialMain(startState)

@@ -87,14 +87,24 @@ local function setup(plot: ClientPlot.Type)
 	if shopButton and shopButton:IsA("GuiButton") then
 		ButtonFX(shopButton)
 		shopButton.Activated:Connect(function()
-			TabController.OpenTab("Shop")
+			local current = TabController.GetCurrentTab()
+			if current == "Shop" then
+				TabController.CloseTab()
+			else
+				TabController.OpenTab("Shop")
+			end
 		end)
 	end
 
 	if indexButton and indexButton:IsA("GuiButton") then
 		ButtonFX(indexButton)
 		indexButton.Activated:Connect(function()
-			TabController.OpenTab("Index")
+			local current = TabController.GetCurrentTab()
+			if current == "Index" then
+				TabController.CloseTab()
+			else
+				TabController.OpenTab("Index")
+			end
 		end)
 	end
 
