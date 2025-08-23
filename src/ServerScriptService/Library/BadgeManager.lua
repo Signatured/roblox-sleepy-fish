@@ -47,9 +47,11 @@ end
 function BadgeManager.GiveMoneyBadge(player: Player, money: number): boolean
     if money >= 1_000 then
         return BadgeManager.GiveBadgeByName(player, "First1k")
-    elseif money >= 100_000 then
+    end
+    if money >= 100_000 then
         return BadgeManager.GiveBadgeByName(player, "First100k")
-    elseif money >= 1_000_000 then
+    end
+    if money >= 1_000_000 then
         return BadgeManager.GiveBadgeByName(player, "First1m")
     end
 
