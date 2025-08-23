@@ -44,18 +44,16 @@ local function setHasBadge(userId: number, badgeId: number, value: boolean)
     hasBadgeCache[userId][badgeId] = value
 end
 
-function BadgeManager.GiveMoneyBadge(player: Player, money: number): boolean
-    if money >= 1_000 then
-        return BadgeManager.GiveBadgeByName(player, "First1k")
+function BadgeManager.GiveMoneyBadge(player: Player, money: number)
+    if money >= 1_000_000 then
+        BadgeManager.GiveBadgeByName(player, "First1m")
     end
     if money >= 100_000 then
-        return BadgeManager.GiveBadgeByName(player, "First100k")
+        BadgeManager.GiveBadgeByName(player, "First100k")
     end
-    if money >= 1_000_000 then
-        return BadgeManager.GiveBadgeByName(player, "First1m")
+    if money >= 1_000 then
+        BadgeManager.GiveBadgeByName(player, "First1k")
     end
-
-    return false
 end
 
 function BadgeManager.GiveBadgeByName(player: Player, badgeName: string): boolean
