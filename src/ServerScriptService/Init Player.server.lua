@@ -45,6 +45,9 @@ Saving.SaveAdded:Connect(function(player)
             local save = Saving.Get(player)
 
             if save then
+                if not save.Playtime then
+                    save.Playtime = 0
+                end
                 save.Playtime += 1
             end
 
