@@ -17,7 +17,8 @@ local preloadSounds = {
     "rbxassetid://123638861486059",
     "rbxassetid://94238694593476",
     "rbxassetid://95038957115197",
-    "rbxassetid://80839855586532"
+    "rbxassetid://80839855586532",
+    "rbxassetid://110426600162491"
 }
 
 Audio.PreloadSounds(preloadSounds)

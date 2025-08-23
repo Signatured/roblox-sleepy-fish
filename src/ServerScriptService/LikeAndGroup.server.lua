@@ -8,6 +8,8 @@ local Notifications = require(ServerScriptService.Library.Notifications)
 local Fish = require(ServerScriptService.Game.Library.Fish)
 local ExistCount = require(ServerScriptService.Game.Library.ExistCount)
 local Index = require(ServerScriptService.Game.Library.Index)
+local Player = require(game.ReplicatedStorage.Library.Player)
+local Audio = require(game.ReplicatedStorage.Library.Audio)
 
 local GROUP_ID = 535442508
 
@@ -42,6 +44,11 @@ Network.Fired("LikeAndGroup_Claim", function(player: Player)
     end
 
     Notifications.Message(player, "Thanks for playing! 💖")
+
+    local primary = Player.Optional.Position(player)
+    if primary then
+        Audio.Play("rbxassetid://110426600162491", primary)
+    end
 end)
 
 
