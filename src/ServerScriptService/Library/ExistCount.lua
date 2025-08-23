@@ -174,6 +174,14 @@ task.spawn(function()
     end
 end)
 
+-- On server shutdown, persist any remaining deltas once
+game:BindToClose(function()
+    -- best effort: write any outstanding deltas
+    pcall(function()
+        persistDeltas()
+    end)
+end)
+
 return ExistCount
 
 

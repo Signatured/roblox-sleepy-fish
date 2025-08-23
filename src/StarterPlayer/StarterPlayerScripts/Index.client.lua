@@ -10,6 +10,7 @@ local FishTypes = require(ReplicatedStorage.Game.Library.Types.Fish)
 local Save = require(ReplicatedStorage.Library.Client.Save)
 local Functions = require(ReplicatedStorage.Library.Functions)
 local ScreenResolution = require(ReplicatedStorage.Library.Client.ScreenResolution)
+local ExistCountCmds = require(ReplicatedStorage.Game.Library.Client.ExistCountCmds)
 
 local SELECTED_IMG = "rbxassetid://85004105467436"
 local UNSELECTED_IMG = "rbxassetid://72752195568291"
@@ -175,7 +176,8 @@ local function realRender()
             elseif currentCategory == "Shiny" then hasSeen = entry.Shiny == true
             elseif currentCategory == "Rainbow" then hasSeen = entry.Rainbow == true end
         end
-        local countVal = hasSeen and 1 or 0
+        local countVal = hasSeen and ExistCountCmds.GetByIdAndType(fishId, currentCategory) or 0
+        local countString = Functions.Commas(countVal)
 
         local card = template:Clone()
         card.Visible = true
@@ -188,7 +190,7 @@ local function realRender()
         end
         if existLabel and existLabel:IsA("TextLabel") then
             if hasSeen then
-                existLabel.Text = string.format("%d Exist", countVal)
+                existLabel.Text = `{countString} Exist`
             else
                 existLabel.Text = "???"
                 existLabel.TextColor3 = Color3.new(1, 1, 1)

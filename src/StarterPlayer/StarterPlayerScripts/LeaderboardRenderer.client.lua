@@ -181,7 +181,7 @@ local function updateLeaderboardDisplay(leaderboardPart: BasePart, data: {[numbe
 	
 	-- Update the canvas size to fit the newly rendered content.
 	task.delay(0.1, function()
-		-- Functions.UpdateCanvasSize(scrollingFrame)
+		Functions.UpdateCanvasSize(scrollingFrame)
 	end)
 end
 
