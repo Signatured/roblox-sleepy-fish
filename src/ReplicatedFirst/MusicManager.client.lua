@@ -29,7 +29,7 @@ local defaultVolume = 0.15
 
 local musicSound = Instance.new("Sound")
 musicSound.Name = "BackgroundMusic"
-musicSound.Looped = true
+musicSound.Looped = false
 musicSound.Volume = defaultVolume -- Default volume
 musicSound.Parent = SoundService
 musicSound.SoundGroup = SoundService:WaitForChild("Music")
@@ -201,8 +201,7 @@ local function init()
 	end)
 
 	musicSound.Ended:Connect(function()
-		-- If the sound is set to loop, Roblox will restart it automatically; we only change when stopped
-		if musicSound.Looped then return end
+		if isChaseActive then return end
 		setRandomTrack()
 		musicSound:Play()
 	end)
