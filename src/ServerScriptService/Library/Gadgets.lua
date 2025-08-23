@@ -126,8 +126,6 @@ function Gadgets.Give(player: Player, id: string | GadgetTypes.dir_schema)
 			BadgeManager.GiveBadgeByName(player, "NewCoil")
 		end
 	end)
-	
-	print(`[Gadgets] Gave '{schema.DisplayName}' to {player.Name}.`)
 end
 
 --// Takes a gadget from a player.

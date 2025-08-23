@@ -66,7 +66,15 @@ local function updateYourStats(leaderboardPart: BasePart, leaderboardId: string)
 		
 		local descLabel = holder:FindFirstChild("Desc")
 		if descLabel and descLabel:IsA("TextLabel") then
-			descLabel.Text = score and Functions.NumberShorten(score) or "???"
+            local dir = LeaderboardDirectory[leaderboardId]
+            local scoreText = "???"
+
+            if score and dir.IsTime then
+                scoreText = Functions.FormatTime(score)
+            elseif score and dir.IsDollar then
+                scoreText = "$" .. Functions.NumberShorten(score)
+            end
+			descLabel.Text = scoreText
 		end
 	end)
 end

@@ -12,6 +12,8 @@ local Library = ServerScriptService:WaitForChild("Library")
 local Network = require(Library.Network)
 local LeaderboardDirectory = require(game.ReplicatedStorage.Game.Library.Directory.Leaderboards)
 local Event = require(game.ReplicatedStorage.Library.Modules.Event)
+local Saving = require(game.ServerScriptService.Library.Saving)
+local ServerPlot = require(game.ServerScriptService.Plot.ServerPlot)
 
 type LeaderboardData = {[number]: number}
 
@@ -46,6 +48,12 @@ function Leaderboards.UpdateUserScore(leaderboardId: string, player: Player)
 	local schema = LeaderboardDirectory[leaderboardId]
 	if not schema then return end
 
+	-- Skip if player's save or plot isn't ready yet
+	local save = Saving.Get(player)
+	if not save then return end
+	local plot = ServerPlot.GetByPlayer(player)
+	if not plot then return end
+
 	local success, score = pcall(schema.ScoreGetter, player)
 	if not success or typeof(score) ~= "number" then
 		warn(`[Leaderboards] ScoreGetter for '{leaderboardId}' failed or returned non-number for {player.Name}: {tostring(score)}`)
@@ -61,6 +69,7 @@ function Leaderboards.UpdateUserScore(leaderboardId: string, player: Player)
 	
 	local dataStore = getDataStore(leaderboardId)
 	local success2, err = pcall(function()
+        print("Updating score for", player.Name, "on", leaderboardId, "to", score)
 		dataStore:SetAsync(tostring(player.UserId), score)
 	end)
 	
@@ -75,6 +84,15 @@ function Leaderboards.UpdateUserScore(leaderboardId: string, player: Player)
 		lastUserScores[leaderboardId] = perBoard
 	end
 	perBoard[player.UserId] = score
+
+	-- Update in-memory leaderboard cache and broadcast to all clients
+	local cache = leaderboardCache[leaderboardId]
+	if not cache then
+		cache = {}
+		leaderboardCache[leaderboardId] = cache
+	end
+	cache[player.UserId] = score
+	Network.FireAll("UpdateLeaderboard", leaderboardId, cache)
 end
 
 --// Fetches the top entries from a DataStore and updates the server-side cache.
@@ -164,14 +182,14 @@ local function runOnlinePlayerUpdateLoop()
 				end
 			end
 			-- Wait 120 seconds before updating online players again.
-			task.wait(120)
+			task.wait(30)
 		end
 	end)
 end
 
 -- HOOKS
 -- Update a player's score when they leave.
-Players.PlayerRemoving:Connect(function(player)
+Saving.SaveRemoving:Connect(function(player)
 	for id in pairs(LeaderboardDirectory) do
 		Leaderboards.UpdateUserScore(id, player)
 	end
@@ -199,6 +217,13 @@ readyEvent:Connect(function()
 	end
 	-- Clear the queue
 	pendingRequests = {}
+
+	-- Broadcast all current caches once ready so every client can render immediately
+	for id, cache in pairs(leaderboardCache) do
+		if cache then
+			Network.FireAll("UpdateLeaderboard", id, cache)
+		end
+	end
 end)
 
 -- When a client requests its personal rank, find it in the cache and return it.
