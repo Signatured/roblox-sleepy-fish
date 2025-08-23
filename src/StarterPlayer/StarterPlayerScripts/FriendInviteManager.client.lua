@@ -155,14 +155,12 @@ local function showRandomFriendInvite()
 	end
 	
 	buttonConnections[inviteButton] = (inviteButton :: GuiButton).Activated:Connect(function()
-		if not canSendGameInvite(localPlayer) then return end
-		local inviteSuccess, _ = pcall(SocialService.PromptGameInvite, SocialService, localPlayer)
-		if inviteSuccess then
-			closeGui()
-			Network.Fire("PlayerInvitedFriend", randomFriend.Id)
-		else
-			warn(`[FriendInvite] Failed to open invite UI for {randomFriend.DisplayName}.`)
-		end
+		pcall(function()
+			SocialService:PromptGameInvite(localPlayer)
+		end)
+		
+		closeGui()
+		Network.Fire("PlayerInvitedFriend", randomFriend.Id)
 	end)
 
 	if buttonConnections[closeButton] then

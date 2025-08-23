@@ -2,6 +2,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local MarketplaceService = game:GetService("MarketplaceService")
+local SocialService = game:GetService("SocialService")
 
 local GUI = require(ReplicatedStorage.Game.Library.Client.GUI)
 local ButtonFX = require(ReplicatedStorage.Library.Client.GUIFX.ButtonFX)
@@ -143,8 +144,8 @@ local function setup(plot: ClientPlot.Type)
 	-- Settings button in SideBottom
 	local sideBottom = mainGui:FindFirstChild("SideBottom")
 	if sideBottom and sideBottom:IsA("Frame") then
-		local inner = sideBottom:FindFirstChild("Frame")
-		local settingsButton = inner and inner:FindFirstChild("SettingsButton")
+		local settingsFrame = sideBottom:FindFirstChild("Settings")
+		local settingsButton = settingsFrame and settingsFrame:FindFirstChild("Button")
 		if settingsButton and settingsButton:IsA("GuiButton") then
 			ButtonFX(settingsButton)
 			settingsButton.Activated:Connect(function()
@@ -155,6 +156,17 @@ local function setup(plot: ClientPlot.Type)
 				else
 					TabController.OpenTab("Settings")
 				end
+			end)
+		end
+
+		local friendFrame = sideBottom:FindFirstChild("Friend")
+		local friendButton = friendFrame and friendFrame:FindFirstChild("Button")
+		if friendButton and settingsButton:IsA("GuiButton") then
+			ButtonFX(friendButton)
+			friendButton.Activated:Connect(function()
+				pcall(function()
+					SocialService:PromptGameInvite(player)
+				end)
 			end)
 		end
 	end
