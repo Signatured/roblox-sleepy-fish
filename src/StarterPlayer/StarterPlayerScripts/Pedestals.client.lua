@@ -536,7 +536,7 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             end)
         else
             stealProximity = SetupProximity("Steal", 3, Enum.KeyCode.E, sellAttachment)
-            boostProximity = SetupProximity("Boost", 1, Enum.KeyCode.F, pickupAttachment)
+            boostProximity = SetupProximity("Boost", 0, Enum.KeyCode.F, pickupAttachment)
 
             assert(stealProximity).Triggered:Connect(function(player: Player)
                 Network.Fire("Steal", plot:GetId(), pedestalId, fishData.UID)
