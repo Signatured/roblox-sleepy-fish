@@ -77,7 +77,7 @@ end
 function GiftCmds.GiveHand(targetPlayer: Player): boolean
     local holding, kind, data = isLocalHoldingSomething()
     if not holding or not kind then
-        NotificationCmds.Message("You need to be holding something to gift it!", { Color = Color3.fromRGB(255, 80, 80) })
+        NotificationCmds.Message("You need to be holding something to gift it!", { Color = Color3.fromRGB(255, 0, 0) })
         return false
     end
 
@@ -85,28 +85,28 @@ function GiftCmds.GiveHand(targetPlayer: Player): boolean
     if kind == "Fish" then
         local fishData = data
         if not fishData or not fishData.UID then
-            NotificationCmds.Message("Could not find your fish in hand.", { Color = Color3.fromRGB(255, 80, 80) })
+            NotificationCmds.Message("Could not find your fish in hand.", { Color = Color3.fromRGB(255, 0, 0) })
             return false
         end
         payload = { ItemType = "Fish", UID = fishData.UID }
     else
         local gadgetDir = data
         if not gadgetDir or not gadgetDir._id then
-            NotificationCmds.Message("Could not find your gadget in hand.", { Color = Color3.fromRGB(255, 80, 80) })
+            NotificationCmds.Message("Could not find your gadget in hand.", { Color = Color3.fromRGB(255, 0, 0) })
             return false
         end
         payload = { ItemType = "Gadget", GadgetId = gadgetDir._id }
     end
 
-    local ok, resultOrMsg = pcall(function()
+    local ok, successRes, messageRes = pcall(function()
         return Network.Invoke("GiftRequest", targetPlayer.UserId, payload)
     end)
     if not ok then
-        NotificationCmds.Message("Something went wrong.", { Color = Color3.fromRGB(255, 80, 80) })
+        NotificationCmds.Message("Something went wrong.", { Color = Color3.fromRGB(255, 0, 0) })
         return false
     end
-    if resultOrMsg ~= true then
-        NotificationCmds.Message(tostring(resultOrMsg), { Color = Color3.fromRGB(255, 80, 80) })
+    if successRes ~= true then
+        NotificationCmds.Message(tostring(messageRes or "Please try again later."), { Color = Color3.fromRGB(255, 0, 0) })
         return false
     end
     return true
@@ -157,7 +157,9 @@ end)
 -- Listen for simple gift result notifications
 Network.Fired("GiftResult", function(payload)
     if payload and payload.Message then
-        NotificationCmds.Message(tostring(payload.Message), { Color = Color3.fromRGB(140, 255, 140) })
+        local negative = (payload.Negative == true)
+        local color = negative and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(0, 255, 0)
+        NotificationCmds.Message(tostring(payload.Message), { Color = color })
     end
 end)
 

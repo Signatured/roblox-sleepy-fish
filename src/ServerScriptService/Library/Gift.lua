@@ -24,7 +24,10 @@ export type GiftRecord = {
 local GiftService = {}
 
 -- Active gifts keyed by recipient user id
-local activeByRecipient: {[number]: GiftRecord} = {}
+local activeByRecipient: {[number]: GiftRecord & { ExpiresAt: number }} = {}
+
+-- Cooldowns for denied gifts: fromUserId -> toUserId -> expireTime (os.clock())
+local denyCooldowns: {[number]: {[number]: number}} = {}
 
 local function findPlayerByUserId(userId: number): Player?
     for _, p in ipairs(Players:GetPlayers()) do
@@ -62,6 +65,15 @@ Network.Invoked("GiftRequest", function(player: Player, targetUserId: number, pa
         return false, "That player is already being gifted something. Try again later."
     end
 
+    -- Deny cooldown check
+    local now = os.clock()
+    local fromMap = denyCooldowns[player.UserId]
+    local cooldownUntil = fromMap and fromMap[targetUserId] or 0
+    if cooldownUntil and cooldownUntil > now then
+        local remaining = math.max(0, math.ceil(cooldownUntil - now))
+        return false, string.format("Please wait %ds before trying again!", remaining)
+    end
+
     local saveFrom = Saving.Get(player)
     local saveTo = Saving.Get(target)
     if not saveFrom or not saveTo then return false, "Players not ready" end
@@ -95,12 +107,13 @@ Network.Invoked("GiftRequest", function(player: Player, targetUserId: number, pa
         end
         if not fishData then return false, "Fish not found" end
 
-        activeByRecipient[targetUserId] = {
+        activeByRecipient[targetUserId] = ({
             FromUserId = player.UserId,
             ToUserId = targetUserId,
             ItemType = "Fish",
             FishData = fishData,
-        }
+            ExpiresAt = now + 60,
+        } :: any)
 
         Network.Fire(target, "GiftOffered", {
             FromUserId = player.UserId,
@@ -108,6 +121,23 @@ Network.Invoked("GiftRequest", function(player: Player, targetUserId: number, pa
             ItemType = "Fish",
             ItemText = string.format("%s (Lvl %s)", fishData.FishId, tostring(fishData.Level or 1)),
         })
+        -- inform gifter
+        Network.Fire(player, "GiftResult", { Status = "Sent", Message = "You sent " .. getDisplayName(targetUserId) .. " a gift!" })
+        -- schedule expiry
+        task.delay(60, function()
+            local rec = activeByRecipient[targetUserId]
+            if rec and rec.FromUserId == player.UserId and rec.ExpiresAt <= os.clock() then
+                local fromP = findPlayerByUserId(player.UserId)
+                local toP = findPlayerByUserId(targetUserId)
+                if fromP then
+                    Network.Fire(fromP, "GiftResult", { Status = "Expired", Message = "Your gift to " .. getDisplayName(targetUserId) .. " expired.", Negative = true })
+                end
+                if toP then
+                    Network.Fire(toP, "GiftResult", { Status = "Expired", Message = "The gift from " .. getDisplayName(player.UserId) .. " expired.", Negative = true })
+                end
+                activeByRecipient[targetUserId] = nil
+            end
+        end)
         return true
 
     else -- Gadget
@@ -120,13 +150,18 @@ Network.Invoked("GiftRequest", function(player: Player, targetUserId: number, pa
         if not (saveFrom.Tools and saveFrom.Tools[gadgetId]) then
             return false, "You no longer have that gadget"
         end
+        -- Recipient already owns gadget
+        if saveTo.Tools and saveTo.Tools[gadgetId] then
+            return false, getDisplayName(targetUserId) .. " already has that gadget!"
+        end
 
-        activeByRecipient[targetUserId] = {
+        activeByRecipient[targetUserId] = ({
             FromUserId = player.UserId,
             ToUserId = targetUserId,
             ItemType = "Gadget",
             GadgetId = gadgetId,
-        }
+            ExpiresAt = now + 60,
+        } :: any)
 
         Network.Fire(target, "GiftOffered", {
             FromUserId = player.UserId,
@@ -134,6 +169,23 @@ Network.Invoked("GiftRequest", function(player: Player, targetUserId: number, pa
             ItemType = "Gadget",
             ItemText = dir.DisplayName,
         })
+        -- inform gifter
+        Network.Fire(player, "GiftResult", { Status = "Sent", Message = "You sent " .. getDisplayName(targetUserId) .. " a gift!" })
+        -- schedule expiry
+        task.delay(60, function()
+            local rec = activeByRecipient[targetUserId]
+            if rec and rec.FromUserId == player.UserId and rec.ExpiresAt <= os.clock() then
+                local fromP = findPlayerByUserId(player.UserId)
+                local toP = findPlayerByUserId(targetUserId)
+                if fromP then
+                    Network.Fire(fromP, "GiftResult", { Status = "Expired", Message = "Your gift to " .. getDisplayName(targetUserId) .. " expired.", Negative = true })
+                end
+                if toP then
+                    Network.Fire(toP, "GiftResult", { Status = "Expired", Message = "The gift from " .. getDisplayName(player.UserId) .. " expired.", Negative = true })
+                end
+                activeByRecipient[targetUserId] = nil
+            end
+        end)
         return true
     end
 end)
@@ -144,8 +196,12 @@ Network.Invoked("GiftDecline", function(recipient: Player)
     if not gift then return false end
     local fromP = findPlayerByUserId(gift.FromUserId)
     if fromP then
-        Network.Fire(fromP, "GiftResult", { Status = "Declined", Message = getDisplayName(recipient.UserId) .. " declined your gift." })
+        Network.Fire(fromP, "GiftResult", { Status = "Declined", Message = getDisplayName(recipient.UserId) .. " declined your gift.", Negative = true })
     end
+    -- set deny cooldown
+    local map = denyCooldowns[gift.FromUserId]
+    if not map then map = {}; denyCooldowns[gift.FromUserId] = map end
+    map[gift.ToUserId] = os.clock() + 120
     activeByRecipient[recipient.UserId] = nil
     return true
 end)
@@ -156,7 +212,7 @@ Network.Invoked("GiftAccept", function(recipient: Player)
     if not gift then return false, "No active gift" end
     local gifter = findPlayerByUserId(gift.FromUserId)
     if not gifter then
-        Network.Fire(recipient, "GiftResult", { Status = "Missing", Message = getDisplayName(gift.FromUserId) .. " no longer has this item!" })
+        Network.Fire(recipient, "GiftResult", { Status = "Missing", Message = getDisplayName(gift.FromUserId) .. " no longer has this item!", Negative = true })
         activeByRecipient[recipient.UserId] = nil
         return false
     end
@@ -174,12 +230,12 @@ Network.Invoked("GiftAccept", function(recipient: Player)
             if entry and entry.UID == fishData.UID then stillHas = true; break end
         end
         if not stillHas then
-            Network.Fire(recipient, "GiftResult", { Status = "Missing", Message = getDisplayName(gift.FromUserId) .. " no longer has this item!" })
+            Network.Fire(recipient, "GiftResult", { Status = "Missing", Message = getDisplayName(gift.FromUserId) .. " no longer has this item!", Negative = true })
             activeByRecipient[recipient.UserId] = nil
             return false
         end
         if not canReceiveFish(recipient) then
-            Network.Fire(gifter, "GiftResult", { Status = "Full", Message = getDisplayName(recipient.UserId) .. "'s inventory is full." })
+            Network.Fire(gifter, "GiftResult", { Status = "Full", Message = getDisplayName(recipient.UserId) .. "'s inventory is full.", Negative = true })
             activeByRecipient[recipient.UserId] = nil
             return false
         end
@@ -195,7 +251,7 @@ Network.Invoked("GiftAccept", function(recipient: Player)
     else -- Gadget
         local gadgetId = gift.GadgetId :: string
         if not (saveFrom.Tools and saveFrom.Tools[gadgetId]) then
-            Network.Fire(recipient, "GiftResult", { Status = "Missing", Message = getDisplayName(gift.FromUserId) .. " no longer has this item!" })
+            Network.Fire(recipient, "GiftResult", { Status = "Missing", Message = getDisplayName(gift.FromUserId) .. " no longer has this item!", Negative = true })
             activeByRecipient[recipient.UserId] = nil
             return false
         end
@@ -220,7 +276,7 @@ Players.PlayerRemoving:Connect(function(player)
     if recGift then
         local g = findPlayerByUserId(recGift.FromUserId)
         if g then
-            Network.Fire(g, "GiftResult", { Status = "Cancelled", Message = getDisplayName(player.UserId) .. " left the game." })
+            Network.Fire(g, "GiftResult", { Status = "Cancelled", Message = getDisplayName(player.UserId) .. " left the game.", Negative = true })
         end
         activeByRecipient[player.UserId] = nil
     end
@@ -229,7 +285,7 @@ Players.PlayerRemoving:Connect(function(player)
         if record.FromUserId == player.UserId then
             local toP = findPlayerByUserId(toId)
             if toP then
-                Network.Fire(toP, "GiftResult", { Status = "Missing", Message = getDisplayName(player.UserId) .. " no longer has this item!" })
+                Network.Fire(toP, "GiftResult", { Status = "Missing", Message = getDisplayName(player.UserId) .. " no longer has this item!", Negative = true })
             end
             activeByRecipient[toId] = nil
         end
