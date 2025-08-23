@@ -17,6 +17,7 @@ function module.Settings() return PlayerGui:WaitForChild("Settings", WAIT_TIME) 
 function module.Tutorial() return PlayerGui:WaitForChild("Tutorial", WAIT_TIME) end
 function module.FriendInvite() return PlayerGui:WaitForChild("FriendInvite", WAIT_TIME) end
 function module.Index() return PlayerGui:WaitForChild("Index", WAIT_TIME) end
+function module.Gift() return PlayerGui:WaitForChild("Gift", WAIT_TIME) end
 
 task.spawn(function()
     local images = {}

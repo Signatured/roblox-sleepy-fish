@@ -36,11 +36,11 @@ type FriendOnlineInfo = {
 -- State
 local localPlayer = Players.LocalPlayer
 local friendInviteGui: ScreenGui
-local timer = 120 -- Start with a 60-second timer for the first prompt
+local timer = 60 -- Start with a 60-second timer for the first prompt
 
-local function canSendGameInvite(sendingPlayer, invitingUserId)
+local function canSendGameInvite(sendingPlayer)
 	local success, canSend = pcall(function()
-		return SocialService:CanSendGameInviteAsync(sendingPlayer, invitingUserId)
+		return SocialService:CanSendGameInviteAsync(sendingPlayer)
 	end)
 	return success and canSend
 end
@@ -102,11 +102,12 @@ local function showRandomFriendInvite()
 		return
 	end
 	
-	local randomFriend = onlineFriends[math.random(#onlineFriends)]
+	-- Only proceed if the platform reports the user can send invites right now
+	if not canSendGameInvite(localPlayer) then
+		return
+	end
 
-    if not canSendGameInvite(localPlayer, randomFriend.Id) then
-        return
-    end
+	local randomFriend = onlineFriends[math.random(#onlineFriends)]
 
 	-- Get the GUI components using new structure
 	friendInviteGui = GUI.FriendInvite()
@@ -154,15 +155,13 @@ local function showRandomFriendInvite()
 	end
 	
 	buttonConnections[inviteButton] = (inviteButton :: GuiButton).Activated:Connect(function()
-		local success, canInvite = pcall(SocialService.CanSendGameInviteAsync, SocialService, localPlayer, randomFriend.Id)
-		if success and canInvite then
-			local inviteSuccess, _ = pcall(SocialService.PromptGameInvite, SocialService, localPlayer)
-			if inviteSuccess then
-				closeGui()
-				Network.Fire("PlayerInvitedFriend", randomFriend.Id)
-			else
-				warn(`[FriendInvite] Failed to send game invite to {randomFriend.DisplayName}.`)
-			end
+		if not canSendGameInvite(localPlayer) then return end
+		local inviteSuccess, _ = pcall(SocialService.PromptGameInvite, SocialService, localPlayer)
+		if inviteSuccess then
+			closeGui()
+			Network.Fire("PlayerInvitedFriend", randomFriend.Id)
+		else
+			warn(`[FriendInvite] Failed to open invite UI for {randomFriend.DisplayName}.`)
 		end
 	end)
 
