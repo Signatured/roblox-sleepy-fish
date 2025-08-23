@@ -12,6 +12,7 @@ local ServerLuck = {}
 local currentMultiplier: number = 1
 local expiryTime: number? = nil -- server time when boost ends
 local timerRunning = false
+local recentActivators: {string} = {}
 
 local function getNow(): number
     return workspace:GetServerTimeNow()
@@ -53,8 +54,22 @@ function ServerLuck.GetTimeLeft(): number
     return getTimeLeftInternal()
 end
 
+local function pushActivator(player: Player?)
+    if not player then return end
+    local displayName = player.DisplayName or player.Name
+    -- Deduplicate while keeping newest at head
+    local newList: {string} = {}
+    table.insert(newList, displayName)
+    for _, name in ipairs(recentActivators) do
+        if name ~= displayName then table.insert(newList, name) end
+    end
+    while #newList > 2 do table.remove(newList) end
+    recentActivators = newList
+    Network.FireAll("ServerLuck_Activator", displayName)
+end
+
 -- Increases multiplier to 2x for 20 minutes. Cannot purchase if multiplier > 1x.
-function ServerLuck.Activate2xLuck(): boolean
+function ServerLuck.Activate2xLuck(player: Player?): boolean
     if currentMultiplier > 1 then
         return false
     end
@@ -62,11 +77,12 @@ function ServerLuck.Activate2xLuck(): boolean
     expiryTime = getNow() + (20 * 60)
     broadcast()
     startTimerIfNeeded()
+    pushActivator(player)
     return true
 end
 
 -- Sets multiplier to 4x and extends timer by 20 minutes. Only if current multiplier >= 2.
-function ServerLuck.Activate4xLuck(): boolean
+function ServerLuck.Activate4xLuck(player: Player?): boolean
     if currentMultiplier < 2 then
         return false
     end
@@ -79,12 +95,13 @@ function ServerLuck.Activate4xLuck(): boolean
     end
     broadcast()
     startTimerIfNeeded()
+    pushActivator(player)
     return true
 end
 
 -- Networking
 Network.Invoked("ServerLuck_Get", function(_player: Player)
-    return currentMultiplier, getTimeLeftInternal()
+    return currentMultiplier, getTimeLeftInternal(), recentActivators
 end)
 
 return ServerLuck

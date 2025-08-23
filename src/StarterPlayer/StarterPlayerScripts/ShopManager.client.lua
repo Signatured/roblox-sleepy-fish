@@ -187,9 +187,9 @@ local function setupIncreaseLuck(scrollingFrame: Instance)
     if not increaseFrame or not increaseFrame:IsA("Frame") then return end
 
     local luckMult = increaseFrame:FindFirstChild("LuckMult")
-    local isActive = increaseFrame:FindFirstChild("IsActive")
     local buttons = increaseFrame:FindFirstChild("Buttons")
     local buyButton = buttons and buttons:FindFirstChild("BuyButton")
+    local isActive = buyButton and buyButton:FindFirstChild("IsActive")
     local buyText = buyButton and buyButton:FindFirstChild("TextLabel")
     local clover = increaseFrame:WaitForChild("ToolImage"):WaitForChild("ImageLabel")::ImageLabel
 

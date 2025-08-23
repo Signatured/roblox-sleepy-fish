@@ -26,6 +26,7 @@ return {
 	end,
 	Callback = function(player: Player): (boolean, string?)
 		local ServerLuck = require(game.ServerScriptService.Game.Library.ServerLuck)
+		local Notifications = require(game.ServerScriptService.Library.Notifications)
 
 		local currentMultiplier = ServerLuck.GetServerLuck()
 
@@ -33,7 +34,12 @@ return {
 			return false, "You need to buy 2x server luck first!"
 		end
 
-		ServerLuck.Activate4xLuck()
+		ServerLuck.Activate4xLuck(player)
+
+		Notifications.MessageAll("4x Server Luck has been activated by " .. player.DisplayName .. "!", {
+			Color = Color3.fromRGB(0, 255, 255),
+			Duration = 10,
+		})
 
 		return true
 	end,

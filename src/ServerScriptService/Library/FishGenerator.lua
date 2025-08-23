@@ -23,6 +23,7 @@ local SharedGameSettings = require(ReplicatedStorage.Game.Library.GameSettings)
 local Saving = require(ServerScriptService.Library.Saving)
 local ExistCount = require(ServerScriptService.Game.Library.ExistCount)
 local Index = require(ServerScriptService.Game.Library.Index)
+local ServerLuck = require(ServerScriptService.Game.Library.ServerLuck)
 
 local THINGS = workspace:WaitForChild("__THINGS")
 local ROOT = THINGS:WaitForChild("SwimmingFish")
@@ -84,9 +85,25 @@ end
 
 local function chooseRarityId(): string
     local dir = Directory.Rarity
+    -- Apply luck multiplier to Epic/Legendary/Mythical weights
+    local luck = 1
+    local ok, mult = pcall(function()
+        return ServerLuck.GetServerLuck()
+    end)
+    if ok and typeof(mult) == "number" and mult > 1 then
+        luck = mult
+    end
+
+    local function weighted(rarityId: string, weight: number): number
+        if rarityId == "Epic" or rarityId == "Legendary" or rarityId == "Mythical" then
+            return weight * luck
+        end
+        return weight
+    end
+
     local total = 0
-    for _, r in pairs(dir) do
-        total += (r.RarityWeight or 0)
+    for id, r in pairs(dir) do
+        total += weighted(id, (r.RarityWeight or 0))
     end
     if total <= 0 then
         -- fallback: pick any
@@ -97,7 +114,7 @@ local function chooseRarityId(): string
     local roll = math.random() * total
     local acc = 0
     for id, r in pairs(dir) do
-        acc += (r.RarityWeight or 0)
+        acc += weighted(id, (r.RarityWeight or 0))
         if roll <= acc then return id end
     end
     local ids = {}
