@@ -5,6 +5,6 @@ return {
     Color = Color3.fromRGB(178, 12, 255),
     Priority = 1,
     RarityWeight = 5,
-    SpeedModifier = 0.8,
+    SpeedModifier = 0.75,
     AlertRange = 175,
 }
