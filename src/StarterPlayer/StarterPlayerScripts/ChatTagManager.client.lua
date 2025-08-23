@@ -10,8 +10,8 @@ local Players = game:GetService("Players")
 
 local Library = ReplicatedStorage:WaitForChild("Library")
 
-local ADMIN_PREFIX = "[🔧 ADMIN] "
-local PRIVILEGED_ROLES = { "Developer", "Admin", "Owner", "Tester" }
+local ADMIN_PREFIX = "[🔧 OWNER] "
+local PRIVILEGED_ROLES = { "Developer", "Admin", "Owner" }
 
 -- A list of vibrant colors for player names
 local NAME_COLORS = {
