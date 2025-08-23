@@ -378,7 +378,18 @@ local function spawnForcedByRarity(rarityId: string)
     makePrompt(fishInstance)
     -- Broadcast notification to all players about the forced spawn
     local displayName = schema.DisplayName or schema._id
-    Notifications.MessageAll(`A {displayName} has spawned!`)
+    local rarity = schema.Rarity
+
+    if rarity._id == "Mythical" then
+        Notifications.MessageAll(`A {displayName} has spawned!`, {
+            Rainbow = true,
+            Time = 8,
+        })
+    else
+        Notifications.MessageAll(`A {displayName} has spawned!`, {
+            Time = 8,
+        })
+    end
 end
 
 local function spawnOne(into: BasePart, backdate: number?)

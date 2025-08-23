@@ -38,7 +38,7 @@ return {
 
 		Notifications.MessageAll("4x Server Luck has been activated by " .. player.DisplayName .. "!", {
 			Color = Color3.fromRGB(0, 255, 255),
-			Duration = 10,
+			Time = 10,
 		})
 
 		return true

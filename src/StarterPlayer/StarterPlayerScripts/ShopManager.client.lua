@@ -57,6 +57,7 @@ local function packRainbow(shopGui: ScreenGui)
 	local scrollingFrame = content:WaitForChild("ScrollingFrame")
 	local starterPack = scrollingFrame:WaitForChild("StarterPack")
 	local expertPack = scrollingFrame:WaitForChild("ExpertPack")
+    local fishImage = expertPack:WaitForChild("FishImage")
 
 	local function refreshPackVisibility()
 		local ownsStarter = ProductCmds.Owns("Starter Pack")
@@ -89,6 +90,7 @@ local function packRainbow(shopGui: ScreenGui)
 
 	Functions.GradientScroll(starterPack:WaitForChild("Background"):WaitForChild("RainbowGradientWrapped")::UIGradient, 3)
 	Functions.GradientScroll(expertPack:WaitForChild("Background"):WaitForChild("RainbowGradientWrapped")::UIGradient, 3)
+    Functions.GradientScroll(fishImage:WaitForChild("Rarity"):WaitForChild("RainbowGradientWrapped")::UIGradient, 2)
 end
 
 local function doesOwnGamepass(gamepassId: number): boolean
