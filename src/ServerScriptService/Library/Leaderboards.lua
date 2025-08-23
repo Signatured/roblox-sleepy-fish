@@ -69,7 +69,6 @@ function Leaderboards.UpdateUserScore(leaderboardId: string, player: Player)
 	
 	local dataStore = getDataStore(leaderboardId)
 	local success2, err = pcall(function()
-        print("Updating score for", player.Name, "on", leaderboardId, "to", score)
 		dataStore:SetAsync(tostring(player.UserId), score)
 	end)
 	
