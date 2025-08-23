@@ -90,7 +90,6 @@ function Leaderboards.UpdateUserScore(leaderboardId: string, player: Player)
 		cache = {}
 		leaderboardCache[leaderboardId] = cache
 	end
-	cache[player.UserId] = score
 	Network.FireAll("UpdateLeaderboard", leaderboardId, cache)
 end
 

@@ -162,18 +162,16 @@ local function updateLeaderboardDisplay(leaderboardPart: BasePart, data: {[numbe
 			amountLabel.Text = scoreText
 		end
 
-		if isTopThree then
-			local playerImage = newEntry:FindFirstChild("Player")
-			if playerImage and playerImage:IsA("ImageLabel") then
-				playerImage.Image = ""
-				task.spawn(function()
-					local imageUrl = Functions.GetAvatarFromUserIdAsync(userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
-					if imageUrl and playerImage and playerImage.Parent then
-						playerImage.Image = imageUrl
-					end
-				end)
-			end
-		end
+		local playerImage = newEntry:FindFirstChild("Player")
+        if playerImage and playerImage:IsA("ImageLabel") then
+            playerImage.Image = ""
+            task.spawn(function()
+                local imageUrl = Functions.GetAvatarFromUserIdAsync(userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+                if imageUrl and playerImage and playerImage.Parent then
+                    playerImage.Image = imageUrl
+                end
+            end)
+        end
 		
 		newEntry.LayoutOrder = i
 		newEntry.Parent = scrollingFrame
