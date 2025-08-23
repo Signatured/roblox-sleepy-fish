@@ -12,6 +12,7 @@ local Signal = require(ReplicatedStorage.Library.Signal)
 local Save = require(ReplicatedStorage.Library.Client.Save)
 local NotificationCmds = require(ReplicatedStorage.Library.Client.NotificationCmds)
 local ClientPlot = require(ReplicatedStorage.Plot.ClientPlot)
+local Audio = require(ReplicatedStorage.Library.Audio)
 
 local function getContentContainer(): ScrollingFrame?
 	local toolsGui = GUI.Tools()
@@ -141,6 +142,7 @@ local function buildToolsList()
 					if _ok then
 						NotificationCmds.Message(`You bought a {dir.DisplayName}!`, { Color = Color3.fromRGB(0, 255, 0) })
 					end
+					Audio.Play("rbxassetid://80839855586532", script, nil, 1.5)
 				end
 
 				-- Re-evaluate ownership and update label

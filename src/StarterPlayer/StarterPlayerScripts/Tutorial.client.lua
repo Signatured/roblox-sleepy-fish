@@ -178,6 +178,7 @@ local function tutorialMain(initialState: string?)
 
     local state: string = initialState or "GoToWater"
     local trackedFish: Model? = nil
+    local lastNearestRescanAt: number = 0
     local pedestalTargetId: number? = nil
     local _nextPedestalId: number? = nil
     local buyToolLoopStarted = false
@@ -284,6 +285,16 @@ local function tutorialMain(initialState: string?)
         elseif state == "FindClownFish" then
             if not trackedFish or not trackedFish.Parent then
                 trackedFish = findNearestClownFish(playerPos)
+                lastNearestRescanAt = os.clock()
+            else
+                -- Rescan every 1s for a closer clown fish
+                if (os.clock() - lastNearestRescanAt) >= 1 then
+                    local candidate = findNearestClownFish(playerPos)
+                    if candidate then
+                        trackedFish = candidate
+                    end
+                    lastNearestRescanAt = os.clock()
+                end
             end
             if trackedFish then
                 local part = trackedFish.PrimaryPart or trackedFish:FindFirstChildWhichIsA("BasePart")

@@ -18,6 +18,12 @@ local playerFishTools: {[number]: {[string]: Tool}} = {}
 
 local function ensureBackpack(player: Player): Backpack?
     local backpack = player:FindFirstChildOfClass("Backpack")
+    if not backpack then
+        while player.Parent ~= nil and not backpack do
+            task.wait(0.1)
+            backpack = player:FindFirstChildOfClass("Backpack")
+        end
+    end
     return backpack
 end
 
@@ -229,9 +235,9 @@ local function onPlayerAdded(player: Player)
     end)
 end
 
-for _, player in ipairs(Players:GetPlayers()) do
-    onPlayerAdded(player)
-end
+-- for _, player in ipairs(Players:GetPlayers()) do
+--     onPlayerAdded(player)
+-- end
 Saving.SaveAdded:Connect(onPlayerAdded)
 
 Players.PlayerRemoving:Connect(function(player)
