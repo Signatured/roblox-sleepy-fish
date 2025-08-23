@@ -229,6 +229,43 @@ Network.Invoked("GetPlayerRank", function(player: Player, leaderboardId: string)
 	return Leaderboards.GetPlayerRank(leaderboardId, player)
 end)
 
+-- Quick utility: compute and print the average score for a leaderboard id
+function Leaderboards.PrintAverage(leaderboardId: string)
+	local dataStore = getDataStore(leaderboardId)
+	local total = 0
+	local count = 0
+	local PAGE_SIZE = 100
+	local ok, pages = pcall(function()
+		return dataStore:GetSortedAsync(false, PAGE_SIZE)
+	end)
+	if not ok then
+		warn("[Leaderboards] Failed to fetch entries for average")
+		return
+	end
+	while true do
+		local page = pages:GetCurrentPage()
+		for _, item in ipairs(page) do
+			local val = item.value
+			if typeof(val) == "number" then
+				total += val
+				count += 1
+			end
+		end
+		if pages.IsFinished then
+			break
+		end
+		local okNext, errNext = pcall(function()
+			pages:AdvanceToNextPageAsync()
+		end)
+		if not okNext then
+			warn("[Leaderboards] Failed to advance leaderboard pages:", errNext)
+			break
+		end
+	end
+	local avg = count > 0 and (total / count) or 0
+	print(`[Leaderboards] Average for '{leaderboardId}' over {count} entries: {avg}`)
+end
+
 runUpdateLoop()
 runOnlinePlayerUpdateLoop()
 
