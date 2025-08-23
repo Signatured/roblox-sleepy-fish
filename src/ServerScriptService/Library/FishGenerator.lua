@@ -381,12 +381,12 @@ local function spawnForcedByRarity(rarityId: string)
     local rarity = schema.Rarity
 
     if rarity._id == "Mythical" then
-        Notifications.MessageAll(`A {displayName} has spawned!`, {
+        Notifications.MessageAll(`A Mythical {displayName} has spawned!`, {
             Rainbow = true,
             Time = 8,
         })
     else
-        Notifications.MessageAll(`A {displayName} has spawned!`, {
+        Notifications.MessageAll(`A {rarity.DisplayName} {displayName} has spawned!`, {
             Time = 8,
         })
     end
