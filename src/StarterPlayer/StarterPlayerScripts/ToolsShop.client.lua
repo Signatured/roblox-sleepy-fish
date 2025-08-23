@@ -129,10 +129,18 @@ local function buildToolsList()
 					_ok = pcall(function()
 						return Network.Invoke("SellTool", dir._id)
 					end)
+
+					if _ok then
+						NotificationCmds.Message(`You sold a {dir.DisplayName}!`, { Color = Color3.fromRGB(0, 255, 0) })
+					end
 				else
 					_ok = pcall(function()
 						return Network.Invoke("BuyTool", dir._id)
 					end)
+					-- Notify on successful buy
+					if _ok then
+						NotificationCmds.Message(`You bought a {dir.DisplayName}!`, { Color = Color3.fromRGB(0, 255, 0) })
+					end
 				end
 
 				-- Re-evaluate ownership and update label

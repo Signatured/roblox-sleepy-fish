@@ -27,13 +27,50 @@ local function getGadgetSchema(id: string | GadgetTypes.dir_schema): GadgetTypes
 	return GadgetDirectory[id]
 end
 
+-- Find an existing Tool instance for this schema in the player's Character or Backpack
+local function findExistingToolInstance(player: Player, schema: GadgetTypes.dir_schema): Tool?
+	local name = schema._id
+	local character = player.Character
+	if character then
+		local toolInChar = character:FindFirstChild(name)
+		if toolInChar and toolInChar:IsA("Tool") then
+			return toolInChar
+		end
+	end
+	local backpack = player:FindFirstChildOfClass("Backpack")
+	if backpack then
+		local toolInBackpack = backpack:FindFirstChild(name)
+		if toolInBackpack and toolInBackpack:IsA("Tool") then
+			return toolInBackpack
+		end
+	end
+	return nil
+end
+
 --// Checks if a player currently has a specific gadget.
 function Gadgets.Has(player: Player, id: string | GadgetTypes.dir_schema): boolean
 	local schema = getGadgetSchema(id)
 	if not schema then return false end
 	
-	local userGadgets = playerGadgets[player.UserId]
-	return not not (userGadgets and userGadgets[schema._id])
+	-- Prefer authoritative check: actual instance in Character or Backpack
+	local existing = findExistingToolInstance(player, schema)
+	if existing then
+		-- ensure tracking is synced
+		local map = playerGadgets[player.UserId]
+		if not map then
+			playerGadgets[player.UserId] = {}
+			map = playerGadgets[player.UserId]
+		end
+		map[schema._id] = existing
+		return true
+	end
+	
+	-- Clean up stale tracking if it exists without a corresponding instance
+	local map = playerGadgets[player.UserId]
+	if map and map[schema._id] then
+		map[schema._id] = nil
+	end
+	return false
 end
 
 --// Gives a gadget to a player.
@@ -44,8 +81,15 @@ function Gadgets.Give(player: Player, id: string | GadgetTypes.dir_schema)
 		return
 	end
 	
-	if Gadgets.Has(player, schema) then
-		warn(`[Gadgets] Player {player.Name} already has gadget '{schema.DisplayName}'.`)
+	-- If they already have a live instance of the tool, just sync tracking and return
+	local existing = findExistingToolInstance(player, schema)
+	if existing then
+		local map = playerGadgets[player.UserId]
+		if not map then
+			playerGadgets[player.UserId] = {}
+			map = playerGadgets[player.UserId]
+		end
+		map[schema._id] = existing
 		return
 	end
 	
@@ -87,49 +131,76 @@ function Gadgets.Give(player: Player, id: string | GadgetTypes.dir_schema)
 end
 
 --// Takes a gadget from a player.
-function Gadgets.Take(player: Player, id: string | GadgetTypes.dir_schema)
+function Gadgets.Take(player: Player, id: string | GadgetTypes.dir_schema): boolean
 	local schema = getGadgetSchema(id)
 	if not schema then
 		warn(`[Gadgets] Attempted to take invalid gadget: {tostring(id)}`)
-		return
+		return false
 	end
 	
-	if not Gadgets.Has(player, schema) then return end
+	-- Ensure tracking reflects the actual current instance
+	local map = playerGadgets[player.UserId]
+	if not map then return false end
+	local toolInstance = map[schema._id]
 	
-	local userGadgets = playerGadgets[player.UserId]
-	local toolInstance = userGadgets[schema._id]
+	if not toolInstance then
+		-- Try to discover it live
+		local discovered = findExistingToolInstance(player, schema)
+		if discovered then
+			toolInstance = discovered :: Tool
+		end
+	end
 	
 	if toolInstance then
 		toolInstance:Destroy()
-		userGadgets[schema._id] = nil
+		map[schema._id] = nil
 		print(`[Gadgets] Took '{schema.DisplayName}' from {player.Name}.`)
+		return true
 	end
+	return false
 end
 
 --// This function is called when a player's character spawns.
 --// It gives them all the gadgets they are supposed to have.
 local function onCharacterAdded(character: Model, player: Player)
 	task.spawn(function()
-		local userGadgets = playerGadgets[player.UserId]
-		if not userGadgets then return end
-
-		-- Use a task.wait() to ensure the Backpack has been created.
+		-- Grant owned gadgets from save on spawn (ensure Backpack exists)
 		task.wait()
+		local save = Saving.Get(player)
+		-- Wait for backpack to exist; retry while player is still in game
 		local backpack = player:FindFirstChildOfClass("Backpack")
-		if not backpack then return end
-		
-		for gadgetName, _ in pairs(userGadgets) do
-			local schema = getGadgetSchema(gadgetName)
-			if schema then
-				local toolTemplate = schema._script:FindFirstChild("Tool")
-				if toolTemplate and toolTemplate:IsA("Tool") then
-					-- Check if the player already has this tool in their backpack or character by its unique name
-					if not backpack:FindFirstChild(gadgetName) and not character:FindFirstChild(gadgetName) then
-						Gadgets.Give(player, gadgetName)
-					end
+		while player.Parent ~= nil and not backpack do
+			task.wait(0.1)
+			backpack = player:FindFirstChildOfClass("Backpack")
+		end
+		if save and save.Tools then
+			for id, owned in pairs(save.Tools) do
+				if owned == true then
+					Gadgets.Give(player, id)
 				end
 			end
 		end
+
+		-- local userGadgets = playerGadgets[player.UserId]
+		-- if not userGadgets then return end
+
+		-- -- Use a task.wait() to ensure the Backpack has been created.
+		-- task.wait()
+		-- local backpack = player:FindFirstChildOfClass("Backpack")
+		-- if not backpack then return end
+		
+		-- for gadgetName, _ in pairs(userGadgets) do
+		-- 	local schema = getGadgetSchema(gadgetName)
+		-- 	if schema then
+		-- 		local toolTemplate = schema._script:FindFirstChild("Tool")
+		-- 		if toolTemplate and toolTemplate:IsA("Tool") then
+		-- 			-- Check if the player already has this tool in their backpack or character by its unique name
+		-- 			if not backpack:FindFirstChild(gadgetName) and not character:FindFirstChild(gadgetName) then
+		-- 				Gadgets.Give(player, gadgetName)
+		-- 			end
+		-- 		end
+		-- 	end
+		-- end
 	end)
 end
 
@@ -231,10 +302,26 @@ end
 
 --// This function is called when a player joins the game.
 local function onPlayerAdded(player: Player)
+	if not Saving.Get(player) then return end
+
 	-- Initialize the gadget table for the player
 	if not playerGadgets[player.UserId] then
 		playerGadgets[player.UserId] = {}
 	end
+
+	-- Grant owned gadgets from save on join
+	task.spawn(function()
+		-- Ensure a short delay for Backpack creation
+		task.wait()
+		local save = Saving.Get(player)
+		if save and save.Tools then
+			for id, owned in pairs(save.Tools) do
+				if owned == true then
+					Gadgets.Give(player, id)
+				end
+			end
+		end
+	end)
 
 	-- If the character already exists, grant the gadgets
 	if player.Character then
