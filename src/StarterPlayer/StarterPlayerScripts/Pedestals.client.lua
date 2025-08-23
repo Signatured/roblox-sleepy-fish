@@ -589,7 +589,17 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
         pedestalModels[plot][pedestalId] = nil
     end
 
+    -- If we have a tracked model, refresh billboard and sell prompt text
     if pedestalModels[plot][pedestalId] then
+        -- Update the sell proximity prompt's ActionText to reflect the latest price
+        local tracked = pedestalModels[plot][pedestalId]
+        if plot:IsLocal() and tracked.SellProximity then
+            local latestPrice = plot:GetSellPrice(pedestalId)
+            local latestText = latestPrice and `Sell: ${Functions.NumberShorten(latestPrice)}` or "Sell"
+            if tracked.SellProximity.ActionText ~= latestText then
+                tracked.SellProximity.ActionText = latestText
+            end
+        end
         UpdateBillboard(plot, pedestalId, pedestalModels[plot][pedestalId].Billboard)
     end
 end
