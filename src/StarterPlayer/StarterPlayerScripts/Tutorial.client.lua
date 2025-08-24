@@ -169,6 +169,7 @@ local function waitForGoToWater(): BasePart
     return inter:WaitForChild("GoToWater") :: BasePart
 end
 
+local loggedStages: {[string]: boolean} = {}
 local function tutorialMain(initialState: string?)
     if isStudio() and DISABLE_IN_STUDIO then return end
     local stats = getTutorialSave()
@@ -258,6 +259,11 @@ local function tutorialMain(initialState: string?)
 
         -- Only (re)type the message when the state changes
         if state ~= lastMessagedState then
+            if not loggedStages[state] then
+                loggedStages[state] = true
+                Network.Fire("TutorialStage", state)
+            end
+
             if state == "GoToWater" then
                 typeMessage("Go to the water!")
             elseif state == "FindClownFish" then

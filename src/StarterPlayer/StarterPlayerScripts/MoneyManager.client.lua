@@ -12,13 +12,13 @@ local ClientPlot = require(ReplicatedStorage.Plot.ClientPlot)
 
 -- UI Components
 local MainGui = GUI.Main()
-local CashLabel = MainGui.BottomLeft.Desc:WaitForChild("Cash")::TextLabel
+local CashLabel = MainGui:WaitForChild("BottomLeft"):WaitForChild("Desc"):WaitForChild("Cash")::TextLabel
 local uiScale = CashLabel:FindFirstChildOfClass("UIScale")::UIScale
 
 local currenyMoney = 0
 
 local function getUIScale(): UIScale?
-    local uiScale = MainGui.BottomLeft.Desc:FindFirstChild("Cash_odometerGUIFX"):FindFirstChildOfClass("UIScale")::UIScale
+    local uiScale = MainGui:WaitForChild("BottomLeft"):WaitForChild("Desc"):FindFirstChild("Cash_odometerGUIFX"):FindFirstChildOfClass("UIScale")::UIScale
     if uiScale then
         return uiScale
     end
