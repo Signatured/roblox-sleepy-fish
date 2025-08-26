@@ -1,0 +1,19 @@
+{
+  "properties": {
+    "Attributes": {
+      "BackgroundColor3": { "Color3": [0.0980392157, 0.1058823529, 0.1137254902] },
+      "BackgroundTransparency": { "Float64": 0.3 },
+      "CornerRadius": { "UDim": [0, 8] },
+
+      "EquipBorderColor3": { "Color3": [1, 1, 1] },
+      "EquipBorderSizePixel": { "Float64": 5 },
+      "InsetIconPadding": { "Bool": true },
+      "OutlineEquipBorder": { "Bool": true },
+
+      "TextColor3": { "Color3": [1, 1, 1] },
+      "TextSize": { "Float64": 16 },
+      "TextStrokeColor3": { "Color3": [0, 0, 0] },
+      "TextStrokeTransparency": { "Float64": 0.5 }
+    }
+  }
+}

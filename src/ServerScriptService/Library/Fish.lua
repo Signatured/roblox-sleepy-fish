@@ -228,10 +228,10 @@ local function onPlayerAdded(player: Player)
     playerFishTools[player.UserId] = playerFishTools[player.UserId] or {}
 
     if player.Character then
-        task.defer(populateToolsFromInventory, player)
+        task.delay(0.1, populateToolsFromInventory, player)
     end
     player.CharacterAdded:Connect(function()
-        task.defer(populateToolsFromInventory, player)
+        task.delay(0.1, populateToolsFromInventory, player)
     end)
 end
 
