@@ -3,5 +3,5 @@
 return {
 	DisplayName = "Test Enemy",
 	Location = 2,
-	FollowRange = 100,
+	FollowRange = 70,
 }

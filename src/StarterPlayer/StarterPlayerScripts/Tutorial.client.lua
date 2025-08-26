@@ -275,7 +275,9 @@ local function tutorialMain(initialState: string?)
             elseif state == "PointClaim" then
                 typeMessage("Claim money from your fish!")
             elseif state == "PointToUpgradeButton" then
-                typeMessage("Upgrade your fish!")
+                typeMessage("Upgrade your fish level!")
+            elseif state == "BuyTool" then
+                typeMessage("Catch more fish now!")
             elseif state == "Complete" then
                 typeMessage("Buy more coils to get even faster!")
             end
@@ -442,7 +444,7 @@ local function tutorialMain(initialState: string?)
                 if pedModel then
                     local nameplate = pedModel:FindFirstChild("Nameplate") :: BasePart
                     if nameplate then
-                        pointBeamToWorldPosition(nameplate.Position)
+                        pointBeamToWorldPosition(nameplate.Position - Vector3.new(0, 1, 0))
                     end
                 end
             end
@@ -468,7 +470,6 @@ local function tutorialMain(initialState: string?)
             if not buyToolLoopStarted then
                 buyToolLoopStarted = true
                 destroyBeam()
-                typeMessage("Catch more fish now!")
                 task.delay(3, function()
                     typeMessage("Buy tools to be faster in the water!")
                     task.delay(3, function()

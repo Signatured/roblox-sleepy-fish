@@ -13,7 +13,8 @@ local allowedStages = {
     ["FindEmptyPedestal"] = 4,
     ["PointClaim"] = 5,
     ["PointToUpgradeButton"] = 6,
-    ["Complete"] = 7,
+    ["BuyTool"] = 7,
+    ["Complete"] = 8,
 }
 
 local playerStages: {[Player]: {[string]: boolean}} = {}
@@ -41,7 +42,7 @@ Network.Fired("TutorialStage", function(player: Player, stage: string)
     AnalyticsService:LogOnboardingFunnelStepEvent(
         player,
         stepNum, -- Step number
-        stage -- Step name
+        "Tutorial_" .. stage -- Step name
     )
 end)
 

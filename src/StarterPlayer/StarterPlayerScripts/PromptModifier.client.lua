@@ -7,6 +7,12 @@ local Functions = require(game.ReplicatedStorage.Library.Functions)
 local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 local proximityPrompts = playerGui:WaitForChild("ProximityPrompts", 99999999)
 
+local whitelistedAddornees = {
+    ["SellAttachment"] = true,
+    ["PickupAttachment"] = true,
+    ["StealAttachment"] = true,
+}
+
 local prompts: { [BillboardGui]: boolean } = {}
 
 local function enforceTransparent(frame: Frame)
@@ -20,6 +26,11 @@ local function enforceTransparent(frame: Frame)
 end
 
 local function setupPrompt(prompt: BillboardGui)
+    local addornee = prompt.Adornee
+    if not addornee or not whitelistedAddornees[addornee.Name] then
+        return
+    end
+
     prompt.ChildRemoved:Connect(function(child)
         print(child.Name)
     end)
