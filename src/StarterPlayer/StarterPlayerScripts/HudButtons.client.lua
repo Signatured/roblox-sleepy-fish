@@ -74,8 +74,8 @@ local function hideMultiFrame()
 end
 
 local function updateMultiText(paidIndex: number)
-	local mainGui = GUI.Main()
-	local sideRight = mainGui:FindFirstChild("SideRight")
+	local mainRight = GUI.MainRight()
+	local sideRight = mainRight:FindFirstChild("SideRight")
 	if not sideRight then
 		warn("HudButtons: Could not find 'SideRight' in Main gui")
 	end
@@ -93,6 +93,7 @@ end
 local function setup(plot: ClientPlot.Type)
 	local paidIndex = plot:Save("PaidIndex")::number
 	local mainGui = GUI.Main()
+	local mainRight = GUI.MainRight()
 	local sideLeft = mainGui:FindFirstChild("SideLeft")
 	if not sideLeft then
 		warn("HudButtons: Could not find 'SideLeft' in Main gui")
@@ -139,7 +140,7 @@ local function setup(plot: ClientPlot.Type)
 		end)
 	end
 
-	local sideRight = mainGui:FindFirstChild("SideRight")
+	local sideRight = mainRight:FindFirstChild("SideRight")
 	if not sideRight then
 		warn("HudButtons: Could not find 'SideRight' in Main gui")
 	elseif paidIndex == 3 then

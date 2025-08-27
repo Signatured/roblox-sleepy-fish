@@ -8,6 +8,7 @@ local PlayerGui: typeof(game.StarterGui) = game.Players.LocalPlayer:WaitForChild
 local module = {}
 
 function module.Main() return PlayerGui:WaitForChild("Main", WAIT_TIME) end
+function module.MainRight() return PlayerGui:WaitForChild("MainRight", WAIT_TIME) end
 function module.Notifications() return PlayerGui:WaitForChild("Notifications", WAIT_TIME) end
 function module.Tools() return PlayerGui:WaitForChild("Tools", WAIT_TIME) end
 function module.Message() return PlayerGui:WaitForChild("Message", WAIT_TIME) end
