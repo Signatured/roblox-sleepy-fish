@@ -1,10 +1,10 @@
 --!strict
 
 return {
-	ProductId = 3379949669,
-	DisplayName = "Rainbow Coil",
-	Icon = "rbxassetid://113359210467566",
-	Description = "Gives a Rainbow Coil!",
+	ProductId = 3385884544,
+	DisplayName = "[OP] Make All Fish Sleep!",
+	Icon = "rbxassetid://109838009828589",
+	Description = "Make all fish sleep!",
 	OneTimePurchase = false,
 	ClientTest = function(player: Player)
 		local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
@@ -23,18 +23,15 @@ return {
 		return true
 	end,
 	Callback = function(player: Player): (boolean, string?)
-		local ServerPlot = require(game.ServerScriptService.Plot.ServerPlot)
-		local Gadgets = require(game.ServerScriptService.Game.Library.Gadgets)
+		local Notifications = require(game.ServerScriptService.Library.Notifications)
+		local Enemies = require(game.ServerScriptService.Game.Library.Enemies)
 
-		local plot = ServerPlot.GetByPlayer(player)
-		if not plot then
-			return false, "No plot found!"
-		end
+		Enemies.SleepAll(60)
 
-		local ok = Gadgets.GiveAndInventory(player, "Rainbow Coil")
-		if not ok then
-			return false, "Already owned or could not grant."
-		end
+		Notifications.MessageAll(`{player.DisplayName} made all fish sleep for 60 seconds!`, {
+			Rainbow = true,
+			Time = 8
+		})
 
 		return true
 	end,

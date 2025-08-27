@@ -1,10 +1,10 @@
 --!strict
 
 return {
-	ProductId = 3379949669,
-	DisplayName = "Rainbow Coil",
-	Icon = "rbxassetid://113359210467566",
-	Description = "Gives a Rainbow Coil!",
+	ProductId = 3385992733,
+	DisplayName = "Magic Carpet",
+	Icon = "rbxassetid://133946398396934",
+	Description = "Gives a Magic Carpet!",
 	OneTimePurchase = false,
 	ClientTest = function(player: Player)
 		local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
@@ -31,7 +31,7 @@ return {
 			return false, "No plot found!"
 		end
 
-		local ok = Gadgets.GiveAndInventory(player, "Rainbow Coil")
+		local ok = Gadgets.GiveAndInventory(player, "Magic Carpet")
 		if not ok then
 			return false, "Already owned or could not grant."
 		end

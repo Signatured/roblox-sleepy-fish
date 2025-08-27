@@ -54,7 +54,7 @@ local function buildToolsList()
 	-- Prepare a sorted list by Index
 	local items = {}
 	for id, dir in pairs(GadgetDirectory) do
-		if type(dir) == "table" and dir._id and dir.DisplayName then
+		if type(dir) == "table" and dir._id and dir.DisplayName and not dir.Exclusive and dir.Cost then
 			items[#items+1] = dir
 		end
 	end
@@ -80,7 +80,7 @@ local function buildToolsList()
 		end
 		local price = clone:FindFirstChild("Price")
 		if price and price:IsA("TextLabel") then
-			price.Text = `${Functions.NumberShorten(dir.Cost)}`
+			price.Text = `${Functions.NumberShorten(dir.Cost or 0)}`
 		end
 		local description = clone:FindFirstChild("Description")
 		if description and description:IsA("TextLabel") then

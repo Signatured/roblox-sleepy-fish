@@ -42,8 +42,8 @@ if game:GetService("RunService"):IsServer() and game:GetService("RunService"):Is
 			assert(type(dir.DisplayName) == "string")
 			assert(type(dir.Icon) == "string")
 			assert(type(dir.Description) == "string")
-			assert(type(dir.Index) == "number")
-			assert(type(dir.Cost) == "number")
+			assert(not dir.Index or type(dir.Index) == "number")
+			assert(not dir.Cost or type(dir.Cost) == "number")
 			assert(dir.Gradient == nil or type(dir.Gradient) == "string")
 		end)
 		if not success then

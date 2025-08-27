@@ -238,6 +238,10 @@ function Gadgets.Buy(player: Player, id: string | GadgetTypes.dir_schema): boole
         return false
     end
 
+	if schema.Exclusive then
+		return false
+	end
+
     local save = Saving.Get(player)
     if not save then return false end
 

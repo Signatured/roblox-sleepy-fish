@@ -6,14 +6,22 @@ local SocialService = game:GetService("SocialService")
 
 local GUI = require(ReplicatedStorage.Game.Library.Client.GUI)
 local ButtonFX = require(ReplicatedStorage.Library.Client.GUIFX.ButtonFX)
+local ScaleComposer = require(ReplicatedStorage.Library.Client.GUIFX.ScaleComposer)
 local TabController = require(ReplicatedStorage.Library.Client.TabController)
 local Products = require(ReplicatedStorage.Game.Library.Directory.Products)
 local ClientPlot = require(ReplicatedStorage.Plot.ClientPlot)
 local Marketplace = require(ReplicatedStorage.Library.Marketplace)
-local Save = require(ReplicatedStorage.Library.Client.Save)
-local GameSettings = require(ReplicatedStorage.Game.Library.GameSettings)
+local GetRobuxPrice = require(ReplicatedStorage.Library.Functions.GetRobuxPrice)
+local _Save = require(ReplicatedStorage.Library.Client.Save)
+local _GameSettings = require(ReplicatedStorage.Game.Library.GameSettings)
 
 local player = game.Players.LocalPlayer
+
+-- Products to display in the rotating showcase (in order)
+local ROTATING_PRODUCT_NAMES = {
+	"Magic Carpet",
+	"Rainbow Coil",
+}
 
 local function getMultiProuct(): Products.dir_schema?
 	local plot = ClientPlot.GetLocal()
@@ -173,6 +181,22 @@ local function setup(plot: ClientPlot.Type)
 
 	-- MoreSpaceButton setup
 	if sideRight and sideRight:IsA("Frame") then
+		-- SleepPurchase button at Main/SideRight/SleepPurchase/Frame/ImageButton
+		local sleepPurchase = sideRight:FindFirstChild("SleepPurchase")
+		if sleepPurchase and sleepPurchase:IsA("Frame") then
+			local purchaseFrame = sleepPurchase:FindFirstChild("Frame")
+			local imageButton = purchaseFrame and purchaseFrame:FindFirstChild("ImageButton")
+			if imageButton and imageButton:IsA("GuiButton") then
+				ButtonFX(imageButton)
+				imageButton.Activated:Connect(function()
+					local product = Products["Sleep Fish"]
+					if product then
+						Marketplace.Prompt(player, product.ProductId, true)
+					end
+				end)
+			end
+		end
+
 		local moreSpaceButton = sideRight:FindFirstChild("MoreSpaceButton")
 		if moreSpaceButton and moreSpaceButton:IsA("GuiButton") then
 			ButtonFX(moreSpaceButton)
@@ -184,21 +208,110 @@ local function setup(plot: ClientPlot.Type)
 			end)
 
 			-- visibility updater
-			task.spawn(function()
-				while sideRight and sideRight.Parent do
-					local invLimit = plot:Save("InventorySize")::number?
-					local save = Save.Get()
-					local inv = (save and save.Inventory) or {}
-					local isFull = (type(inv) == "table") and invLimit ~= nil and #inv >= (invLimit :: number)
+			-- task.spawn(function()
+			-- 	while sideRight and sideRight.Parent do
+			-- 		local invLimit = plot:Save("InventorySize")::number?
+			-- 		local save = Save.Get()
+			-- 		local inv = (save and save.Inventory) or {}
+			-- 		local isFull = (type(inv) == "table") and invLimit ~= nil and #inv >= (invLimit :: number)
 
-					if invLimit > GameSettings.MaxInventory then
-						isFull = false
+			-- 		if invLimit > GameSettings.MaxInventory then
+			-- 			isFull = false
+			-- 		end
+
+			-- 		moreSpaceButton.Visible = isFull == true
+			-- 		task.wait(0.5)
+			-- 	end
+			-- end)
+		end
+
+		-- RotatingProducts setup
+		local rotatingProducts = sideRight:FindFirstChild("RotatingProducts")
+		if rotatingProducts and rotatingProducts:IsA("Frame") then
+			local title = rotatingProducts:FindFirstChild("Title")
+			local priceLabel = rotatingProducts:FindFirstChild("Price")
+			local frame = rotatingProducts:FindFirstChild("Frame")
+			local imageButton = frame and frame:FindFirstChild("ImageButton")
+			if imageButton and imageButton:IsA("ImageButton") then
+				-- Button feedback for rotating product button
+				ButtonFX(imageButton)
+				-- Build a validated list of product keys to rotate through
+				local rotationKeys = {}
+				for _, name in ipairs(ROTATING_PRODUCT_NAMES) do
+					if Products[name] then
+						table.insert(rotationKeys, name)
+					else
+						warn("HudButtons: Rotating product not found in Products: " .. tostring(name))
+					end
+				end
+				if #rotationKeys == 0 then
+					warn("HudButtons: No valid rotating products configured.")
+					return
+				end
+
+				local composer = ScaleComposer.Get(imageButton)
+				composer:SetFactor("RotationSwap", 1)
+
+				local idx = 1
+				local function applyProduct()
+					if idx < 1 or idx > #rotationKeys then idx = 1 end
+					local name = rotationKeys[idx]
+					local product = Products[name]
+					if not product then
+						return
 					end
 
-					moreSpaceButton.Visible = isFull == true
-					task.wait(0.5)
+					-- Update title
+					if title and title:IsA("TextLabel") then
+						title.Text = product.DisplayName or name
+					end
+
+					-- Update price
+					if priceLabel and priceLabel:IsA("TextLabel") then
+						local price = GetRobuxPrice(product.ProductId, true)
+						if price then
+							priceLabel.Text = `{price}`
+						else
+							priceLabel.Text = "???"
+						end
+					end
+
+					-- Update image
+					imageButton.Image = product.Icon or imageButton.Image
 				end
-			end)
+
+				local function swapToNext()
+					idx += 1
+					if idx > #rotationKeys then idx = 1 end
+					-- Shrink almost to zero, swap, then grow back with Back easing
+					composer:SetFactor("RotationSwap", 1e-4)
+					applyProduct()
+					local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+					composer:TweenFactor("RotationSwap", 1, tweenInfo)
+				end
+
+				-- Initialize with first product
+				applyProduct()
+				-- Ensure scale is normal at start
+				composer:SetFactor("RotationSwap", 1)
+
+				-- Cycle every 20 seconds
+				task.spawn(function()
+					while rotatingProducts and rotatingProducts.Parent do
+						task.wait(20)
+						swapToNext()
+					end
+				end)
+
+				-- Button behavior: purchase on click
+				imageButton.Activated:Connect(function()
+					local name = rotationKeys[idx]
+					local product = Products[name]
+					if product then
+						Marketplace.Prompt(player, product.ProductId, true)
+					end
+				end)
+			end
 		end
 	end
 end

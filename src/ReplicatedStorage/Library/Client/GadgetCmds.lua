@@ -38,6 +38,28 @@ function module.Has(id: string | GadgetTypes.dir_schema): boolean
 	return false
 end
 
+-- Unequips the Magic Carpet gadget if it is currently equipped. Returns true if unequipped.
+function module.UnequipMagicCarpet(): boolean
+	local player = Players.LocalPlayer
+	if not player then return false end
+
+	local character = player.Character
+	if not character then return false end
+
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid then return false end
+
+	local currentTool = character:FindFirstChildOfClass("Tool")
+	if currentTool and currentTool.Name == "Magic Carpet" then
+		local ok = pcall(function()
+			humanoid:UnequipTools()
+		end)
+		return ok
+	end
+
+	return false
+end
+
 -- Returns the directory schema of the currently equipped gadget (if any), otherwise nil
 function module.GetCurrent(): GadgetTypes.dir_schema?
     local player = Players.LocalPlayer

@@ -24,7 +24,7 @@ if not ENEMY_CONTAINER then
 	ENEMY_CONTAINER.Parent = ROOT
 end
 
-type EnemyState = "Idle" | "Chasing" | "Returning"
+type EnemyState = "Idle" | "Chasing" | "Returning" | "Sleeping"
 
 type EnemyRecord = {
 	Id: string,
@@ -58,6 +58,9 @@ local enemies: { [string]: EnemyRecord } = {}
 -- Alert queue populated by fish pickup events
 local pendingAlerts: { {player: Player, position: Vector3, radius: number, t: number} } = {}
 local ALERT_TTL = 1.0
+
+-- Global sleep timer; when set, all enemies are forced into Sleeping state
+local sleepAllExpireTime: number? = nil
 
 local function getPrimaryPart(model: Model): BasePart?
 	return model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
@@ -275,6 +278,21 @@ local function anchorAndIdle(rec: EnemyRecord)
     setSleepParticles(rec, true)
 end
 
+-- Anchor and sleep at current position (do not return to spawn)
+local function anchorAndSleepCurrent(rec: EnemyRecord)
+	setAssemblyAnchored(rec.Model, true)
+	clearMotionConstraints(rec)
+	local pivot = rec.Model:GetPivot()
+	local pos = pivot.Position
+	-- Lie down at current position (same roll as idle)
+	rec.Model:PivotTo(CFrame.new(pos) * CFrame.Angles(0, 0, math.rad(90)))
+	rec.TargetPlayer = nil
+	rec.TargetAttachment = nil
+	rec.State = "Sleeping"
+	applyIdleDark(rec)
+	setSleepParticles(rec, true)
+end
+
 local function tryAdoptAlert(rec: EnemyRecord)
 	local primary = getPrimaryPart(rec.Model)
 	if not primary then return end
@@ -319,10 +337,30 @@ end
 
 -- Per-frame update
 RunService.Heartbeat:Connect(function()
+	local nowT = workspace:GetServerTimeNow()
     for _, rec in pairs(enemies) do
         local primary = getPrimaryPart(rec.Model)
         if not primary then continue end
         local primaryPart: BasePart = primary :: BasePart
+
+		-- Enforce global sleep: force into Sleeping state and ignore all alerts/chasing
+		if sleepAllExpireTime and nowT < (sleepAllExpireTime :: number) then
+			if rec.State ~= "Sleeping" then
+				anchorAndSleepCurrent(rec)
+			end
+			continue
+		end
+
+		-- If global sleep just ended, wake up sleeping enemies
+		if rec.State == "Sleeping" then
+			local nearby = findNearbyPlayer(rec)
+			if nearby then
+				beginChasing(rec, nearby, false)
+			else
+				beginReturning(rec)
+			end
+			continue
+		end
 
 		if rec.State == "Idle" then
 			-- Wait for alerts to start chase
@@ -436,12 +474,26 @@ RunService.Heartbeat:Connect(function()
 			table.remove(pendingAlerts, i)
 		end
 	end
+
+	-- Clear sleep timer after it expires to avoid repeated checks
+	if sleepAllExpireTime and nowT >= (sleepAllExpireTime :: number) then
+		sleepAllExpireTime = nil
+	end
 end)
 
 -- Public API
 function Enemies.Alert(player: Player, position: Vector3, radius: number)
 	-- Add an alert entry; enemies will check range and adopt target if close
 	table.insert(pendingAlerts, { player = player, position = position, radius = radius, t = os.clock() })
+end
+
+-- Force all enemies to sleep in-place for the specified number of seconds.
+function Enemies.SleepAll(seconds: number)
+	local nowT = workspace:GetServerTimeNow()
+	sleepAllExpireTime = nowT + seconds
+	for _, rec in pairs(enemies) do
+		anchorAndSleepCurrent(rec)
+	end
 end
 
 -- Spawn all enemies from Directory.Enemy

@@ -79,15 +79,21 @@ RunService.RenderStepped:Connect(function()
     local swimUpArea = thingsFolder and thingsFolder:FindFirstChild("SwimUpZone")::BasePart
     local inSwimUpArea = swimUpArea and Functions.IsPositionInPart(hrp.Position, swimUpArea)
 
-    if isSwimming and (LOCAL_PLAYER:GetAttribute("Dead") or LOCAL_PLAYER:GetAttribute("Flying")) then
+    if isSwimming and (LOCAL_PLAYER:GetAttribute("Dead") or LOCAL_PLAYER:GetAttribute("Flying") or LOCAL_PLAYER:GetAttribute("CarpetFlying") or LOCAL_PLAYER:GetAttribute("LocalCarpetFlying")) then
         if swim then swim:Destroy(); swim = nil end
         setSwimmingEnabled(false)
         nextSwimEnableAt = os.clock() + 0.2
         isSwimming = false
+
+        print("stopped swimming")
         return
     end
 
-    -- Nothing to test against
+    if LOCAL_PLAYER:GetAttribute("CarpetFlying") or LOCAL_PLAYER:GetAttribute("LocalCarpetFlying") then
+        return
+    end
+
+    -- Nothing to test againsta
     if #waterParts == 0 then
         if isSwimming then
             if swim then swim:Destroy(); swim = nil end
@@ -152,6 +158,10 @@ RunService.RenderStepped:Connect(function()
         local totalMulti = fishMulti * gadgetMulti
         local ownsDoubleMoney = ownsDoubleMoney()
         s.Velocity = ((humanoid.MoveDirection * (defaultWalkspeed + (ownsDoubleMoney and 3 or 0)) + Vector3.new(0, upBoost, 0)) * totalMulti) + Vector3.new(0, 0.25, 0) -- add 2 to Y to swim up by default
+    end
+
+    if isSwimming then
+        GadgetCmds.UnequipMagicCarpet()
     end
 
     local camera = workspace.CurrentCamera

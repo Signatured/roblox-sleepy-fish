@@ -6,6 +6,8 @@ local Workspace = game:GetService("Workspace")
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Audio = require(ReplicatedStorage.Library.Audio)
+local GadgetCmds = require(ReplicatedStorage.Game.Library.Client.GadgetCmds)
+local Signal = require(ReplicatedStorage.Library.Signal)
 
 local BASE_FOV = 70
 local TARGET_FOV = 60
@@ -104,6 +106,10 @@ ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt: ProximityP
     local riserId = (prompt:GetAttribute("RiserSoundId") :: string) or DEFAULT_RISER_ID
     local riserVol = (prompt:GetAttribute("RiserSoundVolume") :: number) or DEFAULT_RISER_VOL
     Audio.Play(riserId, script, 1, riserVol, 100, false)
+
+    if GadgetCmds.Has("Magic Carpet") then
+        GadgetCmds.UnequipMagicCarpet()
+    end
 end)
 
 -- When the player cancels holding mid-way
@@ -130,6 +136,10 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt,
     -- Stop riser so the success SFX can play cleanly
     stopRiser(prompt)
     clearActivePromptConns()
+
+    if GadgetCmds.Has("Magic Carpet") then
+        GadgetCmds.UnequipMagicCarpet()
+    end
 end)
 
 
@@ -145,4 +155,6 @@ ProximityPromptService.PromptHidden:Connect(function(prompt: ProximityPrompt)
     clearActivePromptConns()
 end)
 
-
+Signal.Invoked("IsHoldingPrompt").OnInvoke = function()
+    return activePrompt ~= nil
+end

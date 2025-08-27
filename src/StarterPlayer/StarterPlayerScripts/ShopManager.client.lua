@@ -388,7 +388,7 @@ local function setupShop()
 	end
 
     setupIncreaseLuck(scrollingFrame)
-    setupBestCoil(shopGui)
+    -- setupBestCoil(shopGui)
 	packRainbow(shopGui)
 
 	task.delay(0.1, function()
@@ -409,7 +409,7 @@ TabController.Opened:Connect(function(tabId)
 		if shopGui then
 			local scrollingFrame = shopGui.Frame.MainFrame.Content.ScrollingFrame
 			setupIncreaseLuck(scrollingFrame)
-			setupBestCoil(shopGui)
+			-- setupBestCoil(shopGui)
 		end
 	end
 end)
