@@ -3,7 +3,7 @@
 return {
 	ProductId = 3379061006,
 	DisplayName = "Expert Pack",
-	Icon = "",
+	Icon = "rbxassetid://80376655364845",
 	Description = "Gives a free fish, money and coil!",
 	OneTimePurchase = true,
 	ClientTest = function(player: Player)

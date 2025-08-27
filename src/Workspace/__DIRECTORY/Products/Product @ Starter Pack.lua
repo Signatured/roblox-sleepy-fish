@@ -3,7 +3,7 @@
 return {
 	ProductId = 3379060688,
 	DisplayName = "Starter Pack",
-	Icon = "",
+	Icon = "rbxassetid://80038451373126",
 	Description = "Gives a free fish, money and coil!",
 	OneTimePurchase = true,
 	ClientTest = function(player: Player)

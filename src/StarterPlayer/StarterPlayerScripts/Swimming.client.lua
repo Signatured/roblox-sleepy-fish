@@ -160,7 +160,7 @@ RunService.RenderStepped:Connect(function()
         s.Velocity = ((humanoid.MoveDirection * (defaultWalkspeed + (ownsDoubleMoney and 3 or 0)) + Vector3.new(0, upBoost, 0)) * totalMulti) + Vector3.new(0, 0.25, 0) -- add 2 to Y to swim up by default
     end
 
-    if isSwimming then
+    if isSwimming and (LOCAL_PLAYER:GetAttribute("CarryingFishId") or LOCAL_PLAYER:GetAttribute("ActivePrompt")) then
         GadgetCmds.UnequipMagicCarpet()
     end
 

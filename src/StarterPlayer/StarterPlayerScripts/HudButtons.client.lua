@@ -12,15 +12,24 @@ local Products = require(ReplicatedStorage.Game.Library.Directory.Products)
 local ClientPlot = require(ReplicatedStorage.Plot.ClientPlot)
 local Marketplace = require(ReplicatedStorage.Library.Marketplace)
 local GetRobuxPrice = require(ReplicatedStorage.Library.Functions.GetRobuxPrice)
-local _Save = require(ReplicatedStorage.Library.Client.Save)
-local _GameSettings = require(ReplicatedStorage.Game.Library.GameSettings)
+local ProductCmds = require(ReplicatedStorage.Library.Client.ProductCmds)
 
 local player = game.Players.LocalPlayer
 
 -- Products to display in the rotating showcase (in order)
 local ROTATING_PRODUCT_NAMES = {
+	"Starter Pack",
+	"Expert Pack",
 	"Magic Carpet",
 	"Rainbow Coil",
+}
+
+-- Optional per-product default scale (multiplier). Missing entries default to 1.
+local ROTATING_PRODUCT_BASE_SCALE: {[string]: number} = {
+	["Starter Pack"] = 1.5,
+	["Expert Pack"] = 1.5,
+	["Magic Carpet"] = 1.0,
+	["Rainbow Coil"] = 1.0,
 }
 
 local function getMultiProuct(): Products.dir_schema?
@@ -235,17 +244,38 @@ local function setup(plot: ClientPlot.Type)
 			if imageButton and imageButton:IsA("ImageButton") then
 				-- Button feedback for rotating product button
 				ButtonFX(imageButton)
-				-- Build a validated list of product keys to rotate through
-				local rotationKeys = {}
-				for _, name in ipairs(ROTATING_PRODUCT_NAMES) do
-					if Products[name] then
-						table.insert(rotationKeys, name)
-					else
-						warn("HudButtons: Rotating product not found in Products: " .. tostring(name))
+				-- Build and maintain a validated list of product keys to rotate through (excludes owned one-time packs)
+				local function buildRotationKeys(): {string}
+					local keys = {}
+					local ownsStarter = ProductCmds.Owns("Starter Pack")
+					local ownsExpert = ProductCmds.Owns("Expert Pack")
+					for _, name in ipairs(ROTATING_PRODUCT_NAMES) do
+						local schema = Products[name]
+						if schema then
+							local skip = false
+							if name == "Starter Pack" then
+								-- Hide Starter Pack if already owned
+								skip = ownsStarter
+							elseif name == "Expert Pack" then
+								-- Show Expert Pack only if Starter is owned and Expert not yet owned
+								skip = (not ownsStarter) or ownsExpert
+							else
+								-- Other products: no special gating here
+								skip = false
+							end
+							if not skip then
+								table.insert(keys, name)
+							end
+						else
+							warn("HudButtons: Rotating product not found in Products: " .. tostring(name))
+						end
 					end
+					return keys
 				end
+
+				local rotationKeys = buildRotationKeys()
 				if #rotationKeys == 0 then
-					warn("HudButtons: No valid rotating products configured.")
+					rotatingProducts.Visible = false
 					return
 				end
 
@@ -278,9 +308,20 @@ local function setup(plot: ClientPlot.Type)
 
 					-- Update image
 					imageButton.Image = product.Icon or imageButton.Image
+
+					-- Apply default base scale for this product (composes with swap factor)
+					local base = ROTATING_PRODUCT_BASE_SCALE[name]
+					if typeof(base) ~= "number" then base = 1 end
+					composer:SetFactor("RotationBase", base)
 				end
 
 				local function swapToNext()
+					-- Rebuild list to reflect newly purchased packs
+					rotationKeys = buildRotationKeys()
+					if #rotationKeys == 0 then
+						rotatingProducts.Visible = false
+						return
+					end
 					idx += 1
 					if idx > #rotationKeys then idx = 1 end
 					-- Shrink almost to zero, swap, then grow back with Back easing
@@ -298,7 +339,7 @@ local function setup(plot: ClientPlot.Type)
 				-- Cycle every 20 seconds
 				task.spawn(function()
 					while rotatingProducts and rotatingProducts.Parent do
-						task.wait(20)
+						task.wait(5)
 						swapToNext()
 					end
 				end)

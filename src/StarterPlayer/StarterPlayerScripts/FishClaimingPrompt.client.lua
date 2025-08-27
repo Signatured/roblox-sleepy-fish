@@ -2,6 +2,7 @@
 
 local TweenService = game:GetService("TweenService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
+local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -11,6 +12,7 @@ local Signal = require(ReplicatedStorage.Library.Signal)
 
 local BASE_FOV = 70
 local TARGET_FOV = 60
+local LOCAL_PLAYER = Players.LocalPlayer
 
 local activePrompt: ProximityPrompt? = nil
 local holdTween: Tween? = nil
@@ -69,6 +71,7 @@ end
 local function handlePromptDisappeared(prompt: ProximityPrompt)
     if activePrompt == prompt then
         activePrompt = nil
+        LOCAL_PLAYER:SetAttribute("ActivePrompt", nil)
         cancelTween()
         tweenFov(BASE_FOV, 0.2, Enum.EasingStyle.Linear)
     end
@@ -92,6 +95,7 @@ end
 ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt: ProximityPrompt)
     if not isFishPrompt(prompt) then return end
     activePrompt = prompt
+    LOCAL_PLAYER:SetAttribute("ActivePrompt", true)
     startTime = Workspace:GetServerTimeNow()
     attachActivePromptLifeline(prompt)
     local cam = Workspace.CurrentCamera
@@ -117,6 +121,7 @@ ProximityPromptService.PromptButtonHoldEnded:Connect(function(prompt: ProximityP
     if activePrompt ~= prompt then return end
     local elapsed = math.max(0, Workspace:GetServerTimeNow() - startTime)
     activePrompt = nil
+    LOCAL_PLAYER:SetAttribute("ActivePrompt", nil)
     -- Drain back to base FOV over half the time spent holding
     local drainTime = math.max(0.05, elapsed / 2)
     tweenFov(BASE_FOV, drainTime, Enum.EasingStyle.Linear)
@@ -130,6 +135,7 @@ end)
 ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt, _player)
     if not isFishPrompt(prompt) then return end
     activePrompt = nil
+    LOCAL_PLAYER:SetAttribute("ActivePrompt", nil)
     -- Snap to completion moment, then ease back to base over 0.5s (Sine Out)
     tweenFov(BASE_FOV, 0.5, Enum.EasingStyle.Sine)
 
@@ -148,6 +154,7 @@ ProximityPromptService.PromptHidden:Connect(function(prompt: ProximityPrompt)
     if not isFishPrompt(prompt) then return end
     if activePrompt == prompt then
         activePrompt = nil
+        LOCAL_PLAYER:SetAttribute("ActivePrompt", nil)
         cancelTween()
         tweenFov(BASE_FOV, 0.2, Enum.EasingStyle.Linear)
     end
