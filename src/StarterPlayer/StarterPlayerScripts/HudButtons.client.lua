@@ -13,6 +13,7 @@ local ClientPlot = require(ReplicatedStorage.Plot.ClientPlot)
 local Marketplace = require(ReplicatedStorage.Library.Marketplace)
 local GetRobuxPrice = require(ReplicatedStorage.Library.Functions.GetRobuxPrice)
 local ProductCmds = require(ReplicatedStorage.Library.Client.ProductCmds)
+local Network = require(ReplicatedStorage.Library.Client.Network)
 
 local player = game.Players.LocalPlayer
 
@@ -200,6 +201,9 @@ local function setup(plot: ClientPlot.Type)
 				imageButton.Activated:Connect(function()
 					local product = Products["Sleep Fish"]
 					if product then
+						task.spawn(function()
+							Network.Fire("ClickedProduct", product._id)
+						end)
 						Marketplace.Prompt(player, product.ProductId, true)
 					end
 				end)
@@ -339,7 +343,7 @@ local function setup(plot: ClientPlot.Type)
 				-- Cycle every 20 seconds
 				task.spawn(function()
 					while rotatingProducts and rotatingProducts.Parent do
-						task.wait(5)
+						task.wait(20)
 						swapToNext()
 					end
 				end)
@@ -349,6 +353,9 @@ local function setup(plot: ClientPlot.Type)
 					local name = rotationKeys[idx]
 					local product = Products[name]
 					if product then
+						task.spawn(function()
+							Network.Fire("ClickedProduct", product._id)
+						end)
 						Marketplace.Prompt(player, product.ProductId, true)
 					end
 				end)
