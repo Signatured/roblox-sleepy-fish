@@ -21,7 +21,7 @@ local player = game.Players.LocalPlayer
 local ROTATING_PRODUCT_NAMES = {
 	"Starter Pack",
 	"Expert Pack",
-	"Magic Carpet",
+	-- "Magic Carpet",
 	"Rainbow Coil",
 }
 
@@ -29,7 +29,7 @@ local ROTATING_PRODUCT_NAMES = {
 local ROTATING_PRODUCT_BASE_SCALE: {[string]: number} = {
 	["Starter Pack"] = 1.5,
 	["Expert Pack"] = 1.5,
-	["Magic Carpet"] = 1.0,
+	-- ["Magic Carpet"] = 1.0,
 	["Rainbow Coil"] = 1.0,
 }
 

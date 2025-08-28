@@ -494,6 +494,8 @@ function Enemies.SleepAll(seconds: number)
 	for _, rec in pairs(enemies) do
 		anchorAndSleepCurrent(rec)
 	end
+
+	Audio.Play("rbxassetid://77045755233711", WATER.Position, nil, 1, 999999)
 end
 
 -- Spawn all enemies from Directory.Enemy

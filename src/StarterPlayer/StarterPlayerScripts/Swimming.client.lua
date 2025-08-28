@@ -84,8 +84,6 @@ RunService.RenderStepped:Connect(function()
         setSwimmingEnabled(false)
         nextSwimEnableAt = os.clock() + 0.2
         isSwimming = false
-
-        print("stopped swimming")
         return
     end
 
