@@ -21,16 +21,16 @@ local player = game.Players.LocalPlayer
 local ROTATING_PRODUCT_NAMES = {
 	"Starter Pack",
 	"Expert Pack",
-	-- "Magic Carpet",
 	"Rainbow Coil",
+	"Magic Carpet",
 }
 
 -- Optional per-product default scale (multiplier). Missing entries default to 1.
 local ROTATING_PRODUCT_BASE_SCALE: {[string]: number} = {
 	["Starter Pack"] = 1.5,
 	["Expert Pack"] = 1.5,
-	-- ["Magic Carpet"] = 1.0,
 	["Rainbow Coil"] = 1.0,
+	["Magic Carpet"] = 1.0,
 }
 
 local function getMultiProuct(): Products.dir_schema?

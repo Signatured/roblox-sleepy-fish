@@ -410,6 +410,14 @@ TabController.Opened:Connect(function(tabId)
 			local scrollingFrame = shopGui.Frame.MainFrame.Content.ScrollingFrame
 			setupIncreaseLuck(scrollingFrame)
 			-- setupBestCoil(shopGui)
+
+            task.spawn(function()
+                while true do
+                    if TabController.GetCurrentTab() ~= "Shop" then break end
+                    Functions.UpdateCanvasSize(scrollingFrame)
+                    task.wait(0.1)
+                end
+            end)
 		end
 	end
 end)
