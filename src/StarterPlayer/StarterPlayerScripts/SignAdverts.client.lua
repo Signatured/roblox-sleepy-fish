@@ -11,6 +11,7 @@ local ProductCmds = require(ReplicatedStorage.Library.Client.ProductCmds)
 local Marketplace = require(ReplicatedStorage.Library.Marketplace)
 local Save = require(ReplicatedStorage.Library.Client.Save)
 local Signal = require(ReplicatedStorage.Library.Signal)
+local Network = require(ReplicatedStorage.Library.Client.Network)
 
 local function getFirstSurfaceGui(model: Model): SurfaceGui?
     for _, inst in ipairs(model:GetDescendants()) do
@@ -83,6 +84,7 @@ local function setupSign(model: Model)
             if d:IsA("GuiButton") then
                 GUIFX_Button(d)
                 d.Activated:Connect(function()
+                    Network.Fire("ClickedProduct", product._id)
                     Marketplace.Prompt(game.Players.LocalPlayer, product.ProductId, true)
                 end)
             end
@@ -124,6 +126,7 @@ local function setupSign(model: Model)
             if d:IsA("GuiButton") then
                 GUIFX_Button(d)
                 d.Activated:Connect(function()
+                    Network.Fire("ClickedProduct", gp._id)
                     Marketplace.Prompt(game.Players.LocalPlayer, gp.GamepassId, false)
                 end)
             end
