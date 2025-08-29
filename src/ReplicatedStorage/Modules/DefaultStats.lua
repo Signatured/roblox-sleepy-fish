@@ -42,6 +42,7 @@ export type schema = {
 	Index: {[string]: IndexData},
 	GroupReward: boolean,
 	PromptedNotifications: boolean,
+	RobuxSpent: number,
 }
 
 local DefaultStats = {
@@ -64,10 +65,11 @@ local DefaultStats = {
 	Joins = 0,
 	Playtime = 0,
 	TutorialClaim = false,
-	FinishedTutorial = false,
+	FinishedTutorial = true,
 	Index = {},
 	GroupReward = false,
 	PromptedNotifications = false,
+	RobuxSpent = 0,
 }::schema
 
 return DefaultStats

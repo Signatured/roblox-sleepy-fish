@@ -121,7 +121,6 @@ ProximityPromptService.PromptButtonHoldEnded:Connect(function(prompt: ProximityP
     if activePrompt ~= prompt then return end
     local elapsed = math.max(0, Workspace:GetServerTimeNow() - startTime)
     activePrompt = nil
-    LOCAL_PLAYER:SetAttribute("ActivePrompt", nil)
     -- Drain back to base FOV over half the time spent holding
     local drainTime = math.max(0.05, elapsed / 2)
     tweenFov(BASE_FOV, drainTime, Enum.EasingStyle.Linear)
@@ -135,7 +134,6 @@ end)
 ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt, _player)
     if not isFishPrompt(prompt) then return end
     activePrompt = nil
-    LOCAL_PLAYER:SetAttribute("ActivePrompt", nil)
     -- Snap to completion moment, then ease back to base over 0.5s (Sine Out)
     tweenFov(BASE_FOV, 0.5, Enum.EasingStyle.Sine)
 
@@ -154,7 +152,6 @@ ProximityPromptService.PromptHidden:Connect(function(prompt: ProximityPrompt)
     if not isFishPrompt(prompt) then return end
     if activePrompt == prompt then
         activePrompt = nil
-        LOCAL_PLAYER:SetAttribute("ActivePrompt", nil)
         cancelTween()
         tweenFov(BASE_FOV, 0.2, Enum.EasingStyle.Linear)
     end

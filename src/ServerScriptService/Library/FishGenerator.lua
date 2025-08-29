@@ -58,6 +58,7 @@ type Swimming = FishTypes.swimming_fish_schema & {
     UID: string,
     Model: Model,
     Gui: BillboardGui?,
+    Beam: Beam?,
 }
 
 local uidToFish: {[string]: Swimming} = {}
@@ -214,6 +215,15 @@ local function makePrompt(fish: Swimming)
     prompt.Parent = primary
     prompt.Triggered:Connect(function(player)
         -- Inventory capacity gate
+        local ownerUserId = fish.Model:GetAttribute("OwnerUserId")
+        if typeof(ownerUserId) == "number" and ownerUserId ~= player.UserId then
+            local owner = Players:GetPlayerByUserId(ownerUserId)
+            local message = owner and `Only {owner.DisplayName} can pick up this fish!` or "You cannot pickup this fish!"
+            Notifications.Message(player, message, {
+                Color = Color3.fromRGB(255, 0, 0),
+            })
+            return
+        end
         if not canPickupFish(player) then
             return
         end
@@ -312,6 +322,10 @@ local function attachGui(fish: Swimming, schema: FishTypes.dir_schema)
                 fishType.Visible = false
             end
         end
+        local private = frame:FindFirstChild("Private")
+        if private and private:IsA("TextLabel") then
+            private.Visible = false
+        end
     end
 end
 
@@ -333,8 +347,8 @@ local function chooseSpawnPart(): BasePart
     return EASY
 end
 
--- Force-spawn a fish constrained to a given rarity id (e.g., "Epic", "Legendary", "Mythical").
-local function spawnForcedByRarity(rarityId: string)
+-- owner: if provided, marks the fish as private to this player
+local function spawnForcedByRarity(rarityId: string, owner: Player?)
     local schema = chooseFishByRarity(rarityId)
     if not schema then return end
     local fishModelTemplate = schema._script:WaitForChild("Model")
@@ -360,6 +374,7 @@ local function spawnForcedByRarity(rarityId: string)
         Carrier = nil,
         Model = fishModelTemplate:Clone(),
         Gui = nil,
+        Beam = nil,
     }
     uidToFish[uid] = fishInstance
 
@@ -374,21 +389,44 @@ local function spawnForcedByRarity(rarityId: string)
     fishInstance.Model:AddTag("SwimmingFish")
     fishInstance.Model:SetAttribute("UID", uid)
     fishInstance.Model:SetAttribute("CFrame", spawnCFrame)
+    if owner then
+        fishInstance.Model:SetAttribute("OwnerUserId", owner.UserId)
+    end
     attachGui(fishInstance, schema)
+    -- If owned, mark GUI as private with owner name
+    if owner and fishInstance.Gui then
+        local frame = fishInstance.Gui:FindFirstChild("Frame")
+        local private = frame and frame:FindFirstChild("Private")
+        if private and private:IsA("TextLabel") then
+            private.Visible = true
+            private.Text = `{owner.DisplayName}'s Fish!`
+        end
+    end
     makePrompt(fishInstance)
+    -- Notify owner client to create a local-only mythical beam
+    if rarityId == "Mythical" and owner then
+        Network.Fire(owner, "MythicalBeam_Create", uid)
+    end
     -- Broadcast notification to all players about the forced spawn
     local displayName = schema.DisplayName or schema._id
     local rarity = schema.Rarity
 
-    if rarity._id == "Mythical" then
-        Notifications.MessageAll(`A Mythical {displayName} has spawned!`, {
+    if owner then
+        Notifications.Message(owner, `You spawned a private Mythical {displayName}!`, {
             Rainbow = true,
             Time = 8,
         })
     else
-        Notifications.MessageAll(`A {rarity.DisplayName} {displayName} has spawned!`, {
-            Time = 8,
-        })
+        if rarity._id == "Mythical" then
+            Notifications.MessageAll(`A Mythical {displayName} has spawned!`, {
+                Rainbow = true,
+                Time = 8,
+            })
+        else
+            Notifications.MessageAll(`A {rarity.DisplayName} {displayName} has spawned!`, {
+                Time = 8,
+            })
+        end
     end
 end
 
@@ -466,6 +504,12 @@ local function despawn(uid: string, sendCarrierMessage: boolean?)
         end)
         fish.Carrier = nil
     end
+    if fish.Beam then
+        pcall(function()
+            fish.Beam:Destroy()
+        end)
+        fish.Beam = nil
+    end
     if fish.Model then fish.Model:Destroy() end
     uidToFish[uid] = nil
     respawnReplacement()
@@ -492,6 +536,10 @@ function FishGen.SetCarrying(player: Player, uid: string): boolean
 
     playerCarry[player] = uid
     fish.Carrier = player
+    -- Hide beam while carrying
+    if fish.Beam then
+        fish.Beam.Enabled = false
+    end
     -- Set attribute with the directory FishId while carrying
     pcall(function()
         player:SetAttribute("CarryingFishId", fish.FishData.FishId)
@@ -558,6 +606,10 @@ end
 
 function FishGen.Destroy(uid: string)
     despawn(uid)
+end
+
+function FishGen.ForceSpawnRandomType(rarityId: string, player: Player?)
+    spawnForcedByRarity(rarityId, player)
 end
 
 -- Heartbeat: despawn and respawn
