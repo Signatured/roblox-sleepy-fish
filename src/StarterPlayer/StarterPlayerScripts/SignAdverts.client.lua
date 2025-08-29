@@ -126,7 +126,7 @@ local function setupSign(model: Model)
             if d:IsA("GuiButton") then
                 GUIFX_Button(d)
                 d.Activated:Connect(function()
-                    Network.Fire("ClickedProduct", gp._id)
+                    Network.Fire("ClickedGamepass", gp._id)
                     Marketplace.Prompt(game.Players.LocalPlayer, gp.GamepassId, false)
                 end)
             end

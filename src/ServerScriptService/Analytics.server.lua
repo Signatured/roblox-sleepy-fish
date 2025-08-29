@@ -5,7 +5,9 @@ local Players = game:GetService("Players")
 
 local Network = require(game.ServerScriptService.Library.Network)
 local ProductsDirectory = require(game.ReplicatedStorage.Game.Library.Directory.Products)
+local GamepassesDirectory = require(game.ReplicatedStorage.Game.Library.Directory.Gamepasses)
 local Products = require(game.ServerScriptService.Library.Products)
+local Signal = require(game.ReplicatedStorage.Library.Signal)
 
 local debounce = {}
 
@@ -33,6 +35,39 @@ end)
 Products.ProductGranted:Connect(function(player: Player, productName: string)
     pcall(function()
         AnalyticsService:LogCustomEvent(player, `Purchased_{productName}`)
+    end)
+end)
+
+Network.Fired("ClickedGamepass", function(player: Player, gamepassName: string)
+    local gamepass = GamepassesDirectory[gamepassName]
+    if not gamepass then
+        return
+    end
+
+    if debounce[player] and debounce[player][gamepassName] then
+        return
+    end
+
+    debounce[player][gamepassName] = true
+    pcall(function()
+        AnalyticsService:LogCustomEvent(player, `Clicked_{gamepassName}`)
+    end)
+    task.delay(2, function()
+        if debounce[player] then
+            debounce[player][gamepassName] = nil
+        end
+    end)
+end)
+
+Products.ProductGranted:Connect(function(player: Player, productName: string)
+    pcall(function()
+        AnalyticsService:LogCustomEvent(player, `Purchased_{productName}`)
+    end)
+end)
+
+Signal.Fired("GamepassPurchased"):Connect(function(player: Player, gamepassName: string)
+    pcall(function()
+        AnalyticsService:LogCustomEvent(player, `Purchased_{gamepassName}`)
     end)
 end)
 
