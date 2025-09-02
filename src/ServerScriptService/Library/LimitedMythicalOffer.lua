@@ -24,7 +24,7 @@ local TICK_INTERVAL = 60 -- seconds between rolls
 local BASE_CHANCE_PER_ROLL = 0.01 -- 1%
 local SPENDER_CHANCE_PER_ROLL = 0.02 -- 2% if RobuxSpent > 0
 local COOLDOWN_AFTER_PROMPT = 300 -- 5 minutes in seconds
-local DEBUG_MODE = true -- if true, CoderConner bypasses all checks except cooldown
+local DEBUG_MODE = false -- if true, CoderConner bypasses all checks except cooldown
 
 export type OfferWindow = {
 	start: number, -- server time seconds
