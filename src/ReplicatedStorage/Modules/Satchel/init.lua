@@ -2148,7 +2148,9 @@ end
 
 -- Update every heartbeat the icon state
 RunService.Heartbeat:Connect(function(): ()
-	OnIconChanged(BackpackEnabled)
+	pcall(function()
+		OnIconChanged(BackpackEnabled)
+	end)
 end)
 
 -- Update the transparency of the backpack based on GuiService.PreferredTransparency
