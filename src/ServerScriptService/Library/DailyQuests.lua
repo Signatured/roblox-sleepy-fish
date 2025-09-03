@@ -13,6 +13,8 @@ local Saving = require(ServerScriptService.Library.Saving)
 local Fish = require(script.Parent.Fish)
 local ServerPlot = require(ServerScriptService.Plot.ServerPlot)
 local FishGenerator = require(ServerScriptService.Game.Library.FishGenerator)
+local Notifications = require(ServerScriptService.Library.Notifications)
+local Functions = require(ReplicatedStorage.Library.Functions)
 
 export type Quest = {
 	Index: number,
@@ -142,12 +144,15 @@ Network.Fired("DailyQuests_Sell", function(player: Player)
 	if not quest or quest.Completed or quest.ReadyToClaim then return end
 
 	if tryRemoveOneFish(player, quest.FishId) then
+        local dir = Directory.Fish[quest.FishId]
 		quest.Progress += 1
 		grantMoney(player, computeSellPrice(quest.FishId))
 		if quest.Progress >= quest.Amount then
 			quest.ReadyToClaim = true
 		end
 		syncClient(player)
+
+        Notifications.Message(player, `You sold a {dir.DisplayName} for ${Functions.NumberShorten(computeSellPrice(quest.FishId))}!`)
 	end
 end)
 
@@ -166,12 +171,30 @@ Network.Fired("DailyQuests_Claim", function(player: Player)
 
     if current == 1 then
         grantMoney(player, 10_000)
+
+        Notifications.Message(player, `Quest Completed!`, {
+            Color = Color3.fromRGB(0, 255, 0),
+        })
+        Notifications.Message(player, `You earned ${Functions.NumberShorten(10_000)}!`, {
+            Color = Color3.fromRGB(0, 255, 0),
+        })
     elseif current == 2 then
         local plot = ServerPlot.GetByPlayer(player)
         if plot then
             plot:SessionSet("DailyQuests_Multiplied", workspace:GetServerTimeNow() + (60 * 60 * 2))
+
+            Notifications.Message(player, `Quest Completed!`, {
+                Color = Color3.fromRGB(0, 255, 0),
+            })
+            Notifications.Message(player, `Enjoy 2x money for the next 2 hours! Must stay online!`, {
+                Color = Color3.fromRGB(0, 255, 0),
+            })
         end
     elseif current == 3 then
+        Notifications.Message(player, `Quest Completed!`, {
+            Color = Color3.fromRGB(0, 255, 0),
+        })
+
         FishGenerator.ForceSpawnRandomType("Mythical", player)
     end
 
