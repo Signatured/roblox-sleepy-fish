@@ -96,7 +96,7 @@ local function chooseRarityId(): string
     end
 
     local function weighted(rarityId: string, weight: number): number
-        if rarityId == "Epic" or rarityId == "Legendary" or rarityId == "Mythical" then
+        if rarityId == "Epic" or rarityId == "Legendary" or rarityId == "Mythical" or rarityId == "Secret" then
             return weight * luck
         end
         return weight

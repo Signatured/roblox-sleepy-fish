@@ -213,6 +213,17 @@ local function realRender()
                     rainbow.Parent = bg
                     Functions.GradientScroll(rainbow, 2.5)
                 end
+            elseif rarityName == "Secret" then
+                if grad and grad:IsA("UIGradient") then
+                    grad:Destroy()
+                end
+                local templateFolder = ReplicatedStorage:FindFirstChild("Assets")
+                local gradientTemplate = templateFolder and templateFolder:FindFirstChild("SecretGradient")
+                if gradientTemplate and gradientTemplate:IsA("UIGradient") then
+                    local rainbow = gradientTemplate:Clone()
+                    rainbow.Parent = bg
+                    Functions.GradientScroll(rainbow, 2.5)
+                end
             else
                 if grad and grad:IsA("UIGradient") and dir.Rarity and typeof(dir.Rarity.Color) == "Color3" then
                     local rc = dir.Rarity.Color

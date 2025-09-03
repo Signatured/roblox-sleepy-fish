@@ -198,6 +198,16 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
                 Functions.GradientScroll(gradient, 2.5)
             end
         end
+    elseif rarityId == "Secret" then
+        local existing = rarity:FindFirstChild("SecretGradient")
+        if not existing or not existing:IsA("UIGradient") then
+            local template = Assets:FindFirstChild("SecretGradient")
+            if template and template:IsA("UIGradient") then
+                local gradient = template:Clone()
+                gradient.Parent = rarity
+                Functions.GradientScroll(gradient, 2.5)
+            end
+        end
     end
     level.Text = `Level {fishData.FishData.Level}`
     moneyPerSecond.Text = `${Functions.NumberShorten(math.ceil((plot:GetMoneyPerSecond(index) or 0) * fishMultiplier))}/s`
