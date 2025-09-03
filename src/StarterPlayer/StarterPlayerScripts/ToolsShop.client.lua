@@ -159,20 +159,23 @@ local function buildToolsList()
 
 		clone.Parent = scrolling
 	end
-
-	task.spawn(function()
-		while true do
-			if TabController.GetCurrentTab() ~= "Tools" then break end
-			Functions.UpdateCanvasSize(scrolling)
-			task.wait(0.1)
-		end
-	end)
 end
 
 -- Rebuild when the Tools tab opens
 TabController.Opened:Connect(function(tabId: string)
 	if tabId == "Tools" then
 		buildToolsList()
+
+		task.spawn(function()
+			while true do
+				local scrolling = getContentContainer()
+				if scrolling then
+					if TabController.GetCurrentTab() ~= "Tools" then break end
+					Functions.UpdateCanvasSize(scrolling)
+				end
+				task.wait(0.1)
+			end
+		end)
 	end
 end)
 

@@ -18,7 +18,7 @@ export type CountsByType = {
 
 local ExistCount = {}
 
-local DATASTORE_KEY = "ExistCountV1"
+local DATASTORE_KEY = "ExistCountV2"
 local lastPersisted: {[string]: CountsByType} = {}
 local cache: {[string]: CountsByType} = {}
 
@@ -34,7 +34,7 @@ local function deepCopyCounts(src: {[string]: CountsByType}): {[string]: CountsB
     return dest
 end
 
-local function addCounts(a: CountsByType, b: CountsByType)
+local function _addCounts(a: CountsByType, b: CountsByType)
     a.Normal += b.Normal or 0
     a.Shiny += b.Shiny or 0
     a.Gold += b.Gold or 0
@@ -64,15 +64,9 @@ local function readFromDataStore(): {[string]: CountsByType}
     return {}
 end
 
-local function writeToDataStore(data: {[string]: CountsByType})
-    local DataStoreService = game:GetService("DataStoreService")
-    local ds = DataStoreService:GetDataStore("GlobalExistCount")
-    pcall(function()
-        ds:SetAsync(DATASTORE_KEY, data)
-    end)
-end
+-- No direct SetAsync writes; we will use UpdateAsync to merge deltas atomically
 
-local function refreshCacheFromStore()
+local function refreshCacheFromStoreOnce()
     local storeData = readFromDataStore()
     cache = deepCopyCounts(storeData)
     lastPersisted = deepCopyCounts(storeData)
@@ -94,15 +88,59 @@ local function getDeltas(): {[string]: CountsByType}
     return deltas
 end
 
+local persisting = false
 local function persistDeltas()
-    local store = readFromDataStore()
-    for fishId, delta in pairs(getDeltas()) do
-        local base = store[fishId] or emptyCounts()
-        addCounts(base, delta)
-        store[fishId] = base
+    if persisting then return end
+    local deltas = getDeltas()
+    local hasDelta = false
+    for _, d in pairs(deltas) do
+        if (d.Normal or 0) ~= 0 or (d.Shiny or 0) ~= 0 or (d.Gold or 0) ~= 0 or (d.Rainbow or 0) ~= 0 then
+            hasDelta = true
+            break
+        end
     end
-    writeToDataStore(store)
-    lastPersisted = deepCopyCounts(store)
+    if not hasDelta then return end
+    persisting = true
+    local DataStoreService = game:GetService("DataStoreService")
+    local ds = DataStoreService:GetDataStore("GlobalExistCount")
+
+    local ok, result = pcall(function()
+        return ds:UpdateAsync(DATASTORE_KEY, function(old)
+            local current: {[string]: CountsByType}
+            if type(old) == "table" then
+                -- normalize existing table
+                current = {}
+                for fishId, counts in pairs(old) do
+                    if type(counts) == "table" then
+                        current[fishId] = {
+                            Normal = tonumber((counts :: any).Normal) or 0,
+                            Shiny = tonumber((counts :: any).Shiny) or 0,
+                            Gold = tonumber((counts :: any).Gold) or 0,
+                            Rainbow = tonumber((counts :: any).Rainbow) or 0,
+                        }
+                    end
+                end
+            else
+                current = {}
+            end
+
+            -- apply our deltas, clamped to >= 0
+            for fishId, d in pairs(deltas) do
+                local base = current[fishId] or emptyCounts()
+                base.Normal = math.max(0, (base.Normal or 0) + (d.Normal or 0))
+                base.Shiny = math.max(0, (base.Shiny or 0) + (d.Shiny or 0))
+                base.Gold = math.max(0, (base.Gold or 0) + (d.Gold or 0))
+                base.Rainbow = math.max(0, (base.Rainbow or 0) + (d.Rainbow or 0))
+                current[fishId] = base
+            end
+            return current
+        end)
+    end)
+
+    if ok and type(result) == "table" then
+        lastPersisted = deepCopyCounts(result)
+    end
+    persisting = false
 end
 
 local function getRandomInterval(): number
@@ -155,14 +193,13 @@ end)
 
 -- Periodic tasks: refresh cache from store and persist deltas
 task.spawn(function()
-    refreshCacheFromStore()
+    refreshCacheFromStoreOnce()
 end)
 
+-- Optionally broadcast a view of current server-side counts
 task.spawn(function()
     while true do
         task.wait(getRandomInterval())
-        refreshCacheFromStore()
-        -- push update to clients
         Network.FireAll("ExistCount_Update", ExistCount.GetAll())
     end
 end)

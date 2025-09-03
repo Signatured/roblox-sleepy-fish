@@ -14,6 +14,18 @@ local gui = GUI.DailyQuests()
 -- Token to manage the timer update loop so only one runs at a time
 local timerToken = 0
 
+local function getContentContainer(): ScrollingFrame?
+	local toolsGui = GUI.DailyQuests()
+	local frame = toolsGui:FindFirstChild("Frame")
+	if not frame then return nil end
+	local mainFrame = frame:FindFirstChild("MainFrame")
+	if not mainFrame then return nil end
+	local content = mainFrame:FindFirstChild("Content")
+	if not content then return nil end
+	local scrolling = content:FindFirstChild("ScrollingFrame")
+	return scrolling and scrolling:IsA("ScrollingFrame") and scrolling or nil
+end
+
 local function setBar(frame: Frame, progress: number, amount: number)
 	local bar = frame:FindFirstChild("Bar")
 	if not bar or not bar:IsA("ImageLabel") then return end
@@ -146,22 +158,15 @@ TabController.Opened:Connect(function(tabId: string)
 	if tabId == "DailyQuests" then
 		refresh()
 
-        task.spawn(function()
-            while true do
-                if TabController.GetCurrentTab() ~= "DailyQuests" then break end
-                if not gui then return end
-                local root = gui:FindFirstChild("Frame")
-                if not root or not root:IsA("Frame") then return end
-                local mainFrame = root:FindFirstChild("MainFrame")
-                if not mainFrame or not mainFrame:IsA("Frame") then return end
-                local contentHolder = mainFrame:FindFirstChild("Content")
-                if not contentHolder or not contentHolder:IsA("Frame") then return end
-                local content = contentHolder:FindFirstChild("ScrollingFrame")
-                if not content or not content:IsA("ScrollingFrame") then return end
-                Functions.UpdateCanvasSize(content)
-                task.wait(0.1)
-            end
-        end)
+        -- task.spawn(function()
+        --     while true do
+        --         local scrolling = getContentContainer()
+		-- 		if scrolling then
+		-- 			Functions.UpdateCanvasSize(scrolling)
+		-- 		end
+        --         task.wait(0.1)
+        --     end
+        -- end)
 	end
 end)
 
