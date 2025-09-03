@@ -40,23 +40,35 @@ ClientPlot.OnAllAndCreated(function(plot: ClientPlot.Type)
         end
     end)
 
-    local paidIndex = plot:Save("PaidIndex")::number
-    local indexMap = paidIndexMap[paidIndex]
-    local totalMulti = indexMap + 1
+    local function calculateMultiplier()
+        local paidIndex = plot:Save("PaidIndex")::number
+        local indexMap = paidIndexMap[paidIndex]
+        local totalMulti = indexMap + 1
+        local questMultiplier = 0
+        local questExpireTime = plot:Session("DailyQuests_Multiplied")
+        if questExpireTime and workspace:GetServerTimeNow() < questExpireTime then
+            questMultiplier = 1
+        end
 
-    if OwnsDoubleMoney() then
-        totalMulti = totalMulti + 1
+        if OwnsDoubleMoney() then
+            totalMulti = totalMulti + 1
+        end
+    
+        totalMulti = totalMulti + questMultiplier
+        return totalMulti
     end
 
     name.Text = owner.DisplayName
-    multi.Text = `x{totalMulti} Multi`
+    multi.Text = `x{calculateMultiplier()} Multi`
 
     billboard.Enabled = true
 
     plot:SaveChanged("PaidIndex"):Connect(function(paidIndex: number)
-        local newIndexMap = paidIndexMap[paidIndex]
-        local newTotalMulti = newIndexMap + 1
-        multi.Text = `x{newTotalMulti} Multi`
+        multi.Text = `x{calculateMultiplier()} Multi`
+    end)
+
+    plot:SessionChanged("DailyQuests_Multiplied"):Connect(function(expireTime: number)
+        multi.Text = `x{calculateMultiplier()} Multi`
     end)
 end)
 

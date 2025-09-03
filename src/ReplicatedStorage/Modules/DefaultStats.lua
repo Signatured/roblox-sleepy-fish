@@ -43,6 +43,11 @@ export type schema = {
 	GroupReward: boolean,
 	PromptedNotifications: boolean,
 	RobuxSpent: number,
+	DailyQuests: {
+		DayKey: number?,
+		Current: number?,
+		Quests: {any}?,
+	},
 }
 
 local DefaultStats = {
@@ -70,6 +75,11 @@ local DefaultStats = {
 	GroupReward = false,
 	PromptedNotifications = false,
 	RobuxSpent = 0,
+	DailyQuests = {
+		DayKey = nil,
+		Current = nil,
+		Quests = nil,
+	},
 }::schema
 
 return DefaultStats

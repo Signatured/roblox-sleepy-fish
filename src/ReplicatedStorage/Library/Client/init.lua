@@ -8,4 +8,11 @@ if ok and srvLuck then
 	module.ServerLuckCmds = srvLuck
 end
 
+local okDQ, dq = pcall(function()
+	return require(script:FindFirstChild("DailyQuestsCmds"))
+end)
+if okDQ and dq then
+	module.DailyQuestsCmds = dq
+end
+
 return module
