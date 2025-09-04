@@ -12,6 +12,7 @@ local EnemyTypes = require(ReplicatedStorage.Game.Library.Types.Enemy)
 local ServerPlot = require(game.ServerScriptService.Plot.ServerPlot)
 local Signal = require(ReplicatedStorage.Library.Signal)
 local Audio = require(ReplicatedStorage.Library.Audio)
+local Saving = require(game.ServerScriptService.Library.Saving)
 
 local ROOT = workspace:WaitForChild("__THINGS")
 local ENEMY_LOCATIONS = ROOT:WaitForChild("EnemyLocations")
@@ -318,6 +319,16 @@ local function findNearbyPlayer(rec: EnemyRecord): Player?
 	local closest: Player? = nil
 	local closestDist = math.huge
 	for _, player in ipairs(Players:GetPlayers()) do
+		local save = Saving.Get(player)
+		if not save then
+			continue
+		end
+		if not save.Index then
+			continue
+		end
+		if Functions.DictionarySize(save.Index) == 0 then
+			continue
+		end
 		local character = player.Character
 		local hrp = character and character:FindFirstChild("HumanoidRootPart")
 		if hrp and hrp:IsA("BasePart") and not player:GetAttribute("Dead") then
@@ -484,6 +495,17 @@ end)
 -- Public API
 function Enemies.Alert(player: Player, position: Vector3, radius: number)
 	-- Add an alert entry; enemies will check range and adopt target if close
+	local save = Saving.Get(player)
+	if not save then
+		return
+	end
+	if not save.Index then
+		return
+	end
+	if Functions.DictionarySize(save.Index) == 0 then
+		return
+	end
+	
 	table.insert(pendingAlerts, { player = player, position = position, radius = radius, t = os.clock() })
 end
 

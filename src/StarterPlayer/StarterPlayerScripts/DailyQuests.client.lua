@@ -1,5 +1,7 @@
 --!strict
 
+local Assets = game:GetService("ReplicatedStorage"):WaitForChild("Assets")
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GUI = require(ReplicatedStorage.Game.Library.Client.GUI)
@@ -8,8 +10,15 @@ local ButtonFX = require(ReplicatedStorage.Library.Client.GUIFX.ButtonFX)
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
 local DailyQuestsCmds = require(ReplicatedStorage.Game.Library.Client.DailyQuestsCmds)
 local Functions = require(ReplicatedStorage.Library.Functions)
+local SwapGradient = require(ReplicatedStorage.Library.Client.GUIFX.SwapGradient)
+local Save = require(ReplicatedStorage.Library.Client.Save)
+local NotificationCmds = require(ReplicatedStorage.Library.Client.NotificationCmds)
+local Signal = require(ReplicatedStorage.Library.Signal)
 
 local gui = GUI.DailyQuests()
+
+local greenGradient = Assets:WaitForChild("GreenButtonGradient")
+local greyGradient = Assets:WaitForChild("GreyButtonGradient")
 
 -- Token to manage the timer update loop so only one runs at a time
 local timerToken = 0
@@ -74,11 +83,48 @@ local function setQuest(frame: Frame, quest, isUnlocked: boolean, isActive: bool
 		sellButton.Visible = showSell
 		if not sellButton:GetAttribute("DQ_Wired") then
 			ButtonFX(sellButton)
+			-- remember quest index on the button for fresh lookup during click
+			sellButton:SetAttribute("DQ_Index", tonumber(frame.Name))
 			sellButton.Activated:Connect(function()
+				-- fetch current quest state at click time
+				local data = DailyQuestsCmds.Get()
+				local idx = sellButton:GetAttribute("DQ_Index")
+				local q = data and data.Quests and data.Quests[tonumber(idx) or 1]
+				if not q then return end
+				local haveOne = false
+				local save = Save.Get()
+				local inv = save and save.Inventory
+				if type(inv) == "table" then
+					for _, entry in ipairs(inv) do
+						if entry and entry.FishId == q.FishId then
+							haveOne = true
+							break
+						end
+					end
+				end
+				if not haveOne then
+					local schemaNow = Directory.Fish[q.FishId]
+					local name = schemaNow and schemaNow.DisplayName or "fish"
+					NotificationCmds.Message("You don't have a " .. tostring(name) .. "!", { Color = Color3.fromRGB(255, 80, 80) })
+					return
+				end
 				DailyQuestsCmds.Sell()
 			end)
 			sellButton:SetAttribute("DQ_Wired", true)
 		end
+		-- Apply gradient based on whether inventory has at least one of required fish
+		local hasRequired = false
+		local save = Save.Get()
+		local inv = save and save.Inventory
+		if type(inv) == "table" then
+			for _, entry in ipairs(inv) do
+				if entry and entry.FishId == quest.FishId then
+					hasRequired = true
+					break
+				end
+			end
+		end
+		SwapGradient(sellButton, (showSell and hasRequired) and greenGradient or greyGradient)
 		if sellLabel and sellLabel:IsA("TextLabel") then sellLabel.Text = "Sell" end
 	end
 	if sellPriceLabel and sellPriceLabel:IsA("TextLabel") then
@@ -172,4 +218,10 @@ end)
 
 DailyQuestsCmds.Updated:Connect(function()
     refresh()
+end)
+
+Signal.Fired("StatCacheUpdated"):Connect(function(stat)
+    if stat == "Inventory" then
+        refresh()
+    end
 end)

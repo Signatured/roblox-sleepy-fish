@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Pad = require(ReplicatedStorage.Library.Client.Pad)
 local TabController = require(ReplicatedStorage.Library.Client.TabController)
 local TagHook = require(ReplicatedStorage.Library.Functions.TagHook)
+local Network = require(ReplicatedStorage.Library.Client.Network)
 
 local TAG = "DailyQuestsPad"
 
@@ -16,6 +17,7 @@ TagHook(TAG, function(instance: Instance)
     local conn = pad:AddEnterListener(function(_player)
         if TabController.GetCurrentTab() ~= "DailyQuests" then
             TabController.OpenTab("DailyQuests")
+            Network.Fire("DailyQuestPad")
         end
     end)
     return function()

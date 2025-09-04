@@ -202,6 +202,13 @@ local function setModelAnchored(model: Model, anchored: boolean)
     end
 end
 
+local function hasHadFishBefore(player: Player): boolean
+    local save = Saving.Get(player)
+    if not save then return false end
+    if not save.Index then return false end
+    return Functions.DictionarySize(save.Index) > 0
+end
+
 local function makePrompt(fish: Swimming)
     local primary = fish.Model.PrimaryPart or fish.Model:FindFirstChildWhichIsA("BasePart")
     if not primary or not primary:IsA("BasePart") then return end
@@ -214,6 +221,16 @@ local function makePrompt(fish: Swimming)
     prompt.RequiresLineOfSight = false
     prompt.Parent = primary
     prompt.Triggered:Connect(function(player)
+        if not hasHadFishBefore(player) then
+            local fishId = fish.FishData.FishId
+
+            if fishId ~= "Clown Fish" then
+            Notifications.Message(player, "You need to catch a Clown Fish first!", {
+                    Color = Color3.fromRGB(255, 0, 0),
+                })
+                return
+            end
+        end
         -- Inventory capacity gate
         local ownerUserId = fish.Model:GetAttribute("OwnerUserId")
         if typeof(ownerUserId) == "number" and ownerUserId ~= player.UserId then

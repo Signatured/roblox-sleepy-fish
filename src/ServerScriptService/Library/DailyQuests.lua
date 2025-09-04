@@ -3,7 +3,9 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
+local AnalyticsService = game:GetService("AnalyticsService")
 
+local Player = require(ReplicatedStorage.Library.Player)
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
 local _FishTypes = require(ReplicatedStorage.Game.Library.Types.Fish)
 local Rarity = require(ReplicatedStorage.Game.Library.Directory.Rarity)
@@ -15,6 +17,7 @@ local ServerPlot = require(ServerScriptService.Plot.ServerPlot)
 local FishGenerator = require(ServerScriptService.Game.Library.FishGenerator)
 local Notifications = require(ServerScriptService.Library.Notifications)
 local Functions = require(ReplicatedStorage.Library.Functions)
+local Audio = require(ReplicatedStorage.Library.Audio)
 
 export type Quest = {
 	Index: number,
@@ -67,7 +70,7 @@ end
 
 local function buildQuests(): {Quest}
 	local q1Fish = (math.random() < 0.5) and chooseWeighted(Rarity.Common) or chooseWeighted(Rarity.Uncommon)
-	local q1Amt = Directory.Fish[q1Fish].Rarity == Rarity.Common and 5 or 3
+	local q1Amt = Directory.Fish[q1Fish].Rarity == Rarity.Common and 4 or 2
 	local q1Rarity = getRarityName(q1Fish)
 
 	local q2Fish = (math.random() < 0.5) and chooseWeighted(Rarity.Rare) or chooseWeighted(Rarity.Epic)
@@ -153,6 +156,15 @@ Network.Fired("DailyQuests_Sell", function(player: Player)
 		syncClient(player)
 
         Notifications.Message(player, `You sold a {dir.DisplayName} for ${Functions.NumberShorten(computeSellPrice(quest.FishId))}!`)
+
+        local pos = Player.Optional.Position(player)
+        if pos then
+            Audio.Play("rbxassetid://133458542234750", pos, 1, 0.3, nil, nil, nil, player)
+        end
+
+        pcall(function()
+            AnalyticsService:LogCustomEvent(player, `DailyQuestSold_{current}_{dir.Rarity.DisplayName}_{quest.Amount}`)
+        end)
 	end
 end)
 
@@ -196,6 +208,15 @@ Network.Fired("DailyQuests_Claim", function(player: Player)
         })
 
         FishGenerator.ForceSpawnRandomType("Mythical", player)
+    end
+
+    pcall(function()
+        AnalyticsService:LogCustomEvent(player, `DailyQuestCompleted_{current}`)
+    end)
+
+    local pos = Player.Optional.Position(player)
+    if pos then
+        Audio.Play("rbxassetid://110426600162491", pos, 1, 1, nil, nil, nil, player)
     end
 
 	if current < 3 then

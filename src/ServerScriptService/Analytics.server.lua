@@ -59,6 +59,33 @@ Network.Fired("ClickedGamepass", function(player: Player, gamepassName: string)
     end)
 end)
 
+local dailyQuestDeboounce = {}
+Network.Fired("DailyQuestPad", function(player: Player)
+    if dailyQuestDeboounce[player] then
+        return
+    end
+    dailyQuestDeboounce[player] = true
+    task.delay(2, function()
+        dailyQuestDeboounce[player] = nil
+    end)
+    pcall(function()
+        AnalyticsService:LogCustomEvent(player, `DailyQuestPad_Opened`)
+    end)
+end)
+
+Network.Fired("DailyQuestButton", function(player: Player)
+    if dailyQuestDeboounce[player] then
+        return
+    end
+    dailyQuestDeboounce[player] = true
+    task.delay(2, function()
+        dailyQuestDeboounce[player] = nil
+    end)
+    pcall(function()
+        AnalyticsService:LogCustomEvent(player, `DailyQuestButton_Opened`)
+    end)
+end)
+
 Products.ProductGranted:Connect(function(player: Player, productName: string)
     pcall(function()
         AnalyticsService:LogCustomEvent(player, `Purchased_{productName}`)
@@ -77,4 +104,5 @@ end)
 
 Players.PlayerRemoving:Connect(function(player: Player)
     debounce[player] = nil
+    dailyQuestDeboounce[player] = nil
 end)
