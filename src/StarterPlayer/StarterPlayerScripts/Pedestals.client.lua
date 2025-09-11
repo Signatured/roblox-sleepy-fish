@@ -617,33 +617,33 @@ end
 function plotCreated(plot: ClientPlot.Type)
     pedestalModels[plot] = {}
 
-    local model = plot:WaitModel()
+    local model = plot:YieldModel()
     local pedestals = model:WaitForChild("Pedestals")::Model
 
     for _, child in pedestals:GetChildren() do
         UpdatePedestal(plot, child::Model)
     end
 
-    plot:SaveChanged("Fish"):Connect(function(newFish: {[string]: PlotTypes.Fish})
+    plot:SaveUpdated("Fish"):Connect(function(newFish: {[string]: PlotTypes.Fish})
         for _, child in pedestals:GetChildren() do
             UpdatePedestal(plot, child::Model)
         end
     end)
 
-    plot:SaveChanged("PaidIndex"):Connect(function(newIndex: number)
+    plot:SaveUpdated("PaidIndex"):Connect(function(newIndex: number)
         for _, child in pedestals:GetChildren() do
             UpdatePedestal(plot, child::Model)
         end
     end)
 
     -- Money changes: flip the upgrade button image when affordability changes
-    plot:SaveChanged("Money"):Connect(function(_value: number)
+    plot:SaveUpdated("Money"):Connect(function(_value: number)
         for _, child in pedestals:GetChildren() do
             UpdateUpgradeButtonImage(plot, child::Model)
         end
     end)
 
-    plot:SessionChanged("PlayerBoosts"):Connect(function(newBoosts: {[string]: number})
+    plot:SessionUpdated("PlayerBoosts"):Connect(function(newBoosts: {[string]: number})
         for _, child in pedestals:GetChildren() do
             UpdatePedestal(plot, child::Model)
         end

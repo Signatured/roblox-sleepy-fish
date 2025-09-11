@@ -5,7 +5,7 @@ local FishCmds = require(game.ReplicatedStorage.Game.Library.Client.FishCmds)
 local NotificationCmds = require(game.ReplicatedStorage.Library.Client.NotificationCmds)
 
 ClientPlot.OnAllAndCreated(function(plot: ClientPlot.Type)
-	local model = plot:WaitModel()
+	local model = plot:YieldModel()
 	local trashCan = model:FindFirstChild("TrashCan")::BasePart
 
 	if trashCan and not trashCan:GetAttribute("_PromptInit") then

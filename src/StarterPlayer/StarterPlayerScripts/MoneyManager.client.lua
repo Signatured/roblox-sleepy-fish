@@ -53,7 +53,7 @@ ClientPlot.OnLocalAndCreated(function(plot)
         updateCoinsDisplay(money)
     end
 
-	plot:SaveChanged("Money"):Connect(function(value: number)
+	plot:SaveUpdated("Money"):Connect(function(value: number)
 		local newAmount = value
 		local oldAmount = currenyMoney
 		currenyMoney = newAmount

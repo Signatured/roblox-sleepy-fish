@@ -16,7 +16,7 @@ end
 ClientPlot.OnLocalAndCreated(function(plot)
     updateFriendBoost(plot)
 
-    plot:SessionChanged("FriendBoost"):Connect(function(value: number)
+    plot:SessionUpdated("FriendBoost"):Connect(function(value: number)
         updateFriendBoost(plot)
     end)
 end)

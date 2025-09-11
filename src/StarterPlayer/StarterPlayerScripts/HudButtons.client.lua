@@ -368,7 +368,7 @@ end
 ClientPlot.OnLocalAndCreated(function(plot: ClientPlot.Type)
 	setup(plot)
 
-	plot:SaveChanged("PaidIndex"):Connect(function(paidIndex: number)
+	plot:SaveUpdated("PaidIndex"):Connect(function(paidIndex: number)
 		if paidIndex == 3 then
 			hideMultiFrame()
 		else

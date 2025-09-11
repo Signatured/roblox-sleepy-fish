@@ -20,7 +20,7 @@ function OwnsDoubleMoney()
 end
 
 ClientPlot.OnAllAndCreated(function(plot: ClientPlot.Type)
-    local model = plot:WaitModel()
+    local model = plot:YieldModel()
     local owner = plot:GetOwner()
     local billboard: BillboardGui = model:WaitForChild("PlayerBillboard"):WaitForChild("BillboardGui")::BillboardGui
    
@@ -63,11 +63,11 @@ ClientPlot.OnAllAndCreated(function(plot: ClientPlot.Type)
 
     billboard.Enabled = true
 
-    plot:SaveChanged("PaidIndex"):Connect(function(paidIndex: number)
+    plot:SaveUpdated("PaidIndex"):Connect(function(paidIndex: number)
         multi.Text = `x{calculateMultiplier()} Multi`
     end)
 
-    plot:SessionChanged("DailyQuests_Multiplied"):Connect(function(expireTime: number)
+    plot:SessionUpdated("DailyQuests_Multiplied"):Connect(function(expireTime: number)
         multi.Text = `x{calculateMultiplier()} Multi`
     end)
 end)
@@ -77,7 +77,7 @@ Save.Fired(function(key: string, value: any)
         local plot = ClientPlot.GetLocal()
         if not plot then return end
 
-        local model = plot:WaitModel()
+        local model = plot:YieldModel()
         local owner = plot:GetOwner()
         local billboard: BillboardGui = model:WaitForChild("PlayerBillboard"):WaitForChild("BillboardGui")::BillboardGui
     

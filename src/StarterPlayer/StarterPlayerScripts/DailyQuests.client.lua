@@ -206,6 +206,7 @@ TabController.Opened:Connect(function(tabId: string)
 
         -- task.spawn(function()
         --     while true do
+		
         --         local scrolling = getContentContainer()
 		-- 		if scrolling then
 		-- 			Functions.UpdateCanvasSize(scrolling)

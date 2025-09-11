@@ -350,7 +350,7 @@ local function tutorialMain(initialState: string?)
                 state = "Done"
                 return
             end
-            local plotModel = plot:WaitModel()
+            local plotModel = plot:YieldModel()
             local pedsFolder = plotModel:WaitForChild("Pedestals")
             local pedModel = pedsFolder:FindFirstChild(tostring(pedestalTargetId))
             if pedModel then
@@ -387,7 +387,7 @@ local function tutorialMain(initialState: string?)
                     pedestalTargetId = 1
                 end
             end
-            local plotModel = plot:WaitModel()
+            local plotModel = plot:YieldModel()
             local pedsFolder = plotModel:WaitForChild("Pedestals")
             local pedModel = pedsFolder:FindFirstChild(tostring(pedestalTargetId :: number))
             if pedModel then
@@ -420,7 +420,7 @@ local function tutorialMain(initialState: string?)
         elseif state == "PointToUpgradeButton" then
             local plot = ClientPlot.GetLocal()
             if not plot then return end
-            local plotModel = plot:WaitModel()
+            local plotModel = plot:YieldModel()
             local pedsFolder = plotModel:WaitForChild("Pedestals")
             -- Select a pedestal we can afford to upgrade right now
             local fishNow = plot:Save("Fish") :: {[string]: any}
@@ -492,7 +492,7 @@ local function tutorialMain(initialState: string?)
                         local moneyNum = if type(money) == "number" then (money :: number) else 0
                         if moneyNum >= cost then
                             if not buyToolCoilShown then
-                                local plotModel = plot:WaitModel()
+                                local plotModel = plot:YieldModel()
                                 local toolShop = plotModel and plotModel:FindFirstChild("ToolShop")
                                 if toolShop and toolShop:IsA("Model") then
                                     local pp = toolShop.PrimaryPart or toolShop:FindFirstChildWhichIsA("BasePart")
