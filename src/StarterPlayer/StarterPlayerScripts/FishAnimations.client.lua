@@ -205,7 +205,7 @@ Functions.TagHook("FishSwimmingGui", function(gui: BillboardGui)
     local rarity = frame and frame:FindFirstChild("Rarity")
     if rarity and rarity:IsA("TextLabel") then
         local text = rarity.Text
-        if text == "Mythical" then
+        if text == "Mythical" or text == "Exclusive" then
             local existing = rarity:FindFirstChild("RainbowGradientWrapped")
             if not existing or not existing:IsA("UIGradient") then
                 local template = ReplicatedStorage.Assets:FindFirstChild("RainbowGradientWrapped")

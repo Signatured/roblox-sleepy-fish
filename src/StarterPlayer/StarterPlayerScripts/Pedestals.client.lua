@@ -188,7 +188,7 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
 
     -- Mythical rarity rainbow gradient effect on rarity label
     local rarityId = (dir.Rarity and (dir.Rarity :: any)._id) or nil
-    if rarityId == "Mythical" then
+    if rarityId == "Mythical" or rarityId == "Exclusive" then
         local existing = rarity:FindFirstChild("RainbowGradientWrapped")
         if not existing or not existing:IsA("UIGradient") then
             local template = Assets:FindFirstChild("RainbowGradientWrapped")

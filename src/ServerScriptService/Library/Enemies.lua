@@ -13,6 +13,7 @@ local ServerPlot = require(game.ServerScriptService.Plot.ServerPlot)
 local Signal = require(ReplicatedStorage.Library.Signal)
 local Audio = require(ReplicatedStorage.Library.Audio)
 local Saving = require(game.ServerScriptService.Library.Saving)
+local Invisibility = require(game.ServerScriptService.Game.Library.Invisibility)
 
 local ROOT = workspace:WaitForChild("__THINGS")
 local ENEMY_LOCATIONS = ROOT:WaitForChild("EnemyLocations")
@@ -331,7 +332,7 @@ local function findNearbyPlayer(rec: EnemyRecord): Player?
 		end
 		local character = player.Character
 		local hrp = character and character:FindFirstChild("HumanoidRootPart")
-		if hrp and hrp:IsA("BasePart") and not player:GetAttribute("Dead") then
+		if hrp and hrp:IsA("BasePart") and not player:GetAttribute("Dead") and not Invisibility.IsInvisible(player) then
 			-- Only consider players inside WATER
 			if not Functions.IsPositionInPart((hrp :: BasePart).Position, WATER) then
 				continue
@@ -381,7 +382,7 @@ RunService.Heartbeat:Connect(function()
 			local character = target and target.Character
 			local hrp = character and character:FindFirstChild("HumanoidRootPart")
 			local _humanoid = character and character:FindFirstChildOfClass("Humanoid")
-			if not target or not hrp or target:GetAttribute("Dead") then
+			if not target or not hrp or target:GetAttribute("Dead") or Invisibility.IsInvisible(target) then
 				-- Target lost; try follow someone else
 				local nearby = findNearbyPlayer(rec)
 				if nearby then

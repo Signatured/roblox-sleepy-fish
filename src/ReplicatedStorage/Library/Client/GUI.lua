@@ -20,6 +20,7 @@ function module.FriendInvite() return PlayerGui:WaitForChild("FriendInvite", WAI
 function module.Index() return PlayerGui:WaitForChild("Index", WAIT_TIME) end
 function module.Gift() return PlayerGui:WaitForChild("Gift", WAIT_TIME) end
 function module.DailyQuests() return PlayerGui:WaitForChild("DailyQuests", WAIT_TIME) end
+function module.Sell() return PlayerGui:WaitForChild("Sell", WAIT_TIME) end
 
 task.spawn(function()
     local images = {}

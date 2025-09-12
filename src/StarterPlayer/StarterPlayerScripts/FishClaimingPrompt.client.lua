@@ -114,6 +114,12 @@ ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt: ProximityP
     if GadgetCmds.Has("Magic Carpet") then
         GadgetCmds.UnequipMagicCarpet()
     end
+    if GadgetCmds.Has("Invisibility Cloak") then
+        local removedCloak = GadgetCmds.UnequipInvisibilityCloak()
+        if removedCloak then
+            GadgetCmds.EquipBestCoil()
+        end
+    end
 end)
 
 -- When the player cancels holding mid-way
@@ -121,6 +127,7 @@ ProximityPromptService.PromptButtonHoldEnded:Connect(function(prompt: ProximityP
     if activePrompt ~= prompt then return end
     local elapsed = math.max(0, Workspace:GetServerTimeNow() - startTime)
     activePrompt = nil
+    LOCAL_PLAYER:SetAttribute("ActivePrompt", nil)
     -- Drain back to base FOV over half the time spent holding
     local drainTime = math.max(0.05, elapsed / 2)
     tweenFov(BASE_FOV, drainTime, Enum.EasingStyle.Linear)
@@ -143,6 +150,12 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt: ProximityPrompt,
 
     if GadgetCmds.Has("Magic Carpet") then
         GadgetCmds.UnequipMagicCarpet()
+    end
+    if GadgetCmds.Has("Invisibility Cloak") then
+        local removedCloak = GadgetCmds.UnequipInvisibilityCloak()
+        if removedCloak then
+            GadgetCmds.EquipBestCoil()
+        end
     end
 end)
 

@@ -129,8 +129,10 @@ RunService.RenderStepped:Connect(function()
             s.MaxForce = Vector3.new(1e9, 1e9, 1e9)
             s.Parent = hrp
             isSwimming = true
-            -- Auto-equip the best coil gadget when entering water
-            GadgetCmds.EquipBestCoil()
+            -- Auto-equip the best coil gadget when entering water unless invisible
+            if not LOCAL_PLAYER:GetAttribute("Invisible") then
+                GadgetCmds.EquipBestCoil()
+            end
             -- Play swim start SFX
             Audio.Play("rbxassetid://95038957115197", hrp, nil, 0.2)
         end
@@ -160,6 +162,10 @@ RunService.RenderStepped:Connect(function()
 
     if isSwimming and (LOCAL_PLAYER:GetAttribute("CarryingFishId") or LOCAL_PLAYER:GetAttribute("ActivePrompt")) then
         GadgetCmds.UnequipMagicCarpet()
+        local removedCloak = GadgetCmds.UnequipInvisibilityCloak()
+        if removedCloak then
+            GadgetCmds.EquipBestCoil()
+        end
     end
 
     local camera = workspace.CurrentCamera

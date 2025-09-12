@@ -11,6 +11,7 @@ export type raw_dir = {
     RarityWeight: number,
     SpeedModifier: number,
     AlertRange: number,
+    PreventSpawning: boolean?,
 }
 
 export type dir_schema = raw_dir & DirectoryTypes.dir_schema

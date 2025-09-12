@@ -24,6 +24,7 @@ local Saving = require(ServerScriptService.Library.Saving)
 local ExistCount = require(ServerScriptService.Game.Library.ExistCount)
 local Index = require(ServerScriptService.Game.Library.Index)
 local ServerLuck = require(ServerScriptService.Game.Library.ServerLuck)
+local Invisibility = require(ServerScriptService.Game.Library.Invisibility)
 
 local THINGS = workspace:WaitForChild("__THINGS")
 local ROOT = THINGS:WaitForChild("SwimmingFish")
@@ -40,7 +41,7 @@ local HARD_RATIO = 0.6
 local HARD_COUNT = math.floor(TOTAL_FISH * HARD_RATIO)
 local EASY_COUNT = TOTAL_FISH - HARD_COUNT
 
-local DESPAWN_SECONDS = 60
+local DESPAWN_SECONDS = 90
 
 local typeChances = {
     ["Normal"] = 79,
@@ -127,7 +128,7 @@ local function chooseFishByRarity(rarityId: string): FishTypes.dir_schema?
     local candidates = {}
     local totalWeight = 0
     for _, f in pairs(Directory.Fish) do
-        if f.Rarity and f.Rarity._id == rarityId then
+        if f.Rarity and f.Rarity._id == rarityId and not f.Rarity.PreventSpawning then
             table.insert(candidates, f)
             totalWeight += (f.RarityWeight or 0)
         end
@@ -323,7 +324,7 @@ local function attachGui(fish: Swimming, schema: FishTypes.dir_schema)
         end
         local timer = frame:FindFirstChild("Timer")
         if timer and timer:IsA("TextLabel") then
-            timer.Text = "60s"
+            timer.Text = "90s"
         end
         local fishType = frame:FindFirstChild("FishType")
         if fishType and fishType:IsA("TextLabel") then
@@ -550,6 +551,12 @@ function FishGen.SetCarrying(player: Player, uid: string): boolean
             fish.SpawnTime = workspace:GetServerTimeNow() - 30
         end
     end
+
+    pcall(function()
+        if Invisibility.IsInvisible(player) then
+            Invisibility.MakeVisible(player)
+        end
+    end)
 
     playerCarry[player] = uid
     fish.Carrier = player
