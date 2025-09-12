@@ -128,7 +128,7 @@ local function main()
 	local skipConnection
 	local skipped = false
 	
-	skipConnection = SkipButton.MouseButton1Click:Connect(function()
+	skipConnection = SkipButton.Activated:Connect(function()
 		skipped = true
 		SkipButton.Visible = false
 		if skipConnection then

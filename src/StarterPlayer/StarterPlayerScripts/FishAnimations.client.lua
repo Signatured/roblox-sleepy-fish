@@ -92,6 +92,10 @@ local function ensureStep()
                 continue
             end
 
+            if model:GetAttribute("Grappling") then
+                continue
+            end
+
             local opts = data.options
             local bobAmp = getNumberAttributeOrDefault(model, "BobAmplitude", (opts.BobAmplitude :: number?) or 1)
             local bobSpeed = getNumberAttributeOrDefault(model, "BobSpeed", (opts.BobSpeed :: number?) or (1/6))

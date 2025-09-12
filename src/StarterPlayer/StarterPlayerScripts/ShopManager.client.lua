@@ -29,12 +29,12 @@ local serverLuckMultiplier: number = 1
 local serverLuckTimeLeft: number = 0
 local serverLuckLastSync: number = 0
 
--- Specialized: BestCoil purchase tile (Rainbow Coil)
+-- Specialized: BestCoil purchase tile (Galaxy Coil)
 local bestCoilInitialized = false
 local bestCoilFrame: Frame?
 local _bestCoilButton: GuiButton?
-local RAINBOW_COIL_KEY = "Rainbow Coil"
-local rainbowCoilProductId: number?
+local BEST_COIL_KEY = "Galaxy Coil"
+local bestCoilProductId: number?
 
 local function initServerLuckSync()
     task.spawn(function()
@@ -294,7 +294,7 @@ local function setupIncreaseLuck(scrollingFrame: Instance)
     refresh()
 end
 
---// Specialized setup for the BestCoil tile (Rainbow Coil product outside the scrolling list)
+--// Specialized setup for the BestCoil tile (Galaxy Coil product outside the scrolling list)
 local function setupBestCoil(shopGui: ScreenGui)
     if bestCoilInitialized then return end
     local frame = shopGui:FindFirstChild("Frame")
@@ -310,7 +310,7 @@ local function setupBestCoil(shopGui: ScreenGui)
     bestCoilInitialized = true
     bestCoilFrame = bc
     _bestCoilButton = imageButton
-    rainbowCoilProductId = ProductCmds.GetProductId(RAINBOW_COIL_KEY)
+    bestCoilProductId = ProductCmds.GetProductId(BEST_COIL_KEY)
 
     ButtonFX(imageButton)
 
@@ -318,13 +318,13 @@ local function setupBestCoil(shopGui: ScreenGui)
 
     local function updatePriceLabel()
         if not (priceLabel and priceLabel:IsA("TextLabel")) then return end
-        if not rainbowCoilProductId then
+        if not bestCoilProductId then
             priceLabel.Text = " ???"
             return
         end
         priceLabel.Text = " ???"
         task.spawn(function()
-            local success, info = pcall(MarketplaceService.GetProductInfo, MarketplaceService, rainbowCoilProductId :: number, Enum.InfoType.Product)
+            local success, info = pcall(MarketplaceService.GetProductInfo, MarketplaceService, bestCoilProductId :: number, Enum.InfoType.Product)
             if success and info and priceLabel and priceLabel:IsA("TextLabel") then
                 priceLabel.Text = ` {info.PriceInRobux}`
             end
@@ -332,13 +332,13 @@ local function setupBestCoil(shopGui: ScreenGui)
     end
 
     local function refresh()
-        local owned = ProductCmds.Owns(RAINBOW_COIL_KEY)
+        local owned = ProductCmds.Owns(BEST_COIL_KEY)
         if bestCoilFrame and bestCoilFrame:IsA("Frame") then
             bestCoilFrame.Visible = not owned
         end
         if not owned then
-            if not rainbowCoilProductId then
-                rainbowCoilProductId = ProductCmds.GetProductId(RAINBOW_COIL_KEY)
+            if not bestCoilProductId then
+                bestCoilProductId = ProductCmds.GetProductId(BEST_COIL_KEY)
             end
             updatePriceLabel()
         end
@@ -349,13 +349,13 @@ local function setupBestCoil(shopGui: ScreenGui)
         buttonConnections[imageButton] = nil
     end
     buttonConnections[imageButton] = imageButton.Activated:Connect(function()
-        if not rainbowCoilProductId then
-            rainbowCoilProductId = ProductCmds.GetProductId(RAINBOW_COIL_KEY)
+        if not bestCoilProductId then
+            bestCoilProductId = ProductCmds.GetProductId(BEST_COIL_KEY)
         end
 
         updatePriceLabel()
-        if rainbowCoilProductId then
-            Marketplace.Prompt(player, rainbowCoilProductId :: number, true)
+        if bestCoilProductId then
+            Marketplace.Prompt(player, bestCoilProductId :: number, true)
         end
     end)
 

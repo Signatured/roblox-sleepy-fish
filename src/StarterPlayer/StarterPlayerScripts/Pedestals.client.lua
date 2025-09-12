@@ -241,7 +241,7 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, upgradeFrame: F
 
     local upgradeButton = upgradeFrame:WaitForChild("Button")::GuiButton
     ButtonFX(upgradeButton)
-    upgradeButton.MouseButton1Click:Connect(function()
+    upgradeButton.Activated:Connect(function()
         local fish = plot:Save("Fish")::{[string]: PlotTypes.Fish}
         local fishData = fish[tostring(pedestalId)]
 
@@ -273,7 +273,7 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, upgradeFrame: F
 
     local placeButton = placeFrame:WaitForChild("Button")::GuiButton
     ButtonFX(placeButton)
-    placeButton.MouseButton1Click:Connect(function()
+    placeButton.Activated:Connect(function()
         local fishData = FishCmds.GetCurrentFishData()
         if not fishData then
             NotificationCmds.Message("Equip a fish to place it!", {
@@ -293,7 +293,7 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, upgradeFrame: F
 
     local boostButton = boostFrame:WaitForChild("Button")::GuiButton
     ButtonFX(boostButton)
-    boostButton.MouseButton1Click:Connect(function()
+    boostButton.Activated:Connect(function()
         local success, msg = plot:Invoke("PlayerBoost", pedestalId)
 
         if not success then

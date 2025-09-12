@@ -1,8 +1,8 @@
 --!strict
 
 return {
-	DisplayName = "Rainbow Coil 2",
-	Icon = "rbxassetid://113359210467566",
+	DisplayName = "Galaxy Coil",
+	Icon = "rbxassetid://76699176695216",
 	Description = "Swim 115% faster!",
 	Index = 7,
 	Cost = 750_000_000,

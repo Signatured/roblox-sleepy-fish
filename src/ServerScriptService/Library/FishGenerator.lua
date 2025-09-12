@@ -55,7 +55,7 @@ local FishGen = {}
 FishGen._nextLegendaryAt = nil :: number?
 FishGen._nextMythicalAt = nil :: number?
 
-type Swimming = FishTypes.swimming_fish_schema & {
+export type Swimming = FishTypes.swimming_fish_schema & {
     UID: string,
     Model: Model,
     Gui: BillboardGui?,
@@ -210,6 +210,105 @@ local function hasHadFishBefore(player: Player): boolean
     return Functions.DictionarySize(save.Index) > 0
 end
 
+function FishGen.CanPickup(player: Player, fishUID: string): boolean
+    local fish = uidToFish[fishUID]
+    if not fish then return false end
+    
+    if not hasHadFishBefore(player) then
+        local fishId = fish.FishData.FishId
+
+        if fishId ~= "Clown Fish" then
+        Notifications.Message(player, "You need to catch a Clown Fish first!", {
+                Color = Color3.fromRGB(255, 0, 0),
+            })
+            return false
+        end
+    end
+    -- Inventory capacity gate
+    local ownerUserId = fish.Model:GetAttribute("OwnerUserId")
+    if typeof(ownerUserId) == "number" and ownerUserId ~= player.UserId then
+        local owner = Players:GetPlayerByUserId(ownerUserId)
+        local message = owner and `Only {owner.DisplayName} can pick up this fish!` or "You cannot pickup this fish!"
+        Notifications.Message(player, message, {
+            Color = Color3.fromRGB(255, 0, 0),
+        })
+        return false
+    end
+    if not canPickupFish(player) then
+        return false
+    end
+    local character = player.Character
+    local hrp = character and character:FindFirstChild("HumanoidRootPart")::BasePart
+    if not hrp or not Functions.IsPositionInPart(hrp.Position, TARGET_ZONE) then
+        Notifications.Message(player, "You have to be in the water to pick up a fish!", {
+            Color = Color3.fromRGB(255, 0, 0),
+        })
+        return false
+    end
+
+    -- Prevent multiple carriers and prevent a player from carrying more than one
+    if fish.Carrier then return false end
+
+    if playerCarry[player] then
+        Notifications.Message(player, "You're already carrying a fish!", {
+            Color = Color3.fromRGB(255, 0, 0),
+        })
+        return false
+    end
+
+    if fish.Model:GetAttribute("Grappling") and fish.Model:GetAttribute("Grappling") ~= player.UserId then
+        return false
+    end
+
+    return true
+end
+
+function FishGen.AttemptPickupByUID(player: Player, fishUID: string): boolean
+	local fish = uidToFish[fishUID]
+	if not fish then return false end
+	-- Find the prompt attached in makePrompt (on the primary part)
+	local primary = fish.Model.PrimaryPart or fish.Model:FindFirstChildWhichIsA("BasePart")
+	local prompt: ProximityPrompt? = nil
+	if primary then
+		prompt = primary:FindFirstChildOfClass("ProximityPrompt")
+	end
+	if not prompt then
+		for _, inst in ipairs(fish.Model:GetDescendants()) do
+			if inst:IsA("ProximityPrompt") then
+				prompt = inst
+				break
+			end
+		end
+	end
+	return FishGen.AttemptPickup(player, fish, (prompt :: any))
+end
+
+
+function FishGen.AttemptPickup(player: Player, fish: Swimming, prompt: ProximityPrompt): boolean
+    local canPickup = FishGen.CanPickup(player, fish.UID)
+    if not canPickup then
+        return false
+    end
+
+    local character = player.Character
+    local hrp = character and character:FindFirstChild("HumanoidRootPart")::BasePart
+
+    setModelAnchored(fish.Model, false)
+    -- Alert sphere at pickup
+    local dir = Directory.Fish[fish.FishData.FishId]
+    if dir and hrp and hrp:IsA("BasePart") then
+        Network.FireAll("AlertPart", hrp.Position, dir.Rarity.AlertRange)
+        -- Notify enemies server-side to begin tracking this alert
+        Enemies.Alert(player, hrp.Position, dir.Rarity.AlertRange)
+    end
+
+    Network.Fire(player, "Fish_Grabbed_In_Water", fish.FishData.FishId)
+    FishGen.SetCarrying(player, fish.UID)
+    prompt.Enabled = false
+
+    return true
+end
+
 local function makePrompt(fish: Swimming)
     local primary = fish.Model.PrimaryPart or fish.Model:FindFirstChildWhichIsA("BasePart")
     if not primary or not primary:IsA("BasePart") then return end
@@ -222,60 +321,7 @@ local function makePrompt(fish: Swimming)
     prompt.RequiresLineOfSight = false
     prompt.Parent = primary
     prompt.Triggered:Connect(function(player)
-        if not hasHadFishBefore(player) then
-            local fishId = fish.FishData.FishId
-
-            if fishId ~= "Clown Fish" then
-            Notifications.Message(player, "You need to catch a Clown Fish first!", {
-                    Color = Color3.fromRGB(255, 0, 0),
-                })
-                return
-            end
-        end
-        -- Inventory capacity gate
-        local ownerUserId = fish.Model:GetAttribute("OwnerUserId")
-        if typeof(ownerUserId) == "number" and ownerUserId ~= player.UserId then
-            local owner = Players:GetPlayerByUserId(ownerUserId)
-            local message = owner and `Only {owner.DisplayName} can pick up this fish!` or "You cannot pickup this fish!"
-            Notifications.Message(player, message, {
-                Color = Color3.fromRGB(255, 0, 0),
-            })
-            return
-        end
-        if not canPickupFish(player) then
-            return
-        end
-        local character = player.Character
-        local hrp = character and character:FindFirstChild("HumanoidRootPart")::BasePart
-        if not hrp or not Functions.IsPositionInPart(hrp.Position, TARGET_ZONE) then
-            Notifications.Message(player, "You have to be in the water to pick up a fish!", {
-                Color = Color3.fromRGB(255, 0, 0),
-            })
-            return
-        end
-
-        -- Prevent multiple carriers and prevent a player from carrying more than one
-        if fish.Carrier then return end
-
-        if playerCarry[player] then
-            Notifications.Message(player, "You're already carrying a fish!", {
-                Color = Color3.fromRGB(255, 0, 0),
-            })
-            return
-        end
-
-        setModelAnchored(fish.Model, false)
-        -- Alert sphere at pickup
-        local dir = Directory.Fish[fish.FishData.FishId]
-        if dir and hrp and hrp:IsA("BasePart") then
-            Network.FireAll("AlertPart", hrp.Position, dir.Rarity.AlertRange)
-            -- Notify enemies server-side to begin tracking this alert
-            Enemies.Alert(player, hrp.Position, dir.Rarity.AlertRange)
-        end
-
-        Network.Fire(player, "Fish_Grabbed_In_Water", fish.FishData.FishId)
-        FishGen.SetCarrying(player, fish.UID)
-        prompt.Enabled = false
+        FishGen.AttemptPickup(player, fish, prompt)
     end)
 end
 
@@ -488,6 +534,7 @@ local function spawnOne(into: BasePart, backdate: number?)
     fishInstance.Model:AddTag("SwimmingFish")
     fishInstance.Model:SetAttribute("UID", uid)
     fishInstance.Model:SetAttribute("CFrame", spawnCFrame)
+    fishInstance.Model:SetAttribute("OceanFish", true)
     attachGui(fishInstance, schema)
     makePrompt(fishInstance)
 end

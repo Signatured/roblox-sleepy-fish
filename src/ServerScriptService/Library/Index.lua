@@ -58,7 +58,10 @@ function Index.IsCompleted(player: Player): boolean
 	local map = save.Index :: {[string]: IndexData}
 	if type(map) ~= "table" then return false end
 
-	for fishId, _ in pairs(Directory.Fish) do
+	for fishId, dir in pairs(Directory.Fish) do
+		if dir.Rarity and dir.Rarity._id == "Exclusive" then
+			continue
+		end
 		if not entryComplete(map[fishId]) then
 			return false
 		end

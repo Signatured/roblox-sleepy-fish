@@ -7,13 +7,14 @@ return {
     DisplayName = "Graipuss Medussi",
     Icon = "rbxassetid://93541654161971",
     Rarity = Rarity.Exclusive,
-    MoneyPerSecond = 50,
+    MoneyPerSecond = 150,
     BaseUpgradeCost = 10000,
     BillboardOffset = 13,
     PedestalOffset = -2,
     RarityWeight = 0,
     -- IndexOffset = 8,
     -- IndexPositionOffset = Vector3.new(-7, 2, 0),
+    BestFishMultiplier = 1.5,
 }::FishTypes.raw_dir
 
 
