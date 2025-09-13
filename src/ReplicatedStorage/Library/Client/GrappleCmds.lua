@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+local ContextActionService = game:GetService("ContextActionService")
 
 local Network = require(game.ReplicatedStorage.Library.Client.Network)
 local NotificationCmds = require(game.ReplicatedStorage.Library.Client.NotificationCmds)
@@ -60,6 +61,8 @@ local function shootGrapple(targetPosition: Vector3)
 	if not tool then return end
 	local handle = tool:FindFirstChild("Handle")
 	if not handle or not handle:IsA("BasePart") then return end
+
+    localPlayer:SetAttribute("Grappling", true)
 
 	-- Swap the tool's mesh to the rope tip
 	local toolMesh = handle:FindFirstChildOfClass("SpecialMesh")
@@ -170,6 +173,7 @@ local function shootGrapple(targetPosition: Vector3)
 						if refreshMesh and refreshMesh:IsA("SpecialMesh") then
 							(refreshMesh :: SpecialMesh).MeshId = MESH_TOOL_DEFAULT
 						end
+                        localPlayer:SetAttribute("Grappling", nil)
 						if hookPart then hookPart:Destroy() end
 						return
 					else
@@ -207,6 +211,8 @@ local function shootGrapple(targetPosition: Vector3)
 	if refreshMesh2 and refreshMesh2:IsA("SpecialMesh") then
 		(refreshMesh2 :: SpecialMesh).MeshId = MESH_TOOL_DEFAULT
 	end
+
+    localPlayer:SetAttribute("Grappling", nil)
 
 	hookPart:Destroy()
 end
