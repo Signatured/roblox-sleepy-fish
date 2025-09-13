@@ -86,6 +86,25 @@ local function shootGrapple(targetPosition: Vector3)
 	end
 	hookMesh.Parent = hookPart
 
+	-- Create rope from Handle.RopeAttachment to hookPart
+	local ropeAttachment0: Attachment? = (handle:FindFirstChild("RopeAttachment") :: Attachment)
+	local hookAttachment = Instance.new("Attachment")
+	hookAttachment.Name = "GrappleHookAttachment"
+	hookAttachment.Parent = hookPart
+	-- Offset to the back end of the hook (local +Z is back)
+	hookAttachment.Position = Vector3.new(0, 0, 0.5)
+	if ropeAttachment0 then
+		local ropeBeam = Instance.new("Beam")
+		ropeBeam.Attachment0 = ropeAttachment0
+		ropeBeam.Attachment1 = hookAttachment
+		ropeBeam.Color = ColorSequence.new(Color3.new(0, 0, 0))
+		ropeBeam.Width0 = 0.06
+		ropeBeam.Width1 = 0.06
+		ropeBeam.CurveSize0 = 0
+		ropeBeam.CurveSize1 = 0
+		ropeBeam.Parent = hookPart
+	end
+
 	-- Initial CFrame 5 studs away toward click, looking at the click point
 	local startPos = handle.Position + (targetPosition - handle.Position).Unit
 	hookPart.CFrame = CFrame.new(startPos, targetPosition) * CFrame.Angles(0, 0, 0)
