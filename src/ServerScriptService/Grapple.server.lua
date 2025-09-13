@@ -8,98 +8,115 @@ local Network = require(ServerScriptService.Library.Network)
 local Gadgets = require(ServerScriptService.Game.Library.Gadgets)
 local FishGen = require(ServerScriptService.Game.Library.FishGenerator)
 
+-- Broadcast to all clients when a player shoots their grapple (for visuals only)
+Network.Fired("Grapple_Shoot", function(player: Player, origin: Vector3, direction: Vector3)
+	-- Optional: validate the player still has the gadget
+	if not Gadgets.Has(player, "Grappling Hook") then return end
+	Network.FireAll("Grapple_PlayShot", player.UserId, origin, direction)
+end)
+
 -- Client reports a grapple hit with a fish UID
 Network.Invoked("Grapple_HitFish", function(player: Player, uid: string)
-    if type(uid) ~= "string" or uid == "" then return end
+	if type(uid) ~= "string" or uid == "" then return end
 
-    -- Verify the player currently has Grappling Hook equipped
-    local hasHook = Gadgets.Has(player, "Grappling Hook")
-    if not hasHook then return false end
+	-- Verify the player currently has Grappling Hook equipped
+	local hasHook = Gadgets.Has(player, "Grappling Hook")
+	if not hasHook then return false end
 
-    -- Find the fish model by UID attribute
-    local hitModel: Model? = nil
-    local things = workspace:FindFirstChild("__THINGS")
-    local swimmingRoot = things and things:FindFirstChild("SwimmingFish")
-    if swimmingRoot then
-        for _, m in ipairs(swimmingRoot:GetDescendants()) do
-            if m:IsA("Model") and m:GetAttribute("UID") == uid then
-                hitModel = m
-                break
-            end
-        end
-    end
-    if not hitModel then return false end
+	-- Find the fish model by UID attribute
+	local hitModel: Model? = nil
+	local things = workspace:FindFirstChild("__THINGS")
+	local swimmingRoot = things and things:FindFirstChild("SwimmingFish")
+	if swimmingRoot then
+		for _, m in ipairs(swimmingRoot:GetDescendants()) do
+			if m:IsA("Model") and m:GetAttribute("UID") == uid then
+				hitModel = m
+				break
+			end
+		end
+	end
+	if not hitModel then return false end
 
-    -- Mark grappling and unanchor all parts so physics can move it
-    local character = player.Character
-    local hrp = character and character:FindFirstChild("HumanoidRootPart")
-    if not hrp or not hrp:IsA("BasePart") then return end
+	-- Mark grappling and unanchor all parts so physics can move it
+	local character = player.Character
+	local hrp = character and character:FindFirstChild("HumanoidRootPart")
+	if not hrp or not hrp:IsA("BasePart") then return end
 
-    local primary = hitModel.PrimaryPart or hitModel:FindFirstChildWhichIsA("BasePart")
-    if not primary then return false end
+	local primary = hitModel.PrimaryPart or hitModel:FindFirstChildWhichIsA("BasePart")
+	if not primary then return false end
 
-    if not FishGen.CanPickup(player, uid) then
-        return false
-    end
+	if not FishGen.CanPickup(player, uid) then
+		return false
+	end
 
-    -- Mark as grappling
-    hitModel:SetAttribute("Grappling", player.UserId)
+	-- Mark as grappling
+	hitModel:SetAttribute("Grappling", player.UserId)
+	-- Tell all clients to visually attach this player's hook to the fish
+	Network.FireAll("Grapple_Attach", player.UserId, uid)
 
-    -- Unanchor the entire model so LV can move it
-    for _, inst in ipairs(hitModel:GetDescendants()) do
-        if inst:IsA("BasePart") then
-            (inst :: BasePart).Anchored = false
-        end
-    end
+	-- Unanchor the entire model so LV can move it
+	for _, inst in ipairs(hitModel:GetDescendants()) do
+		if inst:IsA("BasePart") then
+			(inst :: BasePart).Anchored = false
+		end
+	end
 
-    local att = Instance.new("Attachment")
-    att.Parent = primary
+	local att = Instance.new("Attachment")
+	att.Parent = primary
 
-    local lv = Instance.new("LinearVelocity")
-    lv.Attachment0 = att
-    lv.MaxForce = math.huge
-    lv.Parent = primary
+	local lv = Instance.new("LinearVelocity")
+	lv.Attachment0 = att
+	lv.MaxForce = math.huge
+	lv.Parent = primary
 
-    local connection
-    connection = game:GetService("RunService").Heartbeat:Connect(function(dt)
-        if not player.Parent or not hitModel or not hitModel.Parent then
-            for _, inst in ipairs(hitModel:GetDescendants()) do
-                if inst:IsA("BasePart") then
-                    (inst :: BasePart).Anchored = true
-                end
-            end
+	local connection
+	connection = game:GetService("RunService").Heartbeat:Connect(function(dt)
+		if not player.Parent or not hitModel or not hitModel.Parent then
+			for _, inst in ipairs(hitModel:GetDescendants()) do
+				if inst:IsA("BasePart") then
+					(inst :: BasePart).Anchored = true
+				end
+			end
 
-            if connection then connection:Disconnect() end
-            if lv then lv:Destroy() end
-            if att then att:Destroy() end
-            if hitModel then hitModel:SetAttribute("Grappling", nil) end
-            return
-        end
-        local toPlayer = (hrp.Position - primary.Position)
-        local dist = toPlayer.Magnitude
-        if dist < 6 then
-            -- close enough: make the player carry the fish
-            if connection then connection:Disconnect() end
-            if lv then lv:Destroy() end
-            if att then att:Destroy() end
+			if connection then connection:Disconnect() end
+			if lv then lv:Destroy() end
+			if att then att:Destroy() end
+			if hitModel then hitModel:SetAttribute("Grappling", nil) end
+			-- End the visual on all clients
+			Network.FireAll("Grapple_End", player.UserId)
+			return
+		end
+		local toPlayer = (hrp.Position - primary.Position)
+		local dist = toPlayer.Magnitude
+		if dist < 6 then
+			-- close enough: make the player carry the fish
+			if connection then connection:Disconnect() end
+			if lv then lv:Destroy() end
+			if att then att:Destroy() end
 
-            hitModel:SetAttribute("Grappling", nil)
+			hitModel:SetAttribute("Grappling", nil)
 
-            local pickedUp = FishGen.AttemptPickupByUID(player, uid)
-            if not pickedUp and hitModel and hitModel.Parent and not hitModel:GetAttribute("Carrying") then
-                for _, inst in ipairs(hitModel:GetDescendants()) do
-                    if inst:IsA("BasePart") then
-                        (inst :: BasePart).Anchored = true
-                    end
-                end
-            end
-            return
-        end
-        local dir = toPlayer.Unit
-        -- lv.VectorVelocity = dir * 40
-        lv.VectorVelocity = dir * 0.1
-    end)
-    return true
+			local pickedUp = FishGen.AttemptPickupByUID(player, uid)
+			if not pickedUp and hitModel and hitModel.Parent and not hitModel:GetAttribute("Carrying") then
+				for _, inst in ipairs(hitModel:GetDescendants()) do
+					if inst:IsA("BasePart") then
+						(inst :: BasePart).Anchored = true
+					end
+				end
+			end
+			-- End the visual on all clients
+			Network.FireAll("Grapple_End", player.UserId)
+			return
+		end
+		local dir = toPlayer.Unit
+		lv.VectorVelocity = dir * 25
+	end)
+	return true
+end)
+
+-- Client signals a full cycle return (no fish attached): broadcast end to others
+Network.Fired("Grapple_Returned", function(player: Player)
+	Network.FireAll("Grapple_End", player.UserId)
 end)
 
 

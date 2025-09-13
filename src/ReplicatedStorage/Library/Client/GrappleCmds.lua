@@ -4,14 +4,10 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
-local ContextActionService = game:GetService("ContextActionService")
+local _ContextActionService = game:GetService("ContextActionService")
 
 local Network = require(game.ReplicatedStorage.Library.Client.Network)
 local NotificationCmds = require(game.ReplicatedStorage.Library.Client.NotificationCmds)
-
-local localPlayer = Players.LocalPlayer
-local camera = Workspace.CurrentCamera
-local GadgetCmds = require(game.ReplicatedStorage.Game.Library.Client.GadgetCmds)
 
 -- Asset constants
 local ASSET = "http://www.roblox.com/asset/?id="
@@ -20,9 +16,16 @@ local MESH_TOOL_DEFAULT = ASSET .. "33393806"
 local HOOK_MESH_ID = ASSET .. "30307623"
 local HOOK_TEXTURE_ID = ASSET .. "30307531"
 
+local localPlayer = Players.LocalPlayer
+local camera = Workspace.CurrentCamera
+local GadgetCmds = require(game.ReplicatedStorage.Game.Library.Client.GadgetCmds)
+
 local COOLDOWN_SECONDS = 4
 local lastShotAt = 0
 local blockedUids: {[string]: boolean} = {}
+
+-- Track other players' grapples for replication
+local otherGrapples: {[number]: { hookPart: BasePart, ropeAttachment: Attachment?, hookAttachment: Attachment, direction: Vector3, stop: boolean, tetherFishUid: string? }} = {}
 
 local function getEquippedGrapple(): Tool?
 	-- Prefer gadget system to verify equipped gadget
@@ -62,7 +65,13 @@ local function shootGrapple(targetPosition: Vector3)
 	local handle = tool:FindFirstChild("Handle")
 	if not handle or not handle:IsA("BasePart") then return end
 
-    localPlayer:SetAttribute("Grappling", true)
+	localPlayer:SetAttribute("Grappling", true)
+
+	-- Notify server to replicate the shot (origin & direction) for other clients
+	local origin = handle.Position
+	local dir = (targetPosition - origin)
+	if dir.Magnitude > 0 then dir = dir.Unit else dir = camera.CFrame.LookVector end
+	Network.Fire("Grapple_Shoot", origin, dir)
 
 	-- Swap the tool's mesh to the rope tip
 	local toolMesh = handle:FindFirstChildOfClass("SpecialMesh")
@@ -173,7 +182,7 @@ local function shootGrapple(targetPosition: Vector3)
 						if refreshMesh and refreshMesh:IsA("SpecialMesh") then
 							(refreshMesh :: SpecialMesh).MeshId = MESH_TOOL_DEFAULT
 						end
-                        localPlayer:SetAttribute("Grappling", nil)
+						localPlayer:SetAttribute("Grappling", nil)
 						if hookPart then hookPart:Destroy() end
 						return
 					else
@@ -212,7 +221,9 @@ local function shootGrapple(targetPosition: Vector3)
 		(refreshMesh2 :: SpecialMesh).MeshId = MESH_TOOL_DEFAULT
 	end
 
-    localPlayer:SetAttribute("Grappling", nil)
+	localPlayer:SetAttribute("Grappling", nil)
+	-- Signal server that this cycle ended without an attach so others stop visuals
+	Network.Fire("Grapple_Returned")
 
 	hookPart:Destroy()
 end
@@ -250,6 +261,157 @@ UserInputService.InputBegan:Connect(function(input: InputObject, gameProcessed: 
 	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 		onFireGrapple(input)
 	end
+end)
+
+-- Render other players' shots
+Network.Fired("Grapple_PlayShot", function(userId: number, origin: Vector3, direction: Vector3)
+	if typeof(userId) ~= "number" or userId == Players.LocalPlayer.UserId then return end
+	-- Find their tool handle (best effort)
+	local other = Players:GetPlayerByUserId(userId)
+	local character = other and other.Character
+	local tool = character and character:FindFirstChildOfClass("Tool")
+	local handle = tool and tool:FindFirstChild("Handle")
+	local ropeAttachment = handle and handle:FindFirstChild("RopeAttachment")
+	-- Swap their tool mesh to rope tip during the shot
+	local otherMesh = handle and handle:FindFirstChildOfClass("SpecialMesh")
+	if otherMesh and otherMesh:IsA("SpecialMesh") then
+		(otherMesh :: SpecialMesh).MeshId = MESH_ROPE_TIP
+	end
+
+	-- Spawn a proxy hook and beam for their shot
+	local hookPart = Instance.new("Part")
+	hookPart.Name = "GrappleHookProxy"
+	hookPart.Anchored = true
+	hookPart.CanCollide = false
+	hookPart.Size = Vector3.new(1, 1, 1)
+	hookPart.Parent = Workspace
+
+	local hookMesh = Instance.new("SpecialMesh")
+	hookMesh.MeshType = Enum.MeshType.FileMesh
+	hookMesh.MeshId = HOOK_MESH_ID
+	hookMesh.TextureId = HOOK_TEXTURE_ID
+	hookMesh.Scale = Vector3.new(1, 0.4, 1)
+	hookMesh.Parent = hookPart
+
+	local hookAttachment = Instance.new("Attachment")
+	hookAttachment.Name = "GrappleHookAttachment"
+	hookAttachment.Parent = hookPart
+	hookAttachment.Position = Vector3.new(0, 0, 0.5)
+
+	if ropeAttachment and ropeAttachment:IsA("Attachment") then
+		local ropeBeam = Instance.new("Beam")
+		ropeBeam.Attachment0 = ropeAttachment
+		ropeBeam.Attachment1 = hookAttachment
+		ropeBeam.Color = ColorSequence.new(Color3.new(0, 0, 0))
+		ropeBeam.Width0 = 0.06
+		ropeBeam.Width1 = 0.06
+		ropeBeam.CurveSize0 = 0
+		ropeBeam.CurveSize1 = 0
+		ropeBeam.Parent = hookPart
+	end
+
+	local startPos = origin + direction.Unit
+	hookPart.CFrame = CFrame.new(startPos, startPos + direction)
+
+	-- store state
+	otherGrapples[userId] = {
+		hookPart = hookPart,
+		ropeAttachment = ropeAttachment and ropeAttachment:IsA("Attachment") and (ropeAttachment :: Attachment) or nil,
+		hookAttachment = hookAttachment,
+		direction = direction.Unit,
+		stop = false,
+		tetherFishUid = nil,
+	}
+
+	-- fly 30 studs over 1s then return 1s unless attach happens
+	task.spawn(function()
+		local travel = 30
+		local forwardDuration = 1
+		local fSpeed = travel / forwardDuration
+		local fElapsed = 0
+		while fElapsed < forwardDuration and hookPart.Parent do
+			local rec = otherGrapples[userId]
+			if not rec or rec.stop or rec.tetherFishUid then break end
+			local dt = RunService.Heartbeat:Wait()
+			fElapsed += dt
+			hookPart.CFrame = CFrame.new(hookPart.Position + direction.Unit * (fSpeed * dt), hookPart.Position + direction.Unit)
+		end
+		-- Return to handle attachment (if exists) using Lerp over 1s unless attach happened
+		local rec = otherGrapples[userId]
+		if not rec or rec.stop or rec.tetherFishUid then return end
+		local returnDuration = 1
+		local elapsed = 0
+		local returnStart = hookPart.Position
+		while elapsed < returnDuration and hookPart.Parent do
+			local rec2 = otherGrapples[userId]
+			if not rec2 or rec2.stop or rec2.tetherFishUid then return end
+			local dt = RunService.Heartbeat:Wait()
+			elapsed += dt
+			local alpha = math.clamp(elapsed / returnDuration, 0, 1)
+			local targetPos = (ropeAttachment and ropeAttachment:IsA("Attachment") and (ropeAttachment :: Attachment).WorldPosition) or (handle and handle.Position) or startPos
+			local pos = returnStart:Lerp(targetPos, alpha)
+			hookPart.CFrame = CFrame.new(pos, pos + direction)
+		end
+		if hookPart.Parent then hookPart:Destroy() end
+		otherGrapples[userId] = nil
+	end)
+end)
+
+-- On attach, tether the proxy hook to the fish until server clears
+Network.Fired("Grapple_Attach", function(userId: number, uid: string)
+	if typeof(userId) ~= "number" or userId == Players.LocalPlayer.UserId then return end
+	local rec = otherGrapples[userId]
+	if not rec or not rec.hookPart or not rec.hookPart.Parent then return end
+	rec.tetherFishUid = uid
+	local function findFishByUid(): Model?
+		local things = workspace:FindFirstChild("__THINGS")
+		local swimming = things and things:FindFirstChild("SwimmingFish")
+		if not swimming then return nil end
+		for _, m in ipairs(swimming:GetDescendants()) do
+			if m:IsA("Model") and m:GetAttribute("UID") == uid then
+				return m
+			end
+		end
+		return nil
+	end
+	task.spawn(function()
+		local fish = findFishByUid()
+		if not fish then return end
+		local dir = rec.direction
+		while rec and rec.hookPart and rec.hookPart.Parent and fish and fish.Parent do
+			if fish:GetAttribute("Grappling") and fish:GetAttribute("Grappling") ~= userId then break end
+			local primary = fish.PrimaryPart or fish:FindFirstChildWhichIsA("BasePart")
+			if not primary then break end
+			local tipPos = primary.Position - dir.Unit * 1
+			rec.hookPart.CFrame = CFrame.new(tipPos, tipPos + dir)
+			RunService.Heartbeat:Wait()
+		end
+		if rec and rec.hookPart then pcall(function() rec.hookPart:Destroy() end) end
+		otherGrapples[userId] = nil
+	end)
+end)
+
+-- End other players' visuals early (on attach finish or no-hit finish)
+Network.Fired("Grapple_End", function(userId: number)
+	if typeof(userId) ~= "number" or userId == Players.LocalPlayer.UserId then return end
+	local rec = otherGrapples[userId]
+	if rec then rec.stop = true end
+	-- Best-effort cleanup: destroy any proxy hooks for this user
+	for _, inst in ipairs(Workspace:GetChildren()) do
+		if inst:IsA("BasePart") and inst.Name == "GrappleHookProxy" then
+			inst:Destroy()
+		end
+	end
+	-- Restore their tool mesh to default
+	local other = Players:GetPlayerByUserId(userId)
+	local character = other and other.Character
+	local tool = character and character:FindFirstChildOfClass("Tool")
+	local handle = tool and tool:FindFirstChild("Handle")
+	local mesh = handle and handle:FindFirstChildOfClass("SpecialMesh")
+	if mesh and mesh:IsA("SpecialMesh") then
+		(mesh :: SpecialMesh).MeshId = MESH_TOOL_DEFAULT
+	end
+	otherGrapples[userId] = nil
 end)
 
 return {}
