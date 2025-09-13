@@ -8,6 +8,7 @@ local _ContextActionService = game:GetService("ContextActionService")
 
 local Network = require(game.ReplicatedStorage.Library.Client.Network)
 local NotificationCmds = require(game.ReplicatedStorage.Library.Client.NotificationCmds)
+local Audio = require(game.ReplicatedStorage.Library.Audio)
 
 -- Asset constants
 local ASSET = "http://www.roblox.com/asset/?id="
@@ -73,6 +74,13 @@ local function shootGrapple(targetPosition: Vector3)
 	local dir = (targetPosition - origin)
 	if dir.Magnitude > 0 then dir = dir.Unit else dir = camera.CFrame.LookVector end
 	Network.Fire("Grapple_Shoot", origin, dir)
+
+	-- Play shoot sound on the local player's HumanoidRootPart
+	local character = localPlayer.Character
+	local hrp = character and character:FindFirstChild("HumanoidRootPart")
+	if hrp and hrp:IsA("BasePart") then
+		Audio.Play("rbxassetid://133240422241361", hrp)
+	end
 
 	-- Swap the tool's mesh to the rope tip
 	local toolMesh = handle:FindFirstChildOfClass("SpecialMesh")
@@ -287,6 +295,12 @@ Network.Fired("Grapple_PlayShot", function(userId: number, origin: Vector3, dire
 	hookPart.CanCollide = false
 	hookPart.Size = Vector3.new(1, 1, 1)
 	hookPart.Parent = Workspace
+
+	-- Play shoot sound on the other player's HumanoidRootPart
+	local hrp = character and character:FindFirstChild("HumanoidRootPart")
+	if hrp and hrp:IsA("BasePart") then
+		Audio.Play("rbxassetid://133240422241361", hrp)
+	end
 
 	local hookMesh = Instance.new("SpecialMesh")
 	hookMesh.MeshType = Enum.MeshType.FileMesh
