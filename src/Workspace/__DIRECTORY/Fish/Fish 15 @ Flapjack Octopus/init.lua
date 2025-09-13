@@ -1,0 +1,19 @@
+--!strict
+
+local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
+local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
+
+return {
+    DisplayName = "Flapjack Octopus",
+    Icon = "rbxassetid://85984305169053",
+    Rarity = Rarity.Epic,
+    MoneyPerSecond = 46,
+    BaseUpgradeCost = 850,
+    BillboardOffset = 7,
+    RarityWeight = 20,
+    -- IndexRotationOffset = Vector3.new(0, math.rad(180), 0),
+    -- IndexOffset = 3.5,
+}::FishTypes.raw_dir
+
+
+

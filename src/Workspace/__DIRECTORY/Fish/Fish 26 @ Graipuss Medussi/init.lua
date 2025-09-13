@@ -1,0 +1,21 @@
+--!strict
+
+local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
+local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
+
+return {
+    DisplayName = "Graipuss Medussi",
+    Icon = "rbxassetid://93541654161971",
+    Rarity = Rarity.Mythical,
+    MoneyPerSecond = 225,
+    BaseUpgradeCost = 5800,
+    BillboardOffset = 10,
+    PedestalOffset = -0.5,
+    RarityWeight = 20,
+    -- IndexRotationOffset = Vector3.new(0, math.rad(-70), 0),
+    -- IndexOffset = 0.5,
+    -- IndexPositionOffset = Vector3.new(0.5, -0.2, 0),
+}::FishTypes.raw_dir
+
+
+

@@ -4,13 +4,13 @@ local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
 local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
-    DisplayName = "Moorish Fish",
-    Icon = "rbxassetid://119872940972353",
+    DisplayName = "Dory",
+    Icon = "rbxassetid://86023134773124",
     Rarity = Rarity.Uncommon,
-    MoneyPerSecond = 6,
-    BaseUpgradeCost = 100,
-    BillboardOffset = 7,
-    RarityWeight = 30,
+    MoneyPerSecond = 7,
+    BaseUpgradeCost = 120,
+    BillboardOffset = 6,
+    RarityWeight = 25,
     IndexOffset = 3,
     IndexPositionOffset = Vector3.new(-0.5, -0.5, 0),
 }::FishTypes.raw_dir
