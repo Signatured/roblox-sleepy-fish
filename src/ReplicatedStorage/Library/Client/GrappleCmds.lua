@@ -20,7 +20,8 @@ local localPlayer = Players.LocalPlayer
 local camera = Workspace.CurrentCamera
 local GadgetCmds = require(game.ReplicatedStorage.Game.Library.Client.GadgetCmds)
 
-local COOLDOWN_SECONDS = 4
+local COOLDOWN_SECONDS = 3
+local GRAPPLE_RANGE = 27
 local lastShotAt = 0
 local blockedUids: {[string]: boolean} = {}
 
@@ -124,7 +125,7 @@ local function shootGrapple(targetPosition: Vector3)
     -- Clear blocked UIDs
     blockedUids = {}
 
-	-- Animate forward toward clicked position (clamped to 30 studs), then back to handle
+	-- Animate forward toward clicked position (clamped to GRAPPLE_RANGE studs), then back to handle
 	-- Project the click along the camera ray and clamp so it is in front of the muzzle
 	local camPos = camera.CFrame.Position
 	local rayDir = (targetPosition - camPos)
@@ -136,7 +137,7 @@ local function shootGrapple(targetPosition: Vector3)
 
 	local toTarget = clampedTarget - startPos
 	local direction = (toTarget.Magnitude > 0) and toTarget.Unit or camera.CFrame.LookVector
-	local travel = math.min(30, toTarget.Magnitude)
+	local travel = math.min(GRAPPLE_RANGE, toTarget.Magnitude)
 	local _forwardGoalPos = startPos + direction * travel
 	-- Step forward manually to detect hits
 	local forwardDuration = 1
@@ -246,7 +247,7 @@ local function onFireGrapple(input: InputObject)
 	end
 
 	local originPos = ropeAttachment and ropeAttachment.WorldPosition or handle.Position
-	if (hitPos - originPos).Magnitude > 30 then
+	if (hitPos - originPos).Magnitude > GRAPPLE_RANGE then
 		NotificationCmds.Message("That fish is out of range!", { Color = Color3.fromRGB(255, 0, 0) })
 		return
 	end
@@ -323,9 +324,9 @@ Network.Fired("Grapple_PlayShot", function(userId: number, origin: Vector3, dire
 		tetherFishUid = nil,
 	}
 
-	-- fly 30 studs over 1s then return 1s unless attach happens
+	-- fly GRAPPLE_RANGE studs over 1s then return 1s unless attach happens
 	task.spawn(function()
-		local travel = 30
+		local travel = GRAPPLE_RANGE
 		local forwardDuration = 1
 		local fSpeed = travel / forwardDuration
 		local fElapsed = 0
