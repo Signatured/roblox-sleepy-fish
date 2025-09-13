@@ -6,6 +6,9 @@ local GUI = require(ReplicatedStorage.Game.Library.Client.GUI)
 local TabController = require(ReplicatedStorage.Library.Client.TabController)
 local ButtonFX = require(ReplicatedStorage.Library.Client.GUIFX.ButtonFX)
 local GadgetDirectory = require(ReplicatedStorage.Game.Library.Directory.Gadgets)
+local ProductDirectory = require(ReplicatedStorage.Game.Library.Directory.Products)
+local GadgetCmds = require(ReplicatedStorage.Game.Library.Client.GadgetCmds)
+local Marketplace = require(ReplicatedStorage.Library.Marketplace)
 local Functions = require(ReplicatedStorage.Library.Functions)
 local Network = require(ReplicatedStorage.Library.Client.Network)
 local Signal = require(ReplicatedStorage.Library.Signal)
@@ -13,6 +16,12 @@ local Save = require(ReplicatedStorage.Library.Client.Save)
 local NotificationCmds = require(ReplicatedStorage.Library.Client.NotificationCmds)
 local ClientPlot = require(ReplicatedStorage.Plot.ClientPlot)
 local Audio = require(ReplicatedStorage.Library.Audio)
+
+-- Ordered list of exclusive tools to display in the shop
+-- Each entry maps a product directory id to a gadget directory id
+local EXCLUSIVE_TOOLS = {
+	{ product = "Magic Carpet", gadget = "Magic Carpet" },
+}
 
 local function getContentContainer(): ScrollingFrame?
 	local toolsGui = GUI.Tools()
@@ -32,6 +41,73 @@ local function hasGadget(dir: GadgetDirectory.dir_schema)
 
 	local tools = save.Tools
 	return tools[dir._id] ~= nil
+end
+
+local function buildExclusiveList()
+	local scrolling = getContentContainer()
+	if not scrolling then return end
+
+	local template = scrolling:FindFirstChild("ExclusiveTool")
+	if not template or not template:IsA("Frame") then
+		warn("ToolsShop: Template 'ExclusiveTool' not found under ScrollingFrame")
+		return
+	end
+
+	-- Remove existing clones
+	for _, child in ipairs(scrolling:GetChildren()) do
+		if child ~= template and child:IsA("Frame") and child.Name == "ExclusiveTool" then
+			child:Destroy()
+		end
+	end
+
+	-- Hide template
+	template.Visible = false
+
+	for index, entry in ipairs(EXCLUSIVE_TOOLS) do
+		local product = ProductDirectory[entry.product]
+		local gadget = GadgetDirectory[entry.gadget]
+		if product and gadget and not GadgetCmds.Has(entry.gadget) then
+			local clone = template:Clone()
+			clone.Visible = true
+			clone.LayoutOrder = 100000 + index
+
+			-- Title and Description
+			local title = clone:FindFirstChild("Title")
+			if title and title:IsA("TextLabel") then
+				title.Text = tostring(gadget.DisplayName or entry.gadget)
+			end
+			local description = clone:FindFirstChild("Description")
+			if description and description:IsA("TextLabel") then
+				description.Text = tostring(gadget.Description or "")
+			end
+
+			-- Icon
+			local toolImage = clone:FindFirstChild("ToolImage")
+			local imageLabel = toolImage and toolImage:FindFirstChild("ImageLabel")
+			if imageLabel and imageLabel:IsA("ImageLabel") then
+				imageLabel.Image = tostring(gadget.Icon or "")
+			end
+
+			-- Buy button
+			local buyButton = clone:FindFirstChild("BuyButton")
+			if buyButton and buyButton:IsA("GuiButton") then
+				ButtonFX(buyButton)
+				local label = buyButton:FindFirstChild("TextLabel")
+				if label and label:IsA("TextLabel") then
+					local price = product.ProductId and Functions.GetRobuxPrice(product.ProductId, true)
+					label.Text = price and " " .. tostring(price) or " ???"
+				end
+				buyButton.Activated:Connect(function()
+					if product.ProductId then
+						Network.Fire("ClickedProduct", product._id)
+						Marketplace.Prompt(game.Players.LocalPlayer, product.ProductId :: number, true)
+					end
+				end)
+			end
+
+			clone.Parent = scrolling
+		end
+	end
 end
 
 local function buildToolsList()
@@ -164,6 +240,7 @@ end
 -- Rebuild when the Tools tab opens
 TabController.Opened:Connect(function(tabId: string)
 	if tabId == "Tools" then
+		buildExclusiveList()
 		buildToolsList()
 
 		task.spawn(function()
@@ -181,6 +258,7 @@ end)
 
 Signal.Fired("StatCacheUpdated"):Connect(function(key: string, value: any)
 	if key == "Tools" then
+		buildExclusiveList()
 		buildToolsList()
 	end
 end)

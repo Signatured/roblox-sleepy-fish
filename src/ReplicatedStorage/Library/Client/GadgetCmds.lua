@@ -97,7 +97,6 @@ function module.GetCurrent(): GadgetTypes.dir_schema?
 end
 -- Equips the best available coil gadget (highest SpeedMultiplier) if owned.
 function module.EquipBestCoil(): boolean
-    print("fired")
     local player = Players.LocalPlayer
     if not player then return false end
 
