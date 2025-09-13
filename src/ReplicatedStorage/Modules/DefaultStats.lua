@@ -52,9 +52,7 @@ export type schema = {
 
 local DefaultStats = {
 	Inventory = {},
-	Tools = {
-		["Grappling Hook"] = true,
-	},
+	Tools = {},
 	PlotSave = {
 		Variables = {
 			Money = 0,

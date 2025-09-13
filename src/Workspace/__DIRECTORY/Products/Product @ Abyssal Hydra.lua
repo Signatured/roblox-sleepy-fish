@@ -2,8 +2,8 @@
 
 return {
 	ProductId = 3402065537,
-	DisplayName = "[OP] Exclusive Graipuss Medussi",
-	Icon = "rbxassetid://93541654161971",
+	DisplayName = "[OP] Exclusive Abyssal Hydra",
+	Icon = "rbxassetid://111872157833540",
 	Description = "Fish is 150% as strong as your best fish!",
 	OneTimePurchase = false,
 	ClientTest = function(player: Player)
@@ -42,7 +42,7 @@ return {
 		}
 
 		local data = Fish.Give(player, {
-			FishId = "Graipuss Medussi",
+			FishId = "Abyssal Hydra",
 			Type = Functions.Lottery(typeChances)
 		})
 

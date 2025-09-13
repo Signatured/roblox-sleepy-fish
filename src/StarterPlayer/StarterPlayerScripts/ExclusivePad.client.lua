@@ -16,7 +16,7 @@ TagHook(TAG, function(instance: Instance)
     end
     local pad = Pad.new(instance)
     local conn = pad:AddEnterListener(function(_player)
-        local productId = Directory.Products["Graipuss Medussi"].ProductId
+        local productId = Directory.Products["Abyssal Hydra"].ProductId
         Marketplace.Prompt(Players.LocalPlayer, productId, true)
     end)
     return function()

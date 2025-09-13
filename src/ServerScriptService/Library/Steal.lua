@@ -38,6 +38,17 @@ Network.Fired("Steal", function(player: Player, plotId: number, index: number, f
     local fish = findFish(plot, index)
     if not fish or typeof(fish) ~= "table" or typeof(fish.UID) ~= "string" or fish.UID ~= fishUID then return end
 
+	-- Deny steals of Exclusive rarity fish
+	local fishDir = (fish.FishData and FishDirectory[fish.FishData.FishId])
+	if fishDir and typeof(fishDir) == "table" then
+		local rarity = fishDir.Rarity
+		local rarityName = (typeof(rarity) == "table" and tostring(rarity.DisplayName or "")) or ""
+		if rarityName == "Exclusive" then
+			Notifications.Message(player, "You cannot steal Exclusive fish!", { Color = Color3.fromRGB(255, 0, 0) })
+			return
+		end
+	end
+
     waitingPurchase[player] = {
         PlotId = plotId,
         Index = index,

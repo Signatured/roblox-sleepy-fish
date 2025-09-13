@@ -2,8 +2,8 @@
 
 return {
 	DisplayName = "Grappling Hook",
-	Icon = "rbxassetid://113359210467566",
+	Icon = "rbxassetid://123409552399480",
 	Description = "Pull fish towards you!",
 	Index = 9,
-	Cost = 7_500_000_000
+	Cost = 10_000_000_000
 }

@@ -185,6 +185,7 @@ local function shootGrapple(targetPosition: Vector3)
 						end
 						localPlayer:SetAttribute("Grappling", nil)
 						if hookPart then hookPart:Destroy() end
+						GadgetCmds.EquipBestCoil()
 						return
 					else
 						-- Not accepted: remain blocked until hook finishes its return
