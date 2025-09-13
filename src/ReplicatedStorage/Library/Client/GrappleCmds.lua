@@ -12,6 +12,13 @@ local localPlayer = Players.LocalPlayer
 local camera = Workspace.CurrentCamera
 local GadgetCmds = require(game.ReplicatedStorage.Game.Library.Client.GadgetCmds)
 
+-- Asset constants
+local ASSET = "http://www.roblox.com/asset/?id="
+local MESH_ROPE_TIP = ASSET .. "30308256"
+local MESH_TOOL_DEFAULT = ASSET .. "33393806"
+local HOOK_MESH_ID = ASSET .. "30307623"
+local HOOK_TEXTURE_ID = ASSET .. "30307531"
+
 local COOLDOWN_SECONDS = 4
 local lastShotAt = 0
 local blockedUids: {[string]: boolean} = {}
@@ -26,12 +33,9 @@ local function getEquippedGrapple(): Tool?
 	return character:FindFirstChildOfClass("Tool")
 end
 
--- removed unused mouse ray helper
-
 local function getFishClickHit(input: InputObject): (Vector3?, Model?)
 	local pos = input and input.Position
 	if not camera or not pos then return nil, nil end
-	local ray = camera:ViewportPointToRay(pos.X, pos.Y)
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Include
 	local root = workspace:FindFirstChild("__THINGS")
@@ -40,7 +44,8 @@ local function getFishClickHit(input: InputObject): (Vector3?, Model?)
 	params.FilterDescendantsInstances = { swimming }
 	params.RespectCanCollide = false
 	params.IgnoreWater = true
-	local result = Workspace:Raycast(ray.Origin, ray.Direction * 1000, params)
+    local unitRay = camera:ScreenPointToRay(pos.X, pos.Y)
+	local result = workspace:Raycast(unitRay.Origin, unitRay.Direction * 1000, params)
 	if result and result.Instance then
 		local model = result.Instance:FindFirstAncestorOfClass("Model")
 		if model and model:GetAttribute("OceanFish") == true then
@@ -56,22 +61,14 @@ local function shootGrapple(targetPosition: Vector3)
 	local handle = tool:FindFirstChild("Handle")
 	if not handle or not handle:IsA("BasePart") then return end
 
-	-- Per-shot state
-	local lastTriedUid: string? = nil
-
 	-- Swap the tool's mesh to the rope tip
 	local toolMesh = handle:FindFirstChildOfClass("SpecialMesh")
 	if toolMesh and toolMesh:IsA("SpecialMesh") then
-		(toolMesh :: SpecialMesh).MeshId = "http://www.roblox.com/asset/?id=30308256"
+		(toolMesh :: SpecialMesh).MeshId = MESH_ROPE_TIP
 	end
 
 	-- Create the hook (a part with a SpecialMesh)
 	local hookPart = Instance.new("Part")
-	-- defensive: ensure a previous cycle's uid isn't left blocked
-	if lastTriedUid and blockedUids[lastTriedUid] then
-		blockedUids[lastTriedUid] = nil
-		lastTriedUid = nil
-	end
 	hookPart.Name = "GrappleHook"
 	hookPart.Anchored = true
 	hookPart.CanCollide = false
@@ -80,8 +77,8 @@ local function shootGrapple(targetPosition: Vector3)
 
 	local hookMesh = Instance.new("SpecialMesh")
 	hookMesh.MeshType = Enum.MeshType.FileMesh
-	hookMesh.MeshId = "http://www.roblox.com/asset/?id=30307623"
-	hookMesh.TextureId = "http://www.roblox.com/asset/?id=30307531"
+	hookMesh.MeshId = HOOK_MESH_ID
+	hookMesh.TextureId = HOOK_TEXTURE_ID
 	if toolMesh and toolMesh:IsA("SpecialMesh") then
 		hookMesh.Scale = toolMesh.Scale
 	else
@@ -92,6 +89,9 @@ local function shootGrapple(targetPosition: Vector3)
 	-- Initial CFrame 5 studs away toward click, looking at the click point
 	local startPos = handle.Position + (targetPosition - handle.Position).Unit
 	hookPart.CFrame = CFrame.new(startPos, targetPosition) * CFrame.Angles(0, 0, 0)
+
+    -- Clear blocked UIDs
+    blockedUids = {}
 
 	-- Animate forward toward clicked position (clamped to 30 studs), then back to handle
 	-- Project the click along the camera ray and clamp so it is in front of the muzzle
@@ -119,7 +119,7 @@ local function shootGrapple(targetPosition: Vector3)
 		local nextCF = CFrame.new(nextPos, nextPos + direction)
 		hookPart.CFrame = nextCF
 		-- Detect overlap with fish
-		local region = Region3.new(hookPart.Position - Vector3.new(1,1,1), hookPart.Position + Vector3.new(1,1,1))
+		local region = Region3.new(hookPart.Position - Vector3.new(2,2,2), hookPart.Position + Vector3.new(2,2,2))
 		local ignore = {localPlayer.Character, hookPart}
 		local parts = Workspace:FindPartsInRegion3WithIgnoreList(region, ignore, 50)
 		for _, part in ipairs(parts) do
@@ -127,18 +127,16 @@ local function shootGrapple(targetPosition: Vector3)
 			if model and model:GetAttribute("OceanFish") == true then
 				local uidAttr = model:GetAttribute("UID")
 				if typeof(uidAttr) == "string" and uidAttr ~= "" then
-					if blockedUids[uidAttr] then
-						-- already attempted this fish during current cycle
-						break
-					end
-					blockedUids[uidAttr] = true
-					lastTriedUid = uidAttr
+                    if blockedUids[uidAttr] then
+                        break
+                    end
+                    blockedUids[uidAttr] = true
 					-- Attempt to start grapple server-side
 					local accepted = Network.Invoke("Grapple_HitFish", uidAttr) == true
 					if accepted then
 						local fishModel = model
 						-- Tether: keep hook at the fish's leading edge while Grappling
-						while hookPart and hookPart.Parent and fishModel and fishModel.Parent do
+						while hookPart and hookPart.Parent and fishModel and fishModel.Parent and not fishModel:GetAttribute("Carrying") do
 							if fishModel:GetAttribute("Grappling") and fishModel:GetAttribute("Grappling") ~= localPlayer.UserId then break end
 							local primary = fishModel.PrimaryPart or fishModel:FindFirstChildWhichIsA("BasePart")
 							if not primary then break end
@@ -146,7 +144,13 @@ local function shootGrapple(targetPosition: Vector3)
 							hookPart.CFrame = CFrame.new(tipPos, tipPos + direction)
 							RunService.Heartbeat:Wait()
 						end
-						blockedUids[uidAttr] = nil
+						-- Restore tool mesh on successful reel completion
+						local refreshTool = getEquippedGrapple()
+						local refreshHandle = refreshTool and refreshTool:FindFirstChild("Handle")
+						local refreshMesh = refreshHandle and refreshHandle:FindFirstChildOfClass("SpecialMesh")
+						if refreshMesh and refreshMesh:IsA("SpecialMesh") then
+							(refreshMesh :: SpecialMesh).MeshId = MESH_TOOL_DEFAULT
+						end
 						if hookPart then hookPart:Destroy() end
 						return
 					else
@@ -158,29 +162,31 @@ local function shootGrapple(targetPosition: Vector3)
 		end
 	end
 
-	-- Return toward the tool's CURRENT position over 1 second, updating target each frame
+	-- Return toward the tool's CURRENT RopeAttachment over 1 second using time-based Lerp
 	local returnDuration = 1
-	local speed = (travel > 0 and travel or 30) / returnDuration
 	local elapsed = 0
+	local ropeAttachment: Attachment? = (handle:FindFirstChild("RopeAttachment") :: Attachment)
+	local returnStartPos = hookPart.Position
 	while elapsed < returnDuration and hookPart and hookPart.Parent do
 		local dt = RunService.Heartbeat:Wait()
 		elapsed += dt
-		local currentHandlePos = handle.Position
-		local toHandle = currentHandlePos - hookPart.Position
-		local step = speed * dt
-		if toHandle.Magnitude <= step then
-			hookPart.CFrame = CFrame.new(currentHandlePos, currentHandlePos + direction)
-			break
-		else
-			local dirStep = toHandle.Unit * step
-			local nextPos = hookPart.Position + dirStep
-			hookPart.CFrame = CFrame.new(nextPos, nextPos + direction)
-		end
+		local alpha = math.clamp(elapsed / returnDuration, 0, 1)
+		local targetPos = ropeAttachment and ropeAttachment.WorldPosition or handle.Position
+		local lerpPos = returnStartPos:Lerp(targetPos, alpha)
+		hookPart.CFrame = CFrame.new(lerpPos, lerpPos + direction)
+	end
+	-- Ensure final placement at the attachment after the 1s window
+	if hookPart and hookPart.Parent then
+		local finalPos = (ropeAttachment and ropeAttachment.WorldPosition) or handle.Position
+		hookPart.CFrame = CFrame.new(finalPos, finalPos + direction)
 	end
 
-	-- End of cycle: clear any blocked UID from this attempt
-	if lastTriedUid and blockedUids[lastTriedUid] then
-		blockedUids[lastTriedUid] = nil
+	-- Restore tool mesh on full cycle completion
+	local refreshTool2 = getEquippedGrapple()
+	local refreshHandle2 = refreshTool2 and refreshTool2:FindFirstChild("Handle")
+	local refreshMesh2 = refreshHandle2 and refreshHandle2:FindFirstChildOfClass("SpecialMesh")
+	if refreshMesh2 and refreshMesh2:IsA("SpecialMesh") then
+		(refreshMesh2 :: SpecialMesh).MeshId = MESH_TOOL_DEFAULT
 	end
 
 	hookPart:Destroy()
