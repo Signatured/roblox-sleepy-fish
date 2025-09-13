@@ -2,11 +2,11 @@
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local _TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local Network = require(game.ReplicatedStorage.Library.Client.Network)
+local NotificationCmds = require(game.ReplicatedStorage.Library.Client.NotificationCmds)
 
 local localPlayer = Players.LocalPlayer
 local camera = Workspace.CurrentCamera
@@ -26,26 +26,28 @@ local function getEquippedGrapple(): Tool?
 	return character:FindFirstChildOfClass("Tool")
 end
 
-local function getMouseWorldPosition(input: InputObject?): Vector3?
-	-- Prefer Mouse.Hit for desktop
-	local mouse = localPlayer:GetMouse()
-	if not input or input.UserInputType == Enum.UserInputType.MouseButton1 then
-		local hit = mouse and mouse.Hit
-		if hit then return hit.Position end
-	end
+-- removed unused mouse ray helper
 
-	-- Fallback: ray from screen point
+local function getFishClickHit(input: InputObject): (Vector3?, Model?)
 	local pos = input and input.Position
-	if not camera or not pos then return nil end
+	if not camera or not pos then return nil, nil end
 	local ray = camera:ViewportPointToRay(pos.X, pos.Y)
 	local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
-	params.FilterDescendantsInstances = { localPlayer.Character or Workspace }
+	params.FilterType = Enum.RaycastFilterType.Include
+	local root = workspace:FindFirstChild("__THINGS")
+	local swimming = root and root:FindFirstChild("SwimmingFish")
+	if not swimming then return nil, nil end
+	params.FilterDescendantsInstances = { swimming }
+	params.RespectCanCollide = false
+	params.IgnoreWater = true
 	local result = Workspace:Raycast(ray.Origin, ray.Direction * 1000, params)
-	if result then
-		return result.Position
+	if result and result.Instance then
+		local model = result.Instance:FindFirstAncestorOfClass("Model")
+		if model and model:GetAttribute("OceanFish") == true then
+			return result.Position, model
+		end
 	end
-	return ray.Origin + ray.Direction * 100
+	return nil, nil
 end
 
 local function shootGrapple(targetPosition: Vector3)
@@ -92,14 +94,18 @@ local function shootGrapple(targetPosition: Vector3)
 	hookPart.CFrame = CFrame.new(startPos, targetPosition) * CFrame.Angles(0, 0, 0)
 
 	-- Animate forward toward clicked position (clamped to 30 studs), then back to handle
-	local toTarget = targetPosition - startPos
-	-- Use spawn-to-click direction; if pointing toward the camera, flip it away
+	-- Project the click along the camera ray and clamp so it is in front of the muzzle
+	local camPos = camera.CFrame.Position
+	local rayDir = (targetPosition - camPos)
+	if rayDir.Magnitude == 0 then rayDir = camera.CFrame.LookVector else rayDir = rayDir.Unit end
+	local tHit = (targetPosition - camPos):Dot(rayDir)
+	local tMuzzle = (startPos - camPos):Dot(rayDir)
+	local tClamped = math.max(tHit, tMuzzle + 0.1)
+	local clampedTarget = camPos + rayDir * tClamped
+
+	local toTarget = clampedTarget - startPos
 	local direction = (toTarget.Magnitude > 0) and toTarget.Unit or camera.CFrame.LookVector
-	if direction:Dot(camera.CFrame.LookVector) < 0 then
-		direction = -direction
-	end
-	-- Railgun-style: always travel exactly 30 studs from the starting position along the click direction
-	local travel = 30
+	local travel = math.min(30, toTarget.Magnitude)
 	local _forwardGoalPos = startPos + direction * travel
 	-- Step forward manually to detect hits
 	local forwardDuration = 1
@@ -185,11 +191,26 @@ local function onFireGrapple(input: InputObject)
 	local now = Workspace:GetServerTimeNow()
 	if now - lastShotAt < COOLDOWN_SECONDS then return end
 
-	if not getEquippedGrapple() then return end
-	local pos = getMouseWorldPosition(input)
-	if not pos then return end
+	local tool = getEquippedGrapple()
+	if not tool then return end
+	local handle = tool:FindFirstChild("Handle")
+	if not handle or not handle:IsA("BasePart") then return end
+	local ropeAttachment: Attachment? = (handle:FindFirstChild("RopeAttachment") :: Attachment)
+
+	local hitPos, fishModel = getFishClickHit(input)
+	if not hitPos or not fishModel then
+		NotificationCmds.Message("You need to click a fish to pull!", { Color = Color3.fromRGB(255, 0, 0) })
+		return
+	end
+
+	local originPos = ropeAttachment and ropeAttachment.WorldPosition or handle.Position
+	if (hitPos - originPos).Magnitude > 30 then
+		NotificationCmds.Message("That fish is out of range!", { Color = Color3.fromRGB(255, 0, 0) })
+		return
+	end
+
 	lastShotAt = now
-	shootGrapple(pos)
+	shootGrapple(hitPos)
 end
 
 -- Connect inputs: mouse and touch
