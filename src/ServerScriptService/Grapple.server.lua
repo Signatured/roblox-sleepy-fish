@@ -63,12 +63,16 @@ Network.Invoked("Grapple_HitFish", function(player: Player, uid: string)
     local connection
     connection = game:GetService("RunService").Heartbeat:Connect(function(dt)
         if not player.Parent or not hitModel or not hitModel.Parent then
+            for _, inst in ipairs(hitModel:GetDescendants()) do
+                if inst:IsA("BasePart") then
+                    (inst :: BasePart).Anchored = true
+                end
+            end
+
             if connection then connection:Disconnect() end
             if lv then lv:Destroy() end
             if att then att:Destroy() end
-            pcall(function()
-                if hitModel then hitModel:SetAttribute("Grappling", nil) end
-            end)
+            if hitModel then hitModel:SetAttribute("Grappling", nil) end
             return
         end
         local toPlayer = (hrp.Position - primary.Position)
@@ -79,12 +83,21 @@ Network.Invoked("Grapple_HitFish", function(player: Player, uid: string)
             if lv then lv:Destroy() end
             if att then att:Destroy() end
 
-            FishGen.AttemptPickupByUID(player, uid)
             hitModel:SetAttribute("Grappling", nil)
+
+            local pickedUp = FishGen.AttemptPickupByUID(player, uid)
+            if not pickedUp and hitModel and hitModel.Parent and not hitModel:GetAttribute("Carrying") then
+                for _, inst in ipairs(hitModel:GetDescendants()) do
+                    if inst:IsA("BasePart") then
+                        (inst :: BasePart).Anchored = true
+                    end
+                end
+            end
             return
         end
         local dir = toPlayer.Unit
-        lv.VectorVelocity = dir * 40
+        -- lv.VectorVelocity = dir * 40
+        lv.VectorVelocity = dir * 0.1
     end)
     return true
 end)
