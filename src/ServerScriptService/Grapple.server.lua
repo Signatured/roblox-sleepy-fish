@@ -37,6 +37,8 @@ Network.Invoked("Grapple_HitFish", function(player: Player, uid: string)
 	end
 	if not hitModel then return false end
 
+	if player:GetAttribute("Dead") then return false end
+
 	-- Mark grappling and unanchor all parts so physics can move it
 	local character = player.Character
 	local hrp = character and character:FindFirstChild("HumanoidRootPart")
@@ -71,7 +73,7 @@ Network.Invoked("Grapple_HitFish", function(player: Player, uid: string)
 
 	local connection
 	connection = game:GetService("RunService").Heartbeat:Connect(function(dt)
-		if not player.Parent or not hitModel or not hitModel.Parent then
+		if not player.Parent or not hitModel or not hitModel.Parent or player:GetAttribute("Dead") then
 			for _, inst in ipairs(hitModel:GetDescendants()) do
 				if inst:IsA("BasePart") then
 					(inst :: BasePart).Anchored = true

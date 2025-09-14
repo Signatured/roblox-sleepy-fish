@@ -11,6 +11,7 @@ local whitelistedAddornees = {
     ["SellAttachment"] = true,
     ["PickupAttachment"] = true,
     ["StealAttachment"] = true,
+    ["ExclusiveAttachment"] = true,
 }
 
 local prompts: { [BillboardGui]: boolean } = {}
