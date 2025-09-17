@@ -22,6 +22,11 @@ local CHASE_MUSIC_IDS = {
 	"rbxassetid://76893650686729",
 	"rbxassetid://106684853320177"
 }
+local EVENT_MUSIC_IDS = {
+    "rbxassetid://1847683491",
+	"rbxassetid://76893650686729",
+	"rbxassetid://106684853320177"
+}
 local lastIndex: number? = nil
 local defaultVolume = 0.15
 
@@ -39,6 +44,16 @@ local preChaseState = {
     wasPlaying = false,
     soundId = "",
     timePosition = 0,
+}
+
+-- Blood Moon event music state
+local isEventMusicActive = false
+local eventMusicIndex = 1
+local preEventState = {
+    wasPlaying = false,
+    soundId = "",
+    timePosition = 0,
+    wasChaseActive = false,
 }
 
 -- Preload chase music at script load so it's ready instantly when triggered
@@ -79,6 +94,16 @@ local function setRandomTrack()
     musicSound.SoundId = MUSIC_IDS[idx]
 end
 
+local function setEventTrack()
+    if #EVENT_MUSIC_IDS == 0 then return end
+    musicSound.SoundId = EVENT_MUSIC_IDS[eventMusicIndex]
+end
+
+local function nextEventTrack()
+    if #EVENT_MUSIC_IDS == 0 then return end
+    eventMusicIndex = (eventMusicIndex % #EVENT_MUSIC_IDS) + 1
+end
+
 local function updateMusicState()
 	local saveData = (Save and Save.Get and Save.Get())
 	if not saveData or not saveData.Settings then return end
@@ -86,8 +111,8 @@ local function updateMusicState()
 	local musicEnabled = saveData.Settings.Music
 	local soundEnabled = saveData.Settings.Sound
 
-	-- Always ensure a track is playing when not in chase; control audibility via the Music sound group volume
-	if not isChaseActive then
+	-- Always ensure a track is playing when not in chase or event; control audibility via the Music sound group volume
+	if not isChaseActive and not isEventMusicActive then
 		if not musicSound.Playing then
 			setRandomTrack()
 			musicSound.Volume = defaultVolume
@@ -105,6 +130,9 @@ end
 local function PlayChaseMusic(active: boolean)
     if active then
         if isChaseActive then return end
+        -- Don't start chase music during event music
+        if isEventMusicActive then return end
+        
         isChaseActive = true
         -- Pause the normal background track
         preChaseState.wasPlaying = musicSound.Playing
@@ -161,6 +189,56 @@ local function PlayChaseMusic(active: boolean)
     end
 end
 
+local function PlayEventMusic(active: boolean)
+    if active then
+        if isEventMusicActive then return end
+        isEventMusicActive = true
+        
+        -- Save current state (including chase state)
+        preEventState.wasChaseActive = isChaseActive
+        if isChaseActive then
+            -- Stop chase music first
+            PlayChaseMusic(false)
+        end
+        
+        preEventState.wasPlaying = musicSound.Playing
+        preEventState.soundId = musicSound.SoundId
+        preEventState.timePosition = musicSound.TimePosition
+        
+        -- Start event music
+        eventMusicIndex = 1
+        setEventTrack()
+        musicSound.Volume = defaultVolume
+        musicSound:Play()
+        
+        print("[MusicManager] Started Blood Moon event music")
+    else
+        if not isEventMusicActive then return end
+        isEventMusicActive = false
+        
+        -- Restore previous state
+        if preEventState.wasChaseActive then
+            -- Resume chase music if it was active
+            PlayChaseMusic(true)
+        elseif preEventState.wasPlaying then
+            -- Resume normal music
+            if preEventState.soundId ~= "" then
+                musicSound.SoundId = preEventState.soundId
+            else
+                setRandomTrack()
+            end
+            musicSound.TimePosition = preEventState.timePosition
+            musicSound:Play()
+        else
+            -- Start new random track
+            setRandomTrack()
+            musicSound:Play()
+        end
+        
+        print("[MusicManager] Stopped Blood Moon event music")
+    end
+end
+
 local function init()
 	-- Start playing by default before save/settings are available
 	if not musicSound.Playing then
@@ -200,8 +278,17 @@ local function init()
 
 	musicSound.Ended:Connect(function()
 		if isChaseActive then return end
-		setRandomTrack()
-		musicSound:Play()
+		
+		if isEventMusicActive then
+			-- Cycle to next event track
+			nextEventTrack()
+			setEventTrack()
+			musicSound:Play()
+		else
+			-- Normal random track selection
+			setRandomTrack()
+			musicSound:Play()
+		end
 	end)
 
 	-- Chase music toggle based on player carrying attribute, checked each render step
@@ -217,6 +304,37 @@ local function init()
 			if isChaseActive then
 				PlayChaseMusic(false)
 			end
+		end
+	end)
+	
+	-- Blood Moon event music toggle, checked periodically
+	task.spawn(function()
+		-- Wait for MutationEventCmds to be available
+		local MutationEventCmds: any = nil
+		while not MutationEventCmds do
+			local ok, lib = pcall(function()
+				return require(ReplicatedStorage.Game.Library.Client.MutationEventCmds)
+			end)
+			if ok then
+				MutationEventCmds = lib
+			else
+				task.wait(1)
+			end
+		end
+		
+		-- Check Blood Moon status every second
+		while true do
+			local isBloodMoonActive = MutationEventCmds.IsBloodMoonActive()
+			if isBloodMoonActive then
+				if not isEventMusicActive then
+					PlayEventMusic(true)
+				end
+			else
+				if isEventMusicActive then
+					PlayEventMusic(false)
+				end
+			end
+			task.wait(1)
 		end
 	end)
 end

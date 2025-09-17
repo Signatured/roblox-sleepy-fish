@@ -354,6 +354,24 @@ TagHook("EventGui", function(gui: SurfaceGui)
     end
 end)
 
+--[[
+    Public API to check if Blood Moon event is currently active.
+    
+    @return boolean - Whether Blood Moon event is active
+]]
+function MutationEventCmds.IsBloodMoonActive(): boolean
+    return isEventActive and currentEventId == "Blood Moon"
+end
+
+--[[
+    Public API to get the current event status.
+    
+    @return boolean, string? - Whether any event is active and the event ID
+]]
+function MutationEventCmds.GetCurrentEvent(): (boolean, string?)
+    return isEventActive, currentEventId
+end
+
 -- Initialize when player loads
 task.spawn(function()
     -- Wait for player to have Loaded attribute

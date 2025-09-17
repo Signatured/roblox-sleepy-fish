@@ -41,3 +41,4 @@ local Command = {
 CommandManager.Register(Command)
 
 return {}
+
