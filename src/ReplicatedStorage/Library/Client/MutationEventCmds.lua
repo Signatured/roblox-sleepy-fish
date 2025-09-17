@@ -39,6 +39,13 @@ local colorCorrection: ColorCorrectionEffect? = nil
 local bloodMoonParticles1: BasePart? = nil
 local bloodMoonParticles2: BasePart? = nil
 
+-- Event state tracking
+local isBloodMoonRunning = false
+local isBloodMoonStarting = false
+
+-- Blood Moon color storage for parts
+local originalColors: {[BasePart]: Color3} = {}
+
 -- GUI elements
 local eventGuis: {SurfaceGui} = {}
 
@@ -82,9 +89,19 @@ local function setParticlesEnabled(parent: Instance, enabled: boolean)
     end
 end
 
+
 local function startBloodMoonEvent()
+    -- Prevent multiple starts
+    if isBloodMoonRunning or isBloodMoonStarting then 
+        warn("[MutationEvent] Blood Moon event already running or starting, ignoring duplicate start")
+        return 
+    end
+    
     local eventData = Directory.MutationEvents["Blood Moon"]
     if not eventData then return end
+    
+    isBloodMoonStarting = true
+    isBloodMoonRunning = true
     
     -- Send notification
     NotificationCmds.Message("The Blood Moon is rising...", {
@@ -99,18 +116,8 @@ local function startBloodMoonEvent()
         bloodMoonWhirlpool = whirlpoolTemplate:Clone() :: BasePart
         if bloodMoonWhirlpool then
             bloodMoonWhirlpool.Parent = DEBRIS
-            -- Turn off particles initially
-            setParticlesEnabled(bloodMoonWhirlpool, false)
+            -- Keep particles on initially - they'll be turned off when other particles spawn
         end
-        
-        -- Remove after 3 seconds
-        task.spawn(function()
-            task.wait(3)
-            if bloodMoonWhirlpool then
-                bloodMoonWhirlpool:Destroy()
-                bloodMoonWhirlpool = nil
-            end
-        end)
     end
     
     task.wait(3)
@@ -122,6 +129,27 @@ local function startBloodMoonEvent()
         redNightSky = skyTemplate:Clone()
         if redNightSky then
             redNightSky.Parent = Lighting
+        end
+    end
+    
+    -- Change colors of parts with BloodMoonColor attribute
+    local bloodMoonData = Directory.MutationEvents["Blood Moon"]
+    if bloodMoonData then
+        local THINGS = workspace:FindFirstChild("__THINGS")
+        if THINGS then
+            for _, obj in ipairs(THINGS:GetDescendants()) do
+                if (obj:IsA("Part") or obj:IsA("MeshPart")) and obj:GetAttribute("BloodMoonColor") then
+                    local part = obj :: BasePart
+                    -- Store original color
+                    originalColors[part] = part.Color
+                    -- Tween to blood moon color
+                    local tween = TweenService:Create(part,
+                        TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                        {Color = bloodMoonData.Color}
+                    )
+                    tween:Play()
+                end
+            end
         end
     end
     
@@ -153,9 +181,34 @@ local function startBloodMoonEvent()
             bloodMoonParticles2.Parent = DEBRIS
         end
     end
+    
+    -- Now turn off whirlpool particles since the other particles are active
+    if bloodMoonWhirlpool then
+        setParticlesEnabled(bloodMoonWhirlpool, false)
+    end
+    
+    -- Wait 3 more seconds then ensure whirlpool particles are still off
+    task.wait(3)
+    if bloodMoonWhirlpool then
+        setParticlesEnabled(bloodMoonWhirlpool, false)
+    end
+    
+    -- Mark startup as complete
+    isBloodMoonStarting = false
 end
 
 local function endBloodMoonEvent()
+    -- Prevent ending if not running
+    if not isBloodMoonRunning then 
+        warn("[MutationEvent] Blood Moon event not running, ignoring end request")
+        return 
+    end
+    
+    -- Wait for startup process to complete if it's still running
+    while isBloodMoonStarting do
+        task.wait(0.1)
+    end
+    
     -- Turn on whirlpool particles for 3 seconds
     if bloodMoonWhirlpool then
         setParticlesEnabled(bloodMoonWhirlpool, true)
@@ -176,6 +229,19 @@ local function endBloodMoonEvent()
         redNightSky:Destroy()
         redNightSky = nil
     end
+    
+    -- Restore original colors of parts with BloodMoonColor attribute
+    for part, originalColor in pairs(originalColors) do
+        if part and part.Parent then
+            local tween = TweenService:Create(part,
+                TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                {Color = originalColor}
+            )
+            tween:Play()
+        end
+    end
+    -- Clear the color storage
+    originalColors = {}
     
     -- Tween ColorCorrection back to normal
     if colorCorrection and colorCorrection:IsA("ColorCorrectionEffect") then
@@ -207,6 +273,10 @@ local function endBloodMoonEvent()
         bloodMoonParticles2:Destroy()
         bloodMoonParticles2 = nil
     end
+    
+    -- Reset event state
+    isBloodMoonRunning = false
+    isBloodMoonStarting = false
 end
 
 -- Network event handlers

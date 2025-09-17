@@ -14,6 +14,10 @@ local MutationEvent = {}
 local CURRENT_EVENT_ID = "Blood Moon" -- Directory ID of the current mutation event
 local EST_OFFSET = -5 * 3600 -- EST is UTC-5 (in seconds)
 
+-- Debug Configuration
+local DEBUG_MODE = true -- Set to true to enable debug timing
+local DEBUG_START_DELAY = 5 -- Seconds after server boot to start first event in debug mode
+
 -- State
 local currentEvent: any = nil
 local eventStartTime: number? = nil
@@ -24,6 +28,8 @@ local function getESTTime(): number
     return DateTime.now().UnixTimestamp + EST_OFFSET
 end
 
+local serverBootTime = getESTTime() -- Track when server started
+
 local function calculateNextEventTime(): number
     local eventData = MutationEventDirectory[CURRENT_EVENT_ID]
     if not eventData then
@@ -31,6 +37,26 @@ local function calculateNextEventTime(): number
         return 0
     end
 
+    -- Debug mode: start event shortly after server boot
+    if DEBUG_MODE then
+        local debugStartTime = serverBootTime + DEBUG_START_DELAY
+        local now = getESTTime()
+        
+        if now < debugStartTime then
+            -- First event hasn't started yet
+            return debugStartTime
+        else
+            -- Calculate subsequent events based on normal interval from debug start
+            local interval = eventData.Interval
+            local nextTime = debugStartTime
+            while nextTime <= now do
+                nextTime = nextTime + interval
+            end
+            return nextTime
+        end
+    end
+
+    -- Normal mode: events start at 12 noon EST
     local now = getESTTime()
     local interval = eventData.Interval
     

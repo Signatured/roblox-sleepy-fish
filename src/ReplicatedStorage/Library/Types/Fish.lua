@@ -48,6 +48,31 @@ export type swimming_fish_schema = {
     Carrier: Player?,
 }
 
+function module.MakeBloodfishModel(model: Model)
+    for _, obj in ipairs(model:GetDescendants()) do
+        if obj:IsA("BasePart") then
+            local part = obj :: BasePart
+            local originalColor = part.Color
+            
+            -- Calculate brightness/lightness of original color
+            local brightness = (originalColor.R + originalColor.G + originalColor.B) / 3
+            
+            -- White/light colors become pure red
+            -- Darker colors become blackish red, but very dark colors get minimum red
+            local redIntensity = brightness
+            
+            -- If color is very dark (close to black), give it a minimum red value
+            if brightness < 0.15 then
+                redIntensity = 0.15 -- Minimum red for very dark colors
+            end
+            
+            local newColor = Color3.new(redIntensity, 0, 0)
+            
+            part.Color = newColor
+        end
+    end
+end
+
 export type dir_schema = raw_dir & DirectoryTypes.dir_schema
 
 return module

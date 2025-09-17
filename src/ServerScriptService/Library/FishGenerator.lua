@@ -545,6 +545,7 @@ local function spawnOne(into: BasePart, backdate: number?)
     fishInstance.Model:SetAttribute("UID", uid)
     fishInstance.Model:SetAttribute("CFrame", spawnCFrame)
     fishInstance.Model:SetAttribute("OceanFish", true)
+    
     attachGui(fishInstance, schema)
     makePrompt(fishInstance)
 end
