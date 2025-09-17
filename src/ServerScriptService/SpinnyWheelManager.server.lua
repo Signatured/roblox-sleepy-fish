@@ -17,23 +17,36 @@ local SpinnyWheelDirectory = require(ReplicatedStorage.Game.Library.Directory.Sp
 local pendingRewards: {[Player]: {reward: any, wheelId: string}} = {}
 
 --// Selects a random reward from the list based on weight.
-local function selectReward(rewards: {any})
-	local totalWeight = 0
-	for _, reward in ipairs(rewards) do
-		totalWeight += reward.Weight
-	end
+local function selectReward(rewards: {any}, isPaidSpin: boolean)
+    -- Compute total and base probabilities
+    local totalBase = 0
+    for _, reward in ipairs(rewards) do
+        totalBase += reward.Weight
+    end
 
-	local randomNumber = math.random() * totalWeight
-	local cumulativeWeight = 0
-	for i, reward in ipairs(rewards) do
-		cumulativeWeight += reward.Weight
-		if randomNumber <= cumulativeWeight then
-			return reward, i
-		end
-	end
-	
-	-- Fallback to the last reward, should rarely happen.
-	return rewards[#rewards], #rewards
+    local adjustedWeights = table.create(#rewards)
+    local totalAdjusted = 0
+    for idx, reward in ipairs(rewards) do
+        local w = reward.Weight
+        if isPaidSpin and totalBase > 0 then
+            local baseChance = w / totalBase
+            if baseChance <= 0.05 then
+                w = w * 2 -- 2x luck for <=5% items on paid spins
+            end
+        end
+        adjustedWeights[idx] = w
+        totalAdjusted += w
+    end
+
+    local r = math.random() * totalAdjusted
+    local cumulative = 0
+    for i, w in ipairs(adjustedWeights) do
+        cumulative += w
+        if r <= cumulative then
+            return rewards[i], i
+        end
+    end
+    return rewards[#rewards], #rewards
 end
 
 --// Handles a spin request from the client.
@@ -46,18 +59,27 @@ Network.Fired("SpinWheel", function(player: Player, wheelId: string)
 	local saveData = Saving.Get(player)
 	if not saveData then return end
 	
-	-- 1. Check if the player has spins for this wheel.
-	local spinsForWheel = saveData.WheelSpins[wheelId] or 0
-	if spinsForWheel <= 0 then
-		-- Optionally, send a message to the player here.
-		return
-	end
-	
-	-- 2. Deduct one spin.
-	saveData.WheelSpins[wheelId] = spinsForWheel - 1
-	
-	-- 3. Determine the reward and its index.
-	local reward, rewardIndex = selectReward(schema.Rewards)
+    -- Determine spin source: use free first, then paid
+    saveData.Wheels[wheelId] = saveData.Wheels[wheelId] or { Free = 0, Paid = 0, FreeNextAt = nil }
+    local wheel = saveData.Wheels[wheelId]
+
+    local spinType: string? = nil
+    if (wheel.Free or 0) > 0 then
+        spinType = "free"
+        wheel.Free -= 1
+        -- Start the 3-hour timer for next free spin only when a free spin is used
+        wheel.FreeNextAt = workspace:GetServerTimeNow() + (3 * 60 * 60)
+    elseif (wheel.Paid or 0) > 0 then
+        spinType = "paid"
+        wheel.Paid -= 1
+    end
+
+    if not spinType then
+        return -- No spins available
+    end
+
+    -- Determine the reward and its index, applying paid-spin luck if applicable
+    local reward, rewardIndex = selectReward(schema.Rewards, spinType == "paid")
 	
 	-- 4. Store the pending reward and wheelId instead of giving it immediately.
 	pendingRewards[player] = {
@@ -87,4 +109,34 @@ end)
 --// Clean up pending rewards if a player leaves mid-spin.
 Players.PlayerRemoving:Connect(function(player)
 	pendingRewards[player] = nil
+end)
+
+-- Award and schedule free spins on save load
+Saving.SaveAdded:Connect(function(player: Player)
+    local saveData = Saving.Get(player)
+    if not saveData then return end
+
+    -- Initialize containers if missing
+    saveData.Wheels = saveData.Wheels or {}
+
+    local nowT = workspace:GetServerTimeNow()
+
+    for wheelId, _dir in pairs(SpinnyWheelDirectory) do
+        saveData.Wheels[wheelId] = saveData.Wheels[wheelId] or { Free = 0, Paid = 0, FreeNextAt = nil }
+        local wheel = saveData.Wheels[wheelId]
+        local free = wheel.Free or 0
+        local nextAt = wheel.FreeNextAt
+
+        if nextAt == nil and free == 0 then
+            -- First time seeing this wheel: schedule initial free spin 15 minutes after first join
+            wheel.FreeNextAt = nowT + (15 * 60)
+        end
+
+        -- If a timer exists and has elapsed and player has no free spin queued, grant exactly 1 and clear timer
+        nextAt = wheel.FreeNextAt
+        if typeof(nextAt) == "number" and nextAt <= nowT and free == 0 then
+            wheel.Free = 1
+            wheel.FreeNextAt = nil
+        end
+    end
 end)

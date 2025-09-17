@@ -48,7 +48,7 @@ export type schema = {
 		Current: number?,
 		Quests: {any}?,
 	},
-	WheelSpins: {[string]: number},
+		Wheels: {[string]: { Free: number, Paid: number, FreeNextAt: number? }},
 }
 
 local DefaultStats = {
@@ -81,7 +81,7 @@ local DefaultStats = {
 		Current = nil,
 		Quests = nil,
 	},
-	WheelSpins = {}
+	Wheels = {},
 }::schema
 
 return DefaultStats

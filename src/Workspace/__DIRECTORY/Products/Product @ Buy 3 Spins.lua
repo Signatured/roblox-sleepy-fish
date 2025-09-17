@@ -1,8 +1,8 @@
 --!strict
 
 return {
-	ProductId = 3406886611,
-	DisplayName = "[OP] Buy 1 Wheel Spin! [DISCOUNTED]",
+	ProductId = 3406886872,
+	DisplayName = "[OP] Buy 3 Wheel Spins!",
 	Icon = "rbxassetid://109838009828589",
 	Description = "Buy 1 Wheel Spin!",
 	OneTimePurchase = false,
@@ -43,9 +43,9 @@ return {
 		local wheelId = "Blood Moon"
 		save.Wheels = save.Wheels or {}
 		save.Wheels[wheelId] = save.Wheels[wheelId] or { Free = 0, Paid = 0, FreeNextAt = nil }
-		save.Wheels[wheelId].Paid += 1
+		save.Wheels[wheelId].Paid += 3
 
-		Notifications.Message(player, `You purchased 1 Blood Moon Wheel Spin!`, {
+		Notifications.Message(player, `You purchased 3 Blood Moon Wheel Spins!`, {
 			Time = 6,
 			Color = Color3.fromRGB(151, 12, 12)
 		})

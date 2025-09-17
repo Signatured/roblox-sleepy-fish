@@ -1,7 +1,7 @@
 --!strict
 
 return {
-	ProductId = 3406886611,
+	ProductId = 3406886764,
 	DisplayName = "[OP] Buy 1 Wheel Spin! [DISCOUNTED]",
 	Icon = "rbxassetid://109838009828589",
 	Description = "Buy 1 Wheel Spin!",

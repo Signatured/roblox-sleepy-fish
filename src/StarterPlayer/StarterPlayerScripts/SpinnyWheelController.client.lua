@@ -25,6 +25,7 @@ local Signal = require(Library.Signal)
 local TAG = "SpinnyWheel"
 local spinDebounce = false
 local currentWheelId: string? = nil
+local freeSpinUpdateConn: RBXScriptConnection? = nil
 
 --// Configures the prize displays on the main ScreenGui.
 local function setupMainGui(schema: any)
@@ -72,9 +73,70 @@ local function updateSpinButtonText()
 	local textLabel = spinButton:FindFirstChild("TextLabel")
 	if not textLabel or not textLabel:IsA("TextLabel") then return end
 	
-	local saveData = Save.Get()
-	local spinsForWheel = saveData and saveData.WheelSpins and saveData.WheelSpins[currentWheelId] or 0
-	textLabel.Text = `Spin ({spinsForWheel})`
+    local saveData = Save.Get()
+    local w = saveData and saveData.Wheels and saveData.Wheels[currentWheelId]
+    local total = (w and ((w.Free or 0) + (w.Paid or 0))) or 0
+    textLabel.Text = `Spin ({total})`
+end
+
+--// Updates the FreeSpinIn label text once
+local function updateFreeSpinLabel()
+    if not currentWheelId then return end
+    local spinnyWheelGui = GUI.SpinnyWheel()
+    if not spinnyWheelGui then return end
+    local frame = spinnyWheelGui:FindFirstChild("Frame")
+    if not frame or not frame:IsA("Frame") then return end
+    local spinButton = frame:FindFirstChild("Spin")
+    if not spinButton or not spinButton:IsA("GuiButton") then return end
+    local freeLabel = spinButton:FindFirstChild("FreeSpinIn")
+    if not freeLabel or not freeLabel:IsA("TextLabel") then return end
+
+    local saveData = Save.Get()
+    local w = saveData and saveData.Wheels and saveData.Wheels[currentWheelId]
+    if not w then
+        freeLabel.Text = ""
+        return
+    end
+
+    if (w.Free or 0) > 0 then
+        freeLabel.Text = "Free spin ready!"
+        return
+    end
+
+    local nextAt = w.FreeNextAt
+    if typeof(nextAt) == "number" then
+        local nowT = workspace:GetServerTimeNow()
+        local remaining = math.max(0, nextAt - nowT)
+        if remaining > 0 then
+            freeLabel.Text = "Free spin in: " .. Functions.FormatTime(remaining)
+        else
+            freeLabel.Text = "Free spin ready!"
+        end
+    else
+        freeLabel.Text = ""
+    end
+end
+
+--// Starts 1s ticker to update FreeSpinIn while UI is open
+local function startFreeSpinTicker()
+    if freeSpinUpdateConn then freeSpinUpdateConn:Disconnect() end
+    local accum = 1
+    freeSpinUpdateConn = RunService.Heartbeat:Connect(function(dt)
+        accum -= dt
+        if accum <= 0 then
+            accum = 1
+            updateFreeSpinLabel()
+        end
+    end)
+    -- Immediate update
+    updateFreeSpinLabel()
+end
+
+local function stopFreeSpinTicker()
+    if freeSpinUpdateConn then
+        freeSpinUpdateConn:Disconnect()
+        freeSpinUpdateConn = nil
+    end
 end
 
 --// Opens the spinny wheel UI for a specific wheel ID.
@@ -88,6 +150,7 @@ local function openSpinnyWheel(wheelId: string)
 	currentWheelId = wheelId
 	setupMainGui(schema)
 	updateSpinButtonText()
+    startFreeSpinTicker()
 	TabController.OpenTab("SpinnyWheel")
 end
 
@@ -279,6 +342,7 @@ Functions.TagHook(TAG, function(wheelModel: any)
 			currentWheelId = wheelId
 			setupMainGui(schema)
 			updateSpinButtonText()
+            startFreeSpinTicker()
 			TabController.OpenTab("SpinnyWheel")
 		end
 	end)
@@ -290,6 +354,7 @@ Functions.TagHook(TAG, function(wheelModel: any)
 				TabController.CloseTab()
 			end
 			currentWheelId = nil
+            stopFreeSpinTicker()
 		end
 	end)
 	
@@ -317,10 +382,11 @@ if spinnyWheelGui then
 			if spinDebounce or not currentWheelId then return end
 			
 			-- Client-side check to see if player has spins available.
-			local schema = SpinnyWheelDirectory[currentWheelId]
-			local saveData = Save.Get()
-			local spinsForWheel = saveData and saveData.WheelSpins and saveData.WheelSpins[currentWheelId] or 0
-			if schema and saveData and spinsForWheel > 0 then
+            local schema = SpinnyWheelDirectory[currentWheelId]
+            local saveData = Save.Get()
+            local w = saveData and saveData.Wheels and saveData.Wheels[currentWheelId]
+            local total = (w and ((w.Free or 0) + (w.Paid or 0))) or 0
+            if schema and saveData and total > 0 then
 				Network.Fire("SpinWheel", currentWheelId)
 			else
 				print("[SpinnyWheel] No spins available for this wheel.")
@@ -331,9 +397,10 @@ end
 
 -- Listen for save data changes to update the spin button text
 Save.Fired(function(key: string, value: any)
-	if key == "WheelSpins" then
-		updateSpinButtonText()
-	end
+    if key == "Wheels" then
+        updateSpinButtonText()
+        updateFreeSpinLabel()
+    end
 end)
 
 -- Listen for the result from the server
@@ -341,3 +408,10 @@ Network.Fired("SpinWheelResult", playSpinAnimation)
 
 -- Listen for a signal to open the wheel UI.
 Signal.Fired("OpenSpinnyWheel"):Connect(openSpinnyWheel)
+
+-- Stop ticker when SpinnyWheel tab closes
+TabController.Closed:Connect(function(tabId: string)
+    if tabId == "SpinnyWheel" then
+        stopFreeSpinTicker()
+    end
+end)
