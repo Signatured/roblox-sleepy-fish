@@ -26,6 +26,7 @@ local Index = require(ServerScriptService.Game.Library.Index)
 local ServerLuck = require(ServerScriptService.Game.Library.ServerLuck)
 local Invisibility = require(ServerScriptService.Game.Library.Invisibility)
 local MutationEvent = require(ServerScriptService.Game.Library.MutationEvent)
+local Mutations = require(ServerScriptService.Game.Library.Mutations)
 
 local THINGS = workspace:WaitForChild("__THINGS")
 local ROOT = THINGS:WaitForChild("SwimmingFish")
@@ -377,7 +378,8 @@ local function attachGui(fish: Swimming, schema: FishTypes.dir_schema)
         local mps = frame:FindFirstChild("MoneyPerSecond")
         if mps and mps:IsA("TextLabel") then
             local typeMultiplier = SharedGameSettings.TypeMultipliers[fish.FishData.Type] or 1
-            mps.Text = `${Functions.NumberShorten(math.ceil(schema.MoneyPerSecond * typeMultiplier))}/s`
+            local mutationMultiplier = Mutations.GetMutationMulti(fish)
+            mps.Text = `${Functions.NumberShorten(math.ceil(schema.MoneyPerSecond * typeMultiplier * mutationMultiplier))}/s`
         end
         local timer = frame:FindFirstChild("Timer")
         if timer and timer:IsA("TextLabel") then

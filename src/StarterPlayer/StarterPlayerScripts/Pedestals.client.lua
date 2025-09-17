@@ -19,6 +19,7 @@ local Marketplace = require(game.ReplicatedStorage.Library.Marketplace)
 local ProductCmds = require(game.ReplicatedStorage.Library.Client.ProductCmds)
 local Audio = require(game.ReplicatedStorage.Library.Audio)
 local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
+local MutationCmds = require(game.ReplicatedStorage.Game.Library.Client.MutationCmds)
 
 -- Upgrade button images
 local UPGRADE_IMAGE_GREEN = "rbxassetid://85004105467436"
@@ -192,7 +193,8 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
 	local isBoosted = boostedTime and workspace:GetServerTimeNow() < boostedTime
     local multiplier = plot:GetMultiplier()
     local typeMultiplier = GameSettings.TypeMultipliers[fishData.FishData.Type] or 1
-    local fishMultiplier = (multiplier * typeMultiplier) + (isBoosted and 0.5 or 0)
+    local mutationMultiplier = MutationCmds.GetMutationMulti(fishData :: any)
+    local fishMultiplier = (multiplier * typeMultiplier * mutationMultiplier) + (isBoosted and 0.5 or 0)
 
     displayName.Text = dir.DisplayName
     rarity.Text = dir.Rarity.DisplayName
