@@ -412,7 +412,7 @@ local function chooseSpawnPart(): BasePart
 end
 
 -- owner: if provided, marks the fish as private to this player
-local function spawnForcedByRarity(rarityId: string, owner: Player?)
+local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: string?)
     local schema = chooseFishByRarity(rarityId)
     if not schema then return end
     local fishModelTemplate = schema._script:WaitForChild("Model")
@@ -420,6 +420,11 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?)
 
     local uid = Functions.GenerateUID()
     local fishType = Functions.Lottery(typeChances)
+    if typeof(_fishType) == "string" then
+        if _fishType == "Normal" or _fishType == "Shiny" or _fishType == "Gold" or _fishType == "Rainbow" then
+            fishType = _fishType
+        end
+    end
 
     local fishData: FishTypes.data_schema = {
         UID = uid,
@@ -486,6 +491,11 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?)
                 Rainbow = true,
                 Time = 8,
             })
+        elseif rarity._id == "Secret" then
+                Notifications.MessageAll(`A SECRET {displayName} has spawned!`, {
+                    Rainbow = true,
+                    Time = 8,
+                })
         else
             Notifications.MessageAll(`A {rarity.DisplayName} {displayName} has spawned!`, {
                 Time = 8,
@@ -679,8 +689,8 @@ function FishGen.Destroy(uid: string)
     despawn(uid)
 end
 
-function FishGen.ForceSpawnRandomType(rarityId: string, player: Player?)
-    spawnForcedByRarity(rarityId, player)
+function FishGen.ForceSpawnRandomType(rarityId: string, player: Player?, fishTypeOverride: string?)
+    spawnForcedByRarity(rarityId, player, fishTypeOverride)
 end
 
 -- Heartbeat: despawn and respawn
