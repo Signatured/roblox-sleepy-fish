@@ -25,6 +25,7 @@ local ExistCount = require(ServerScriptService.Game.Library.ExistCount)
 local Index = require(ServerScriptService.Game.Library.Index)
 local ServerLuck = require(ServerScriptService.Game.Library.ServerLuck)
 local Invisibility = require(ServerScriptService.Game.Library.Invisibility)
+local MutationEvent = require(ServerScriptService.Game.Library.MutationEvent)
 
 local THINGS = workspace:WaitForChild("__THINGS")
 local ROOT = THINGS:WaitForChild("SwimmingFish")
@@ -426,10 +427,18 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
         end
     end
 
+    -- Check if Blood Moon event is active and apply Bloodfish mutation
+    local mutation: FishTypes.fish_mutation_type? = nil
+    local isBloodMoonActive, eventId = MutationEvent.GetCurrentStatus()
+    if isBloodMoonActive and eventId == "Blood Moon" then
+        mutation = "Bloodfish"
+    end
+
     local fishData: FishTypes.data_schema = {
         UID = uid,
         FishId = schema._id,
         Type = fishType,
+        Mutation = mutation,
         Shiny = false,
         Level = 1,
         CreateTime = workspace:GetServerTimeNow(),
@@ -461,6 +470,12 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
     if owner then
         fishInstance.Model:SetAttribute("OwnerUserId", owner.UserId)
     end
+    
+    -- Apply Bloodfish visual effect if mutation is present
+    if mutation == "Bloodfish" then
+        FishTypes.MakeBloodfishModel(fishInstance.Model)
+    end
+    
     attachGui(fishInstance, schema)
     -- If owned, mark GUI as private with owner name
     if owner and fishInstance.Gui then
@@ -514,10 +529,18 @@ local function spawnOne(into: BasePart, backdate: number?)
     local uid = Functions.GenerateUID()
     local fishType = Functions.Lottery(typeChances)
 
+    -- Check if Blood Moon event is active and apply Bloodfish mutation
+    local mutation: FishTypes.fish_mutation_type? = nil
+    local isBloodMoonActive, eventId = MutationEvent.GetCurrentStatus()
+    if isBloodMoonActive and eventId == "Blood Moon" then
+        mutation = "Bloodfish"
+    end
+
     local fishData: FishTypes.data_schema = {
         UID = uid,
         FishId = schema._id,
         Type = fishType,
+        Mutation = mutation,
         Shiny = false,
         Level = 1,
         CreateTime = workspace:GetServerTimeNow(),
@@ -545,6 +568,11 @@ local function spawnOne(into: BasePart, backdate: number?)
     fishInstance.Model:SetAttribute("UID", uid)
     fishInstance.Model:SetAttribute("CFrame", spawnCFrame)
     fishInstance.Model:SetAttribute("OceanFish", true)
+    
+    -- Apply Bloodfish visual effect if mutation is present
+    if mutation == "Bloodfish" then
+        FishTypes.MakeBloodfishModel(fishInstance.Model)
+    end
     
     attachGui(fishInstance, schema)
     makePrompt(fishInstance)

@@ -38,6 +38,7 @@ local function createFishData(player: Player, params: FishTypes.create_params): 
         UID = uid,
         FishId = params.FishId,
         Type = params.Type,
+        Mutation = params.Mutation,
         Shiny = params.Shiny,
         Level = params.Level or 1,
         CreateTime = now,
@@ -172,6 +173,7 @@ function Fish.Give(player: Player, params: FishTypes.create_params | FishTypes.s
     tool.ToolTip = `Level {fishData.Level}`
     tool:SetAttribute("UID", fishData.UID)
     tool:SetAttribute("Type", fishData.Type)
+    tool:SetAttribute("Mutation", fishData.Mutation)
     tool.Parent = backpack
 
     local userTools = playerFishTools[player.UserId]
