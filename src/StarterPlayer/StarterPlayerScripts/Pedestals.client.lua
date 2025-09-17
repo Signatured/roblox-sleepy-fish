@@ -18,6 +18,7 @@ local Save = require(game.ReplicatedStorage.Library.Client.Save)
 local Marketplace = require(game.ReplicatedStorage.Library.Marketplace)
 local ProductCmds = require(game.ReplicatedStorage.Library.Client.ProductCmds)
 local Audio = require(game.ReplicatedStorage.Library.Audio)
+local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
 
 -- Upgrade button images
 local UPGRADE_IMAGE_GREEN = "rbxassetid://85004105467436"
@@ -132,6 +133,16 @@ local function getFishType(type: string): (string?, Color3?)
     return nil
 end
 
+local function getFishMutation(mutationId: string?): (string?, Color3?)
+    if not mutationId then return nil end
+    
+    local dir = Directory.Mutations[mutationId]
+    if dir then
+        return dir.DisplayName, dir.Color
+    end
+    return nil
+end
+
 function SetupProximity(text: string, holdDuration: number, keyboardKeyCode: Enum.KeyCode, attachment: Attachment): ProximityPrompt
     local prompt = Instance.new("ProximityPrompt")
 	prompt.ActionText = text
@@ -173,6 +184,7 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
     local rarity = frame:WaitForChild("Rarity")::TextLabel
     local level = frame:WaitForChild("Level")::TextLabel
     local fishType = frame:WaitForChild("FishType")::TextLabel
+    local mutation = frame:WaitForChild("Mutation")::TextLabel
     local offlineFrame = frame:WaitForChild("OfflineEarnings")::TextLabel
 
     local boosts = plot:Session("PlayerBoosts")::{[string]: number}
@@ -229,6 +241,17 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
         fishType.Text = name
     else
         fishType.Visible = false
+    end
+
+    local mutationName, mutationColor = getFishMutation(fishData.FishData.Mutation)
+    if mutationColor then
+        mutation.TextColor3 = mutationColor
+    end
+
+    if mutationName then
+        mutation.Text = mutationName
+    else
+        mutation.Visible = false
     end
 end
 
@@ -475,6 +498,10 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             parent = plotFishRainbow
         elseif fishData.FishData.Type == "Gold" then
             parent = plotFishGold
+        end
+
+        if fishData.FishData.Mutation == "Bloodfish" then
+            FishTypes.MakeBloodfishModel(fishModel)
         end
 
         fishModel:PivotTo((base:GetPivot() + Vector3.new(0, base.Size.Y / 2, 0) + Vector3.new(0, fishModel:GetExtentsSize().Y / 2, 0) + Vector3.new(0, 2, 0) + Vector3.new(0, dir.PedestalOffset or 0, 0)) * CFrame.Angles(0, math.rad(180), 0))

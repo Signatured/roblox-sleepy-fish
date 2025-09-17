@@ -6,7 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CommandManager = require(ServerScriptService.CommandManager)
 local CommandType = require(ReplicatedStorage.Game.Library.Types.Commands)
 local Fish = require(ServerScriptService.Game.Library.Fish)
-local Assert = require(ReplicatedStorage.Library.Assert)
+local Directory = require(ReplicatedStorage.Game.Library.Directory)
 
 local Command = {
 	Name = "Givefish",
@@ -16,7 +16,7 @@ local Command = {
 		{Type = "Player", Name = "TargetPlayer", Optional = true},
 		{Type = "String", Name = "FishId"},
         {Type = "String", Name = "Type", Optional = true},
-        {Type = "String", Name = "Shiny", Optional = true},
+        {Type = "String", Name = "Mutation", Optional = true},
         {Type = "Number", Name = "Level", Optional = true}
 	} :: {CommandType.Parameter},
 
@@ -25,22 +25,20 @@ local Command = {
 		local targetPlayers = args[1]
         local fishId = args[2]
         local type = args[3] or "Normal"
-        local shiny = args[4] or false
+        local mutation = args[4]
         local level = args[5] or 1
 
-        if shiny == "true" then
-            shiny = true
-        elseif shiny == "false" then
-            shiny = false
+        -- Validate mutation if provided by checking if it exists in the Mutations directory
+        if mutation and not Directory.Mutations[mutation] then
+            mutation = nil
         end
-
-        Assert.Boolean(shiny)
 
 		for _, targetPlayer in ipairs(targetPlayers) do
 			Fish.Give(targetPlayer, {
                 FishId = fishId,
                 Type = type,
-                Shiny = shiny,
+                Mutation = mutation,
+                Shiny = false,
                 Level = level
             })
 		end

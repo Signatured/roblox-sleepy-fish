@@ -337,6 +337,16 @@ local function getFishType(type: string): (string?, Color3?)
     return nil
 end
 
+local function getFishMutation(mutationId: string?): (string?, Color3?)
+    if not mutationId then return nil end
+    
+    local dir = Directory.Mutations[mutationId]
+    if dir then
+        return dir.DisplayName, dir.Color
+    end
+    return nil
+end
+
 local function attachGui(fish: Swimming, schema: FishTypes.dir_schema)
     local primary = fish.Model.PrimaryPart or fish.Model:FindFirstChildWhichIsA("BasePart")
     if not primary or not primary:IsA("BasePart") then return end
@@ -385,6 +395,20 @@ local function attachGui(fish: Swimming, schema: FishTypes.dir_schema)
                 fishType.Visible = true
             else
                 fishType.Visible = false
+            end
+        end
+        local mutation = frame:FindFirstChild("Mutation")
+        if mutation and mutation:IsA("TextLabel") then
+            local name, color = getFishMutation(fish.FishData.Mutation)
+            if color then
+                mutation.TextColor3 = color
+            end
+
+            if name then
+                mutation.Text = name
+                mutation.Visible = true
+            else
+                mutation.Visible = false
             end
         end
         local private = frame:FindFirstChild("Private")
