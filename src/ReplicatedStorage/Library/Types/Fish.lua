@@ -21,11 +21,13 @@ export type raw_dir = {
 }
 
 export type fish_type = "Normal" | "Shiny" | "Gold" | "Rainbow"
+export type fish_mutation_type = "Bloodfish"
 
 export type data_schema = {
     UID: string,
     FishId: string,
     Type: fish_type,
+    Mutation: fish_mutation_type?,
     Shiny: boolean?,
     Level: number,
     CreateTime: number,
@@ -35,6 +37,7 @@ export type data_schema = {
 export type create_params = {
     FishId: string,
     Type: fish_type,
+    Mutation: fish_mutation_type?,
     Shiny: boolean?,
     Level: number?,
 }
