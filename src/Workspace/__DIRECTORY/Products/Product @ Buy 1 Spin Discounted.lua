@@ -45,6 +45,12 @@ return {
 		save.Wheels[wheelId] = save.Wheels[wheelId] or { Free = 0, Paid = 0, FreeNextAt = nil }
 		save.Wheels[wheelId].Paid += 1
 
+		-- Mark the daily deal as used today (resets after midnight EST)
+		local EST_OFFSET = -5 * 3600
+		local now = workspace:GetServerTimeNow()
+		local est = now + EST_OFFSET
+		save.WheelDailyDealDayKey = math.floor(est / 86400)
+
 		Notifications.Message(player, `You purchased 1 Blood Moon Wheel Spin!`, {
 			Time = 6,
 			Color = Color3.fromRGB(151, 12, 12)

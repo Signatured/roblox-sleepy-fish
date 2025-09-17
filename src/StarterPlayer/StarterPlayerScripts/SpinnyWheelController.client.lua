@@ -21,11 +21,14 @@ local ButtonFX = require(Library.Client.GUIFX.ButtonFX)
 local Confetti = require(Library.Client.GUIFX.Confetti)
 local Audio = require(Library.Audio)
 local Signal = require(Library.Signal)
+local Marketplace = require(Library.Marketplace)
+local Products = require(ReplicatedStorage.Game.Library.Directory.Products)
 
 local TAG = "SpinnyWheel"
 local spinDebounce = false
 local currentWheelId: string? = nil
 local freeSpinUpdateConn: RBXScriptConnection? = nil
+local purchaseUIHooked = false
 
 --// Configures the prize displays on the main ScreenGui.
 local function setupMainGui(schema: any)
@@ -132,6 +135,82 @@ local function startFreeSpinTicker()
     updateFreeSpinLabel()
 end
 
+--// Daily deal availability (once per day; resets after midnight EST)
+local EST_OFFSET = -5 * 3600
+local function getESTDayKey(): number
+    local now = workspace:GetServerTimeNow()
+    local est = now + EST_OFFSET
+    return math.floor(est / 86400)
+end
+
+local function isDailyDealAvailable(): boolean
+    local saveData = Save.Get()
+    if not saveData then return false end
+    local lastKey = saveData.WheelDailyDealDayKey
+    local todayKey = getESTDayKey()
+    return lastKey ~= todayKey
+end
+
+--// Update Buy1/Buy3 UI (prices, discount badge, positions)
+local function updatePurchaseUI()
+    local spinnyWheelGui = GUI.SpinnyWheel()
+    if not spinnyWheelGui then return end
+    local frame = spinnyWheelGui:FindFirstChild("Frame")
+    if not frame or not frame:IsA("Frame") then return end
+
+    local buy1 = frame:FindFirstChild("Buy1Spin")
+    local buy3 = frame:FindFirstChild("Buy3Spins")
+    if not (buy1 and buy1:IsA("GuiButton") and buy3 and buy3:IsA("GuiButton")) then return end
+
+    -- Hook ButtonFX once
+    if not purchaseUIHooked then
+        ButtonFX(buy1 :: GuiButton)
+        ButtonFX(buy3 :: GuiButton)
+        purchaseUIHooked = true
+    end
+
+    -- Resolve labels under Buy1
+    local dailyDiscount = buy1:FindFirstChild("DailyDiscount")
+    local luck = buy1:FindFirstChild("Luck")
+    local cost1 = buy1:FindFirstChild("Cost")
+    if dailyDiscount and dailyDiscount:IsA("TextLabel") and luck and luck:IsA("TextLabel") and cost1 and cost1:IsA("TextLabel") then
+        local discount = isDailyDealAvailable()
+        dailyDiscount.Visible = discount
+        if discount then
+            luck.Position = UDim2.new(0.49, 0, -0.569, 0)
+        else
+            luck.Position = UDim2.new(0.49, 0, -0.233, 0)
+        end
+
+        -- Price
+        local discountedProduct = Products["Buy 1 Spin Discounted"]
+        local normalProduct = Products["Buy 1 Spin"]
+        local selected = discount and discountedProduct or normalProduct
+        if selected and typeof(selected.ProductId) == "number" then
+            cost1.Text = " ???"
+            task.spawn(function()
+                local price = Functions.GetRobuxPrice(selected.ProductId, true)
+                if price and cost1 and cost1:IsA("TextLabel") then
+                    cost1.Text = ` {price}`
+                end
+            end)
+        end
+    end
+
+    -- Price for Buy3Spins
+    local cost3 = buy3:FindFirstChild("Cost")
+    local product3 = Products["Buy 3 Spins"]
+    if cost3 and cost3:IsA("TextLabel") and product3 and typeof(product3.ProductId) == "number" then
+        cost3.Text = " ???"
+        task.spawn(function()
+            local price = Functions.GetRobuxPrice(product3.ProductId, true)
+            if price and cost3 and cost3:IsA("TextLabel") then
+                cost3.Text = ` {price}`
+            end
+        end)
+    end
+end
+
 local function stopFreeSpinTicker()
     if freeSpinUpdateConn then
         freeSpinUpdateConn:Disconnect()
@@ -150,6 +229,7 @@ local function openSpinnyWheel(wheelId: string)
 	currentWheelId = wheelId
 	setupMainGui(schema)
 	updateSpinButtonText()
+    updatePurchaseUI()
     startFreeSpinTicker()
 	TabController.OpenTab("SpinnyWheel")
 end
@@ -342,6 +422,7 @@ Functions.TagHook(TAG, function(wheelModel: any)
 			currentWheelId = wheelId
 			setupMainGui(schema)
 			updateSpinButtonText()
+            updatePurchaseUI()
             startFreeSpinTicker()
 			TabController.OpenTab("SpinnyWheel")
 		end
@@ -378,6 +459,33 @@ if spinnyWheelGui then
 	if spinButton and spinButton:IsA("GuiButton") then
 		ButtonFX(spinButton) -- Apply ButtonFX
 		
+        -- Hook buy buttons once
+        local frame = spinnyWheelGui:FindFirstChild("Frame")
+        if frame and frame:IsA("Frame") then
+            local buy1 = frame:FindFirstChild("Buy1Spin")
+            local buy3 = frame:FindFirstChild("Buy3Spins")
+            if buy1 and buy1:IsA("GuiButton") and buy3 and buy3:IsA("GuiButton") then
+                ButtonFX(buy1)
+                ButtonFX(buy3)
+                if not purchaseUIHooked then
+                    purchaseUIHooked = true
+                    buy1.Activated:Connect(function()
+                        local discount = isDailyDealAvailable()
+                        local selected = Products[discount and "Buy 1 Spin Discounted" or "Buy 1 Spin"]
+                        if selected and typeof(selected.ProductId) == "number" then
+                            Marketplace.Prompt(Players.LocalPlayer, selected.ProductId, true)
+                        end
+                    end)
+                    buy3.Activated:Connect(function()
+                        local p3 = Products["Buy 3 Spins"]
+                        if p3 and typeof(p3.ProductId) == "number" then
+                            Marketplace.Prompt(Players.LocalPlayer, p3.ProductId, true)
+                        end
+                    end)
+                end
+            end
+        end
+
 		spinButton.Activated:Connect(function()
 			if spinDebounce or not currentWheelId then return end
 			

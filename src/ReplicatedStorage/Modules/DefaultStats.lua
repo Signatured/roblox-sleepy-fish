@@ -49,6 +49,7 @@ export type schema = {
 		Quests: {any}?,
 	},
 		Wheels: {[string]: { Free: number, Paid: number, FreeNextAt: number? }},
+		WheelDailyDealDayKey: number?,
 }
 
 local DefaultStats = {
@@ -82,6 +83,7 @@ local DefaultStats = {
 		Quests = nil,
 	},
 	Wheels = {},
+	WheelDailyDealDayKey = nil,
 }::schema
 
 return DefaultStats

@@ -15,6 +15,13 @@ local SpinnyWheelDirectory = require(ReplicatedStorage.Game.Library.Directory.Sp
 
 -- {[player]: {reward: table, wheelId: string}}
 local pendingRewards: {[Player]: {reward: any, wheelId: string}} = {}
+local EST_OFFSET = -5 * 3600 -- EST UTC-5 in seconds
+
+local function getESTDayKey(nowUtc: number?): number
+    local now = nowUtc or workspace:GetServerTimeNow()
+    local est = now + EST_OFFSET
+    return math.floor(est / 86400) -- days since epoch in EST
+end
 
 --// Selects a random reward from the list based on weight.
 local function selectReward(rewards: {any}, isPaidSpin: boolean)
@@ -106,6 +113,9 @@ Network.Fired("SpinAnimationComplete", function(player: Player)
 	pendingRewards[player] = nil
 end)
 
+-- Expose a helper to mark discounted purchase usage
+-- Mark daily deal usage when a discounted purchase is processed is handled in Products callbacks server-side
+
 --// Clean up pending rewards if a player leaves mid-spin.
 Players.PlayerRemoving:Connect(function(player)
 	pendingRewards[player] = nil
@@ -138,5 +148,10 @@ Saving.SaveAdded:Connect(function(player: Player)
             wheel.Free = 1
             wheel.FreeNextAt = nil
         end
+    end
+
+    -- Initialize Daily deal key if missing
+    if saveData.WheelDailyDealDayKey == nil then
+        saveData.WheelDailyDealDayKey = -1 -- a day in the past to allow discount today
     end
 end)
