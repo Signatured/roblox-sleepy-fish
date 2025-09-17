@@ -49,7 +49,7 @@ return {
 		if data then
 			Fish.ForceHoldFish(player, data)
 			ExistCount.IncrementCount(data.FishId, data.Type)
-			Index.Add(player, data.FishId, data.Type)
+			Index.Add(player, data.FishId, data.Type, data.Mutation)
 		end
 
 		return true

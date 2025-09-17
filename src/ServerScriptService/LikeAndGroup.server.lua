@@ -40,7 +40,7 @@ Network.Fired("LikeAndGroup_Claim", function(player: Player)
     if data then
         Fish.ForceHoldFish(player, data)
         ExistCount.IncrementCount(data.FishId, data.Type)
-        Index.Add(player, data.FishId, data.Type)
+        Index.Add(player, data.FishId, data.Type, data.Mutation)
     end
 
     Notifications.Message(player, "Thanks for playing! 💖")

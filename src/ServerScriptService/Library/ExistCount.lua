@@ -18,7 +18,7 @@ export type CountsByType = {
 
 local ExistCount = {}
 
-local DATASTORE_KEY = "ExistCountV2"
+local DATASTORE_KEY = "ExistCountV3"
 local lastPersisted: {[string]: CountsByType} = {}
 local cache: {[string]: CountsByType} = {}
 
@@ -66,12 +66,6 @@ end
 
 -- No direct SetAsync writes; we will use UpdateAsync to merge deltas atomically
 
-local function refreshCacheFromStoreOnce()
-    local storeData = readFromDataStore()
-    cache = deepCopyCounts(storeData)
-    lastPersisted = deepCopyCounts(storeData)
-end
-
 local function getDeltas(): {[string]: CountsByType}
     local deltas: {[string]: CountsByType} = {}
     for fishId, nowCounts in pairs(cache) do
@@ -88,6 +82,27 @@ local function getDeltas(): {[string]: CountsByType}
     return deltas
 end
 
+local function refreshCacheFromStoreOnce()
+    local storeData = readFromDataStore()
+    
+    -- Calculate any pending increments before refresh
+    local pendingDeltas = getDeltas()
+    
+    -- Update cache with store data
+    cache = deepCopyCounts(storeData)
+    lastPersisted = deepCopyCounts(storeData)
+    
+    -- Re-apply any pending increments that weren't persisted
+    for fishId, delta in pairs(pendingDeltas) do
+        local counts = cache[fishId] or emptyCounts()
+        counts.Normal = math.max(0, counts.Normal + delta.Normal)
+        counts.Shiny = math.max(0, counts.Shiny + delta.Shiny)
+        counts.Gold = math.max(0, counts.Gold + delta.Gold)
+        counts.Rainbow = math.max(0, counts.Rainbow + delta.Rainbow)
+        cache[fishId] = counts
+    end
+end
+
 local persisting = false
 local function persistDeltas()
     if persisting then return end
@@ -100,6 +115,7 @@ local function persistDeltas()
         end
     end
     if not hasDelta then return end
+    
     persisting = true
     local DataStoreService = game:GetService("DataStoreService")
     local ds = DataStoreService:GetDataStore("GlobalExistCount")
@@ -137,10 +153,19 @@ local function persistDeltas()
         end)
     end)
 
-    if ok and type(result) == "table" then
-        lastPersisted = deepCopyCounts(result)
-    end
+    -- Always reset persisting flag, even on error
     persisting = false
+    
+    if ok and type(result) == "table" then
+        -- Only update lastPersisted if the operation succeeded
+        lastPersisted = deepCopyCounts(result)
+        local deltaCount = 0
+        for _ in pairs(deltas) do deltaCount += 1 end
+        print("[ExistCount] Successfully persisted deltas for", deltaCount, "fish types")
+    else
+        warn("[ExistCount] Failed to persist deltas:", result)
+        -- On failure, we keep the deltas in cache and will try again next time
+    end
 end
 
 local function getRandomInterval(): number
@@ -151,10 +176,17 @@ end
 function ExistCount.IncrementCount(fishId: string, fishType: FishTypes.fish_type)
     local counts = cache[fishId]
     if not counts then counts = emptyCounts(); cache[fishId] = counts end
-    if fishType == "Normal" then counts.Normal += 1
-    elseif fishType == "Shiny" then counts.Shiny += 1
-    elseif fishType == "Gold" then counts.Gold += 1
-    elseif fishType == "Rainbow" then counts.Rainbow += 1 end
+    
+    -- Increment and ensure non-negative values
+    if fishType == "Normal" then 
+        counts.Normal = math.max(0, counts.Normal + 1)
+    elseif fishType == "Shiny" then 
+        counts.Shiny = math.max(0, counts.Shiny + 1)
+    elseif fishType == "Gold" then 
+        counts.Gold = math.max(0, counts.Gold + 1)
+    elseif fishType == "Rainbow" then 
+        counts.Rainbow = math.max(0, counts.Rainbow + 1)
+    end
 end
 
 function ExistCount.GetAll(): {[string]: CountsByType}
@@ -208,6 +240,17 @@ task.spawn(function()
     while true do
         task.wait(getRandomInterval())
         persistDeltas()
+    end
+end)
+
+-- Periodically refresh cache from store to stay in sync with other servers
+task.spawn(function()
+    while true do
+        task.wait(getRandomInterval() * 2) -- Less frequent than persist
+        pcall(function()
+            refreshCacheFromStoreOnce()
+            print("[ExistCount] Refreshed cache from datastore")
+        end)
     end
 end)
 

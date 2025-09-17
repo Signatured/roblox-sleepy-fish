@@ -90,7 +90,7 @@ function module.ExecuteSteal(player: Player): boolean
     local data = Fish.Give(player, currentFish.FishData)
     if data then
         Fish.ForceHoldFish(player, data)
-        Index.Add(player, data.FishId, data.Type)
+        Index.Add(player, data.FishId, data.Type, data.Mutation)
     end
 
     task.spawn(function()
