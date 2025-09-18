@@ -41,25 +41,25 @@ local function setupMainGui(schema: any)
 		if prizeFrame and prizeFrame:IsA("Frame") then
 			local imageLabel: ImageLabel = prizeFrame.ImageLabel
 			local percentLabel: TextLabel = prizeFrame.Percent
-			local quantityLabel: TextLabel = prizeFrame.Quantity
-
-			quantityLabel.Visible = false
+			local title1 = prizeFrame:FindFirstChild("Title1")
+			local title2 = prizeFrame:FindFirstChild("Title2")
+			local title3 = prizeFrame:FindFirstChild("Title3")
 			percentLabel.Position = UDim2.new(0.5, 0, 0.9, 0)
 
 			imageLabel.Image = reward.Icon
 			-- percentLabel.Text = reward.DisplayChance
 
-			-- if reward.AltText then	
-			-- 	quantityLabel.Text = reward.AltText
-			-- else
-			-- 	quantityLabel.Text = Functions.Commas(reward.Quantity)
-			-- end
-
-			if reward.AltText then	
-				percentLabel.Text = reward.AltText
-			else
-				percentLabel.Text = "$" .. Functions.Commas(reward.Quantity)
+			if title1 and title1:IsA("TextLabel") then
+				title1.Text = reward.Title1 or ""
 			end
+			if title2 and title2:IsA("TextLabel") then
+				title2.Text = reward.Title2 or ""
+			end
+			if title3 and title3:IsA("TextLabel") then
+				title3.Text = reward.Title3 or ""
+			end
+
+			percentLabel.Text = reward.DisplayChance
 		end
 	end
 end
@@ -250,25 +250,25 @@ local function setupPhysicalWheel(physicalWheelPart: Part, schema: any)
 		if prizeFrame and prizeFrame:IsA("Frame") then
 			local imageLabel: ImageLabel = prizeFrame:FindFirstChild("ImageLabel")::ImageLabel
 			local percentLabel: TextLabel = prizeFrame:FindFirstChild("Percent")::TextLabel
-			local quantityLabel: TextLabel = prizeFrame:FindFirstChild("Quantity")::TextLabel
-
-			quantityLabel.Visible = false
+			local title1 = prizeFrame:FindFirstChild("Title1")
+			local title2 = prizeFrame:FindFirstChild("Title2")
+			local title3 = prizeFrame:FindFirstChild("Title3")
 			percentLabel.Position = UDim2.new(0.5, 0, 0.9, 0)
 
 			imageLabel.Image = reward.Icon
 			-- percentLabel.Text = reward.DisplayChance
 
-			-- if reward.AltText then	
-			-- 	quantityLabel.Text = reward.AltText
-			-- else
-			-- 	quantityLabel.Text = Functions.Commas(reward.Quantity)
-			-- end
-
-			if reward.AltText then	
-				percentLabel.Text = reward.AltText
-			else
-				percentLabel.Text = "$" .. Functions.Commas(reward.Quantity)
+			if title1 and title1:IsA("TextLabel") then
+				title1.Text = reward.Title1 or ""
 			end
+			if title2 and title2:IsA("TextLabel") then
+				title2.Text = reward.Title2 or ""
+			end
+			if title3 and title3:IsA("TextLabel") then
+				title3.Text = reward.Title3 or ""
+			end
+
+			percentLabel.Text = reward.DisplayChance
 		end
 	end
 end
@@ -508,6 +508,7 @@ Save.Fired(function(key: string, value: any)
     if key == "Wheels" then
         updateSpinButtonText()
         updateFreeSpinLabel()
+		updatePurchaseUI()			
     end
 end)
 

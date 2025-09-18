@@ -9,7 +9,9 @@ export type Reward = {
 	Weight: number,
 	DisplayChance: string,
 	Icon: string,
-	Quantity: number,
+	Title1: string?,
+	Title2: string?,
+	Title3: string?,
 	AltText: string?,
 }
 
