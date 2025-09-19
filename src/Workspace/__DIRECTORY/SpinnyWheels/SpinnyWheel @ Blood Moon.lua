@@ -131,7 +131,7 @@ return {
 				Color = Color3.fromRGB(0, 255, 0)
 			})
 		elseif reward.Index == 5 then
-			local Gadgets = require(game.ServerScriptService.Library.Gadgets)
+			local Gadgets = require(game.ServerScriptService.Game.Library.Gadgets)
 
 			if not Gadgets.Has(player, "Blood Moon Coil") then
 				Gadgets.Give(player, "Blood Moon Coil")
