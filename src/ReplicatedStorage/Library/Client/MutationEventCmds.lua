@@ -320,6 +320,13 @@ Network.Fired("MutationEvent_End", function(eventId: string)
     currentEventId = nil
     _eventStartTime = nil
     eventEndTime = nil
+    -- Don't reset nextEventTime here - we need to get the updated time from server
+    
+    -- Request updated status from server to get the next event time
+    task.spawn(function()
+        task.wait(0.1) -- Small delay to ensure server has updated
+        Network.Fire("MutationEvent_GetStatus")
+    end)
     
     updateEventGuis()
 end)

@@ -16,7 +16,7 @@ local CURRENT_EVENT_ID = "Blood Moon" -- Directory ID of the current mutation ev
 local EST_OFFSET = -5 * 3600 -- EST is UTC-5 (in seconds)
 
 -- Debug Configuration
-local DEBUG_MODE = true -- Set to true to enable debug timing
+local DEBUG_MODE = false -- Set to true to enable debug timing
 local DEBUG_START_DELAY = 5 -- Seconds after server boot to start first event in debug mode
 
 -- State
@@ -99,7 +99,7 @@ local function updateEventState()
         
         -- Notify all clients to start the event
 
-        for _, player in ipairs(Players.GetPlayers()) do
+        for _, player in ipairs(Players:GetPlayers()) do
             if player:GetAttribute("Loaded") then
                 Network.Fire(player, "MutationEvent_Start", CURRENT_EVENT_ID, eventStartTime, eventEndTime)
             end
