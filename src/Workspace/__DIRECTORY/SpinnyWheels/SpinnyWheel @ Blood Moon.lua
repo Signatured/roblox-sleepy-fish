@@ -3,7 +3,7 @@
 local SpinnyWheelTypes = require(game.ReplicatedStorage.Game.Library.Types.SpinnyWheels)
 local Audio = require(game.ReplicatedStorage.Library.Audio)
 local Functions = require(game.ReplicatedStorage.Library.Functions)
-
+local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
 
 return {
 	DisplayName = "Blood Moon Wheel",
@@ -76,15 +76,17 @@ return {
 				["Gold"] = 5,
 				["Rainbow"] = 1,
 			}
+
+			local mutation: FishTypes.fish_mutation_type? = nil
+			if math.random() <= 0.1 then
+				mutation = "Bloodfish"
+			end
 	
 			local data = Fish.Give(player, {
 				FishId = "Firefly Squid",
-				Type = Functions.Lottery(typeChances)
+				Type = Functions.Lottery(typeChances),
+				Mutation = mutation
 			})
-
-			if math.random() <= 0.1 then
-				data.Mutation = "Bloodfish"
-			end
 	
 			if data then
 				Fish.ForceHoldFish(player, data)

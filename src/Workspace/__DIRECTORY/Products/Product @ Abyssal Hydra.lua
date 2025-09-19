@@ -1,5 +1,7 @@
 --!strict
 
+local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
+
 return {
 	ProductId = 3402065537,
 	DisplayName = "[OP] Exclusive Abyssal Hydra",
@@ -41,9 +43,15 @@ return {
 			["Rainbow"] = 1,
 		}
 
+		local mutation: FishTypes.fish_mutation_type? = nil
+		if math.random() <= 0.1 then
+			mutation = "Bloodfish"
+		end
+
 		local data = Fish.Give(player, {
 			FishId = "Abyssal Hydra",
-			Type = Functions.Lottery(typeChances)
+			Type = Functions.Lottery(typeChances),
+			Mutation = mutation
 		})
 
 		if data then
