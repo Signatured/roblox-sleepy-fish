@@ -76,16 +76,11 @@ return {
 				["Gold"] = 5,
 				["Rainbow"] = 1,
 			}
-
-			local mutation: FishTypes.fish_mutation_type? = nil
-			if math.random() <= 0.1 then
-				mutation = "Bloodfish"
-			end
 	
 			local data = Fish.Give(player, {
 				FishId = "Firefly Squid",
 				Type = Functions.Lottery(typeChances),
-				Mutation = mutation
+				Mutation = "Bloodfish"
 			})
 	
 			if data then
