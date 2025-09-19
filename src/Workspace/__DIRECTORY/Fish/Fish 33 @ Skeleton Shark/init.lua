@@ -7,7 +7,7 @@ return {
     DisplayName = "Skeleton Shark",
     Icon = "rbxassetid://115237634632337",
     MutationIcons = {
-        Bloodfish = "rbxassetid://115237634632337",
+        Bloodfish = "rbxassetid://124452443817591",
     },
     Rarity = Rarity.Secret,
     MoneyPerSecond = 850,

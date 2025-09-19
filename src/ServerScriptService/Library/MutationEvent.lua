@@ -141,7 +141,81 @@ end)
 task.spawn(function()
     -- Wait for directory to load
     task.wait(1)
-    nextEventTime = calculateNextEventTime()
+    
+    local eventData = MutationEventDirectory[CURRENT_EVENT_ID]
+    if not eventData then 
+        nextEventTime = calculateNextEventTime()
+        return 
+    end
+    
+    local now = getESTTime()
+    
+    -- Check if we should currently be in an active event
+    if DEBUG_MODE then
+        local debugStartTime = serverBootTime + DEBUG_START_DELAY
+        local interval = eventData.Interval
+        local duration = eventData.Duration
+        
+        -- Find the most recent event start time
+        local recentEventStart = debugStartTime
+        while recentEventStart + interval <= now do
+            recentEventStart = recentEventStart + interval
+        end
+        
+        -- Check if we're within the duration of this event
+        if now >= recentEventStart and now < recentEventStart + duration then
+            -- We're in an active event!
+            currentEvent = eventData
+            eventStartTime = recentEventStart
+            eventEndTime = recentEventStart + duration
+            nextEventTime = recentEventStart + interval
+            
+            -- Notify all clients to start the event
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player:GetAttribute("Loaded") then
+                    Network.Fire(player, "MutationEvent_Start", CURRENT_EVENT_ID, eventStartTime, eventEndTime)
+                end
+            end
+        else
+            -- No active event, calculate next one
+            nextEventTime = recentEventStart + interval
+        end
+    else
+        -- Normal mode: check if we're in an active event window
+        local interval = eventData.Interval
+        local duration = eventData.Duration
+        
+        -- Events start at 11am EST (11 * 3600 seconds from midnight)
+        local elevenAMToday = math.floor(now / 86400) * 86400 + 11 * 3600
+        
+        -- If it's past 11am today, start from 11am today, otherwise start from 11am yesterday
+        local baseTime = now >= elevenAMToday and elevenAMToday or (elevenAMToday - 86400)
+        
+        -- Find the most recent event start time
+        local recentEventStart = baseTime
+        while recentEventStart + interval <= now do
+            recentEventStart = recentEventStart + interval
+        end
+        
+        -- Check if we're within the duration of this event
+        if now >= recentEventStart and now < recentEventStart + duration then
+            -- We're in an active event!
+            currentEvent = eventData
+            eventStartTime = recentEventStart
+            eventEndTime = recentEventStart + duration
+            nextEventTime = recentEventStart + interval
+            
+            -- Notify all clients to start the event
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player:GetAttribute("Loaded") then
+                    Network.Fire(player, "MutationEvent_Start", CURRENT_EVENT_ID, eventStartTime, eventEndTime)
+                end
+            end
+        else
+            -- No active event, calculate next one
+            nextEventTime = recentEventStart + interval
+        end
+    end
 end)
 
 return MutationEvent

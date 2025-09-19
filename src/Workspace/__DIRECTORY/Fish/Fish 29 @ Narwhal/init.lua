@@ -7,7 +7,7 @@ return {
     DisplayName = "Narwhal",
     Icon = "rbxassetid://115727958930970",
     MutationIcons = {
-        Bloodfish = "rbxassetid://115727958930970",
+        Bloodfish = "rbxassetid://101793152935431",
     },
     Rarity = Rarity.Mythical,
     MoneyPerSecond = 450,
