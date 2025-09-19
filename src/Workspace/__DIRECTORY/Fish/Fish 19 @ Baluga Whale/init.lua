@@ -6,6 +6,9 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 return {
     DisplayName = "Baluga Whale",
     Icon = "rbxassetid://129525720088267",
+    MutationIcons = {
+        Bloodfish = "rbxassetid://81355499913594",
+    },
     Rarity = Rarity.Legendary,
     MoneyPerSecond = 70,
     BaseUpgradeCost = 1500,

@@ -167,9 +167,14 @@ function Fish.Give(player: Player, params: FishTypes.create_params | FishTypes.s
     end
     addToInventory(player, fishData)
 
+    local icon = schema.Icon
+    if schema.MutationIcons and fishData.Mutation then
+        icon = schema.MutationIcons[fishData.Mutation] or schema.Icon
+    end
+
     local tool = toolTemplate:Clone()
     tool.Name = schema.DisplayName
-    tool.TextureId = schema.Icon
+    tool.TextureId = icon
     tool.ToolTip = `Level {fishData.Level}`
     tool:SetAttribute("UID", fishData.UID)
     tool:SetAttribute("Type", fishData.Type)

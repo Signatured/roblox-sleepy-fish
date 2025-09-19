@@ -1,5 +1,8 @@
 --!strict
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Assets = ReplicatedStorage:WaitForChild("Assets")
+
 local DirectoryTypes = require(game.ReplicatedStorage.Game.Library.Types.Directory)
 local RarityTypes = require(game.ReplicatedStorage.Game.Library.Types.Rarity)
 
@@ -8,6 +11,7 @@ local module = {}
 export type raw_dir = {
     DisplayName: string,
     Icon: string,
+    MutationIcons: {[string]: string}?,
     Rarity: RarityTypes.dir_schema,
     MoneyPerSecond: number,
     BaseUpgradeCost: number,
@@ -70,6 +74,16 @@ function module.MakeBloodfishModel(model: Model)
             
             part.Color = newColor
         end
+    end
+
+    local vfxBox = model:FindFirstChild("VFX")
+    if vfxBox and not vfxBox:GetAttribute("Added") then
+        local particles = Assets:FindFirstChild("BloodMoon"):FindFirstChild("Particles")
+        for _, particle in ipairs(particles:GetChildren()) do
+            local cloned = particle:Clone()
+            cloned.Parent = vfxBox
+        end
+        vfxBox:SetAttribute("Added", true)
     end
 end
 
