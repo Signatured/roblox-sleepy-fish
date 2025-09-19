@@ -190,7 +190,7 @@ local function realRender()
         if hasSeen then
             if currentCategory == "BloodMoon" then
                 -- BloodMoon counts are not tracked in ExistCount system yet
-                countVal = 0
+                countVal = ExistCountCmds.GetBloodfishCount(fishId)
             else
                 countVal = ExistCountCmds.GetByIdAndType(fishId, currentCategory)
             end
@@ -209,8 +209,7 @@ local function realRender()
         if existLabel and existLabel:IsA("TextLabel") then
             if hasSeen then
                 if currentCategory == "BloodMoon" then
-                    existLabel.Text = "BloodMoon"
-                    existLabel.TextColor3 = Color3.fromRGB(126, 12, 12) -- Blood Moon color
+                    existLabel.Text = `{countString} Exist`
                 else
                     existLabel.Text = `{countString} Exist`
                 end

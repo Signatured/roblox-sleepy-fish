@@ -9,6 +9,7 @@ export type CountsByType = {
     Shiny: number,
     Gold: number,
     Rainbow: number,
+    Bloodfish: number,
 }
 
 local ExistCountCmds = {}
@@ -30,8 +31,15 @@ function ExistCountCmds.GetByIdAndType(fishId: string, fishType: string): number
     elseif fishType == "Shiny" then return localVal.Shiny
     elseif fishType == "Gold" then return localVal.Gold
     elseif fishType == "Rainbow" then return localVal.Rainbow
+    elseif fishType == "Bloodfish" then return localVal.Bloodfish
     end
     return 0
+end
+
+function ExistCountCmds.GetBloodfishCount(fishId: string): number
+    local localVal = cache[fishId]
+    if not localVal then return 0 end
+    return localVal.Bloodfish or 0
 end
 
 -- initial fetch

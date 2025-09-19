@@ -40,6 +40,9 @@ Network.Fired("LikeAndGroup_Claim", function(player: Player)
     if data then
         Fish.ForceHoldFish(player, data)
         ExistCount.IncrementCount(data.FishId, data.Type)
+        if data.Mutation == "Bloodfish" then
+            ExistCount.IncrementBloodfishCount(data.FishId)
+        end
         Index.Add(player, data.FishId, data.Type, data.Mutation)
     end
 

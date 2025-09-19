@@ -787,6 +787,9 @@ RunService.Heartbeat:Connect(function()
 						despawn(uid)
 						task.spawn(function()
                             ExistCount.IncrementCount(fish.FishData.FishId, fish.FishData.Type)
+                            if fish.FishData.Mutation == "Bloodfish" then
+                                ExistCount.IncrementBloodfishCount(fish.FishData.FishId)
+                            end
                             Index.Add(player, fish.FishData.FishId, fish.FishData.Type, fish.FishData.Mutation)
 							BadgeManager.GiveBadgeByName(player, "FirstCatch")
 						end)
