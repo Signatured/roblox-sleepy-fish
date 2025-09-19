@@ -24,7 +24,7 @@ local CHASE_MUSIC_IDS = {
 }
 local EVENT_MUSIC_IDS = {
     "rbxassetid://85664895056846",
-    "rbxassetid://84835690217991",
+    -- "rbxassetid://84835690217991",
     "rbxassetid://81354930332168",
     "rbxassetid://88542036402751",
     "rbxassetid://79108411468576"

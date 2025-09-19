@@ -393,12 +393,13 @@ end
 -- Initialize when player loads
 task.spawn(function()
     -- Wait for player to have Loaded attribute
-    while not player:GetAttribute("Loaded") do
+    while not player:GetAttribute("LoadingScreenComplete") do
         task.wait(0.5)
     end
     
     -- Wait 1.5 seconds then ask server for status
     task.wait(1.5)
+    print("STARTING MUTATION EVENT")
     Network.Fire("MutationEvent_GetStatus")
 end)
 

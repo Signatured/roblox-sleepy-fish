@@ -1,5 +1,6 @@
 --!strict
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local RunService = game:GetService("RunService")
@@ -97,7 +98,12 @@ local function updateEventState()
         nextEventTime = (nextEventTime :: number) + eventData.Interval
         
         -- Notify all clients to start the event
-        Network.FireAll("MutationEvent_Start", CURRENT_EVENT_ID, eventStartTime, eventEndTime)
+
+        for _, player in ipairs(Players.GetPlayers()) do
+            if player:GetAttribute("Loaded") then
+                Network.Fire(player, "MutationEvent_Start", CURRENT_EVENT_ID, eventStartTime, eventEndTime)
+            end
+        end
         
     -- Check if we should end the event
     elseif currentEvent and now >= (eventEndTime :: number) then
