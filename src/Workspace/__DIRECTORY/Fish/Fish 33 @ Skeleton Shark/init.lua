@@ -5,18 +5,19 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Skeleton Shark",
-    Icon = "rbxassetid://91872405889650",
+    Icon = "rbxassetid://115237634632337",
     MutationIcons = {
-        Bloodfish = "rbxassetid://87655859693533",
+        Bloodfish = "rbxassetid://115237634632337",
     },
     Rarity = Rarity.Secret,
-    MoneyPerSecond = 800,
-    BaseUpgradeCost = 22500,
+    MoneyPerSecond = 850,
+    BaseUpgradeCost = 25000,
     BillboardOffset = 12,
     PedestalOffset = -2,
     RarityWeight = 5,
-    -- IndexOffset = 8,
-    -- IndexPositionOffset = Vector3.new(-7, 2, 0),
+    IndexOffset = 8,
+    IndexPositionOffset = Vector3.new(-9, -1, 0),
+    IndexRotationOffset = Vector3.new(0, math.rad(180), 0),
 }::FishTypes.raw_dir
 
 
