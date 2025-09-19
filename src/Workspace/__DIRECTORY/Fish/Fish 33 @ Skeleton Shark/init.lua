@@ -4,17 +4,17 @@ local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
 local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
-    DisplayName = "Firefly Squid",
-    Icon = "rbxassetid://126732776258447",
+    DisplayName = "Skeleton Shark",
+    Icon = "rbxassetid://91872405889650",
     MutationIcons = {
-        Bloodfish = "rbxassetid://99131114797726",
+        Bloodfish = "rbxassetid://87655859693533",
     },
     Rarity = Rarity.Secret,
-    MoneyPerSecond = 700,
-    BaseUpgradeCost = 18000,
-    BillboardOffset = 13,
-    -- PedestalOffset = -2.5,
-    RarityWeight = 45,
+    MoneyPerSecond = 800,
+    BaseUpgradeCost = 22500,
+    BillboardOffset = 12,
+    PedestalOffset = -2.5,
+    RarityWeight = 5,
     -- IndexOffset = 8,
     -- IndexPositionOffset = Vector3.new(-7, 2, 0),
 }::FishTypes.raw_dir

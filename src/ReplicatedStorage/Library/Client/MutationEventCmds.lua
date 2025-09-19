@@ -394,11 +394,11 @@ end
 task.spawn(function()
     -- Wait for player to have Loaded attribute
     while not player:GetAttribute("Loaded") do
-        task.wait(1)
+        task.wait(0.5)
     end
     
-    -- Wait 3 seconds then ask server for status
-    task.wait(3)
+    -- Wait 1.5 seconds then ask server for status
+    task.wait(1.5)
     Network.Fire("MutationEvent_GetStatus")
 end)
 

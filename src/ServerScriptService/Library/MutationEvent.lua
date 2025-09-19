@@ -15,7 +15,7 @@ local CURRENT_EVENT_ID = "Blood Moon" -- Directory ID of the current mutation ev
 local EST_OFFSET = -5 * 3600 -- EST is UTC-5 (in seconds)
 
 -- Debug Configuration
-local DEBUG_MODE = true -- Set to true to enable debug timing
+local DEBUG_MODE = false -- Set to true to enable debug timing
 local DEBUG_START_DELAY = 5 -- Seconds after server boot to start first event in debug mode
 
 -- State
@@ -56,15 +56,15 @@ local function calculateNextEventTime(): number
         end
     end
 
-    -- Normal mode: events start at 12 noon EST
+    -- Normal mode: events start at 11am EST
     local now = getESTTime()
     local interval = eventData.Interval
     
-    -- Events start at 12 noon EST (12 * 3600 seconds from midnight)
-    local noonToday = math.floor(now / 86400) * 86400 + 12 * 3600
+    -- Events start at 11am EST (11 * 3600 seconds from midnight)
+    local elevenAMToday = math.floor(now / 86400) * 86400 + 11 * 3600
     
-    -- If it's past noon today, start from noon today, otherwise start from noon yesterday
-    local baseTime = now >= noonToday and noonToday or (noonToday - 86400)
+    -- If it's past 11am today, start from 11am today, otherwise start from 11am yesterday
+    local baseTime = now >= elevenAMToday and elevenAMToday or (elevenAMToday - 86400)
     
     -- Find the next event time based on interval
     local nextTime = baseTime
