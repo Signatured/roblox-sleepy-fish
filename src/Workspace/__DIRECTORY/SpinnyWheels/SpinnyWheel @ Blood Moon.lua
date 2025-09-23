@@ -134,7 +134,7 @@ return {
 			local Gadgets = require(game.ServerScriptService.Game.Library.Gadgets)
 
 			if not Gadgets.Has(player, "Blood Moon Coil") then
-				Gadgets.Give(player, "Blood Moon Coil")
+				Gadgets.GiveAndInventory(player, "Blood Moon Coil")
 			end
 
 			Notifications.Message(player, `You won a Blood Moon Coil!`, {
