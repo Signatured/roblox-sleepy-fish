@@ -9,15 +9,15 @@ local CommandType = require(ReplicatedStorage.Game.Library.Types.Commands)
 local AdminPanel = require(ServerScriptService.Game.Library.AdminPanel)
 
 local Command = {
-	Name = "TestSpin",
-	Aliases = {"testspin"},
+	Name = "Test",
+	Aliases = {"test"},
 	Permissions = {"Admin", "Owner", "Developer"}, 
 	Parameters = {
 		{Type = "Player", Name = "TargetPlayer", Optional = true},
 	} :: {CommandType.Parameter},
 
 	Execute = function(player, args)
-		AdminPanel.ExecuteCommand(player, "Fling", args[1][1])
+		AdminPanel.ExecuteCommand(player, "Huge", args[1][1])
 	end,
 } :: CommandType.Command
 
