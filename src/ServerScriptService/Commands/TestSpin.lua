@@ -17,7 +17,7 @@ local Command = {
 	} :: {CommandType.Parameter},
 
 	Execute = function(player, args)
-		AdminPanel.ExecuteCommand(player, "Huge", args[1][1])
+		AdminPanel.ExecuteCommand(player, "Dance", args[1][1])
 	end,
 } :: CommandType.Command
 
