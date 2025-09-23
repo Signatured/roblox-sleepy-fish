@@ -121,6 +121,34 @@ Players.PlayerRemoving:Connect(function(player)
 	pendingRewards[player] = nil
 end)
 
+-- Periodic check for free spin timers (every 10 seconds)
+task.spawn(function()
+    while true do
+        task.wait(1)
+        local nowT = workspace:GetServerTimeNow()
+        
+        for _, player in ipairs(Players:GetPlayers()) do
+            local saveData = Saving.Get(player)
+            if not saveData then continue end
+            
+            saveData.Wheels = saveData.Wheels or {}
+            
+            for wheelId, _dir in pairs(SpinnyWheelDirectory) do
+                saveData.Wheels[wheelId] = saveData.Wheels[wheelId] or { Free = 0, Paid = 0, FreeNextAt = nil }
+                local wheel = saveData.Wheels[wheelId]
+                local free = wheel.Free or 0
+                local nextAt = wheel.FreeNextAt
+                
+                -- If a timer exists and has elapsed and player has no free spin queued, grant exactly 1 and clear timer
+                if typeof(nextAt) == "number" and nextAt <= nowT and free == 0 then
+                    wheel.Free = 1
+                    wheel.FreeNextAt = nil
+                end
+            end
+        end
+    end
+end)
+
 -- Award and schedule free spins on save load
 Saving.SaveAdded:Connect(function(player: Player)
     local saveData = Saving.Get(player)
@@ -138,7 +166,7 @@ Saving.SaveAdded:Connect(function(player: Player)
         local nextAt = wheel.FreeNextAt
 
         if nextAt == nil and free == 0 then
-            -- First time seeing this wheel: schedule initial free spin 15 minutes after first join
+            -- First time seeing this wheel: schedule free spin for 60 seconds after join
             wheel.FreeNextAt = nowT + (15 * 60)
         end
 

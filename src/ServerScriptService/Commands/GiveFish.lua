@@ -7,6 +7,8 @@ local CommandManager = require(ServerScriptService.CommandManager)
 local CommandType = require(ReplicatedStorage.Game.Library.Types.Commands)
 local Fish = require(ServerScriptService.Game.Library.Fish)
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
+local ExistCount = require(ServerScriptService.Game.Library.ExistCount)
+local Index = require(ServerScriptService.Game.Library.Index)
 
 local Command = {
 	Name = "Givefish",
@@ -21,7 +23,6 @@ local Command = {
 	} :: {CommandType.Parameter},
 
 	Execute = function(player, args)
-        print(args)
 		local targetPlayers = args[1]
         local fishId = args[2]
         local type = args[3] or "Normal"
@@ -34,13 +35,21 @@ local Command = {
         end
 
 		for _, targetPlayer in ipairs(targetPlayers) do
-			Fish.Give(targetPlayer, {
+			local data = Fish.Give(targetPlayer, {
                 FishId = fishId,
                 Type = type,
                 Mutation = mutation,
                 Shiny = false,
                 Level = level
             })
+
+            if data then
+                ExistCount.IncrementCount(data.FishId, data.Type)
+                if data.Mutation == "Bloodfish" then
+                    ExistCount.IncrementBloodfishCount(data.FishId)
+                end
+                Index.Add(player, data.FishId, data.Type, data.Mutation)
+            end
 		end
 	end,
 } :: CommandType.Command

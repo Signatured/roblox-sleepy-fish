@@ -6,6 +6,9 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 return {
     DisplayName = "Megalodon Shark",
     Icon = "rbxassetid://88710987072085",
+    MutationIcons = {
+        Bloodfish = "rbxassetid://101658843624617",
+    },
     Rarity = Rarity.Mythical,
     MoneyPerSecond = 250,
     BaseUpgradeCost = 6500,

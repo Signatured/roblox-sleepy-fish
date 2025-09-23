@@ -11,6 +11,7 @@ local Functions = require(Library.Functions)
 local TagHook = require(Library.Functions.TagHook)
 local NotificationCmds = require(Library.Client.NotificationCmds)
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
+local Audio = require(ReplicatedStorage.Library.Audio)
 
 local player = Players.LocalPlayer
 local DEBRIS = workspace:WaitForChild("__DEBRIS")
@@ -106,7 +107,8 @@ local function startBloodMoonEvent()
     -- Send notification
     NotificationCmds.Message("The Blood Moon is rising...", {
         Color = eventData.Color,
-        Time = 10
+        Time = 10,
+        Sound = "rbxassetid://91817413999532"
     })
     
     -- Clone and setup BloodMoonWhirlpool
@@ -116,6 +118,14 @@ local function startBloodMoonEvent()
         bloodMoonWhirlpool = whirlpoolTemplate:Clone() :: BasePart
         if bloodMoonWhirlpool then
             bloodMoonWhirlpool.Parent = DEBRIS
+
+            for _, child in ipairs(bloodMoonWhirlpool:GetDescendants()) do
+                if child:IsA("ParticleEmitter") then
+                    child:Emit(3)
+                end
+            end
+
+            Audio.Play("rbxassetid://126237239639574", bloodMoonWhirlpool, 1, 1.5, 450)
             -- Keep particles on initially - they'll be turned off when other particles spawn
         end
     end
@@ -183,12 +193,12 @@ local function startBloodMoonEvent()
     end
     
     -- Now turn off whirlpool particles since the other particles are active
-    if bloodMoonWhirlpool then
-        setParticlesEnabled(bloodMoonWhirlpool, false)
-    end
+    -- if bloodMoonWhirlpool then
+    --     setParticlesEnabled(bloodMoonWhirlpool, false)
+    -- end
     
     -- Wait 3 more seconds then ensure whirlpool particles are still off
-    task.wait(3)
+    task.wait(6)
     if bloodMoonWhirlpool then
         setParticlesEnabled(bloodMoonWhirlpool, false)
     end
@@ -212,7 +222,15 @@ local function endBloodMoonEvent()
     -- Turn on whirlpool particles for 3 seconds
     if bloodMoonWhirlpool then
         setParticlesEnabled(bloodMoonWhirlpool, true)
-        task.wait(3)
+        for _, child in ipairs(bloodMoonWhirlpool:GetDescendants()) do
+            if child:IsA("ParticleEmitter") then
+                child:Emit(3)
+            end
+        end
+
+        Audio.Play("rbxassetid://126237239639574", bloodMoonWhirlpool, 1, 1.5, 450)
+        
+        task.wait(6)
         setParticlesEnabled(bloodMoonWhirlpool, false)
     end
     
@@ -302,6 +320,13 @@ Network.Fired("MutationEvent_End", function(eventId: string)
     currentEventId = nil
     _eventStartTime = nil
     eventEndTime = nil
+    -- Don't reset nextEventTime here - we need to get the updated time from server
+    
+    -- Request updated status from server to get the next event time
+    task.spawn(function()
+        task.wait(0.1) -- Small delay to ensure server has updated
+        Network.Fire("MutationEvent_GetStatus")
+    end)
     
     updateEventGuis()
 end)
@@ -375,12 +400,13 @@ end
 -- Initialize when player loads
 task.spawn(function()
     -- Wait for player to have Loaded attribute
-    while not player:GetAttribute("Loaded") do
-        task.wait(1)
+    while not player:GetAttribute("LoadingScreenComplete") do
+        task.wait(0.5)
     end
     
-    -- Wait 3 seconds then ask server for status
-    task.wait(3)
+    -- Wait 1.5 seconds then ask server for status
+    task.wait(1.5)
+    print("STARTING MUTATION EVENT")
     Network.Fire("MutationEvent_GetStatus")
 end)
 

@@ -6,6 +6,9 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 return {
     DisplayName = "Ancient Sea Dragon",
     Icon = "rbxassetid://124358989249012",
+    MutationIcons = {
+        Bloodfish = "rbxassetid://124358989249012",
+    },
     Rarity = Rarity.Secret,
     MoneyPerSecond = 750,
     BaseUpgradeCost = 20000,

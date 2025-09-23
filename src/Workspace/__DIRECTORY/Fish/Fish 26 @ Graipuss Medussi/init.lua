@@ -6,6 +6,9 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 return {
     DisplayName = "Graipuss Medussi",
     Icon = "rbxassetid://93541654161971",
+    MutationIcons = {
+        Bloodfish = "rbxassetid://128048198317470",
+    },
     Rarity = Rarity.Mythical,
     MoneyPerSecond = 225,
     BaseUpgradeCost = 5800,

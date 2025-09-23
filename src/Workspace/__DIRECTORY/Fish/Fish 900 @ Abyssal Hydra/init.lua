@@ -6,6 +6,9 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 return {
     DisplayName = "Abyssal Hydra",
     Icon = "rbxassetid://111872157833540",
+    MutationIcons = {
+        Bloodfish = "rbxassetid://140518545722406",
+    },
     Rarity = Rarity.Exclusive,
     MoneyPerSecond = 150,
     BaseUpgradeCost = 10000,

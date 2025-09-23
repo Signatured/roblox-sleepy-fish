@@ -6,6 +6,9 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 return {
     DisplayName = "Clown Fish",
     Icon = "rbxassetid://110984573735192",
+    MutationIcons = {
+        Bloodfish = "rbxassetid://89664796459386",
+    },
     Rarity = Rarity.Common,
     MoneyPerSecond = 1,
     BaseUpgradeCost = 50,

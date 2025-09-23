@@ -14,22 +14,23 @@ export type CountsByType = {
     Shiny: number,
     Gold: number,
     Rainbow: number,
+    Bloodfish: number,
 }
 
 local ExistCount = {}
 
-local DATASTORE_KEY = "ExistCountV3"
+local DATASTORE_KEY = "ExistCountV4"
 local lastPersisted: {[string]: CountsByType} = {}
 local cache: {[string]: CountsByType} = {}
 
 local function emptyCounts(): CountsByType
-    return { Normal = 0, Shiny = 0, Gold = 0, Rainbow = 0 }
+    return { Normal = 0, Shiny = 0, Gold = 0, Rainbow = 0, Bloodfish = 0 }
 end
 
 local function deepCopyCounts(src: {[string]: CountsByType}): {[string]: CountsByType}
     local dest: {[string]: CountsByType} = {}
     for k, v in pairs(src) do
-        dest[k] = { Normal = v.Normal or 0, Shiny = v.Shiny or 0, Gold = v.Gold or 0, Rainbow = v.Rainbow or 0 }
+        dest[k] = { Normal = v.Normal or 0, Shiny = v.Shiny or 0, Gold = v.Gold or 0, Rainbow = v.Rainbow or 0, Bloodfish = v.Bloodfish or 0 }
     end
     return dest
 end
@@ -39,6 +40,7 @@ local function _addCounts(a: CountsByType, b: CountsByType)
     a.Shiny += b.Shiny or 0
     a.Gold += b.Gold or 0
     a.Rainbow += b.Rainbow or 0
+    a.Bloodfish += b.Bloodfish or 0
 end
 
 local function readFromDataStore(): {[string]: CountsByType}
@@ -56,6 +58,7 @@ local function readFromDataStore(): {[string]: CountsByType}
                 c.Shiny = tonumber((counts :: any).Shiny) or 0
                 c.Gold = tonumber((counts :: any).Gold) or 0
                 c.Rainbow = tonumber((counts :: any).Rainbow) or 0
+                c.Bloodfish = tonumber((counts :: any).Bloodfish) or 0
                 normalized[fishId] = c
             end
         end
@@ -70,12 +73,13 @@ local function getDeltas(): {[string]: CountsByType}
     local deltas: {[string]: CountsByType} = {}
     for fishId, nowCounts in pairs(cache) do
         local prev = lastPersisted[fishId] or emptyCounts()
-        local d: CountsByType = { Normal = 0, Shiny = 0, Gold = 0, Rainbow = 0 }
+        local d: CountsByType = { Normal = 0, Shiny = 0, Gold = 0, Rainbow = 0, Bloodfish = 0 }
         d.Normal = (nowCounts.Normal or 0) - (prev.Normal or 0)
         d.Shiny = (nowCounts.Shiny or 0) - (prev.Shiny or 0)
         d.Gold = (nowCounts.Gold or 0) - (prev.Gold or 0)
         d.Rainbow = (nowCounts.Rainbow or 0) - (prev.Rainbow or 0)
-        if d.Normal ~= 0 or d.Shiny ~= 0 or d.Gold ~= 0 or d.Rainbow ~= 0 then
+        d.Bloodfish = (nowCounts.Bloodfish or 0) - (prev.Bloodfish or 0)
+        if d.Normal ~= 0 or d.Shiny ~= 0 or d.Gold ~= 0 or d.Rainbow ~= 0 or d.Bloodfish ~= 0 then
             deltas[fishId] = d
         end
     end
@@ -99,6 +103,7 @@ local function refreshCacheFromStoreOnce()
         counts.Shiny = math.max(0, counts.Shiny + delta.Shiny)
         counts.Gold = math.max(0, counts.Gold + delta.Gold)
         counts.Rainbow = math.max(0, counts.Rainbow + delta.Rainbow)
+        counts.Bloodfish = math.max(0, counts.Bloodfish + delta.Bloodfish)
         cache[fishId] = counts
     end
 end
@@ -109,7 +114,7 @@ local function persistDeltas()
     local deltas = getDeltas()
     local hasDelta = false
     for _, d in pairs(deltas) do
-        if (d.Normal or 0) ~= 0 or (d.Shiny or 0) ~= 0 or (d.Gold or 0) ~= 0 or (d.Rainbow or 0) ~= 0 then
+        if (d.Normal or 0) ~= 0 or (d.Shiny or 0) ~= 0 or (d.Gold or 0) ~= 0 or (d.Rainbow or 0) ~= 0 or (d.Bloodfish or 0) ~= 0 then
             hasDelta = true
             break
         end
@@ -133,6 +138,7 @@ local function persistDeltas()
                             Shiny = tonumber((counts :: any).Shiny) or 0,
                             Gold = tonumber((counts :: any).Gold) or 0,
                             Rainbow = tonumber((counts :: any).Rainbow) or 0,
+                            Bloodfish = tonumber((counts :: any).Bloodfish) or 0,
                         }
                     end
                 end
@@ -147,6 +153,7 @@ local function persistDeltas()
                 base.Shiny = math.max(0, (base.Shiny or 0) + (d.Shiny or 0))
                 base.Gold = math.max(0, (base.Gold or 0) + (d.Gold or 0))
                 base.Rainbow = math.max(0, (base.Rainbow or 0) + (d.Rainbow or 0))
+                base.Bloodfish = math.max(0, (base.Bloodfish or 0) + (d.Bloodfish or 0))
                 current[fishId] = base
             end
             return current
@@ -189,6 +196,13 @@ function ExistCount.IncrementCount(fishId: string, fishType: FishTypes.fish_type
     end
 end
 
+function ExistCount.IncrementBloodfishCount(fishId: string)
+    local counts = cache[fishId]
+    if not counts then counts = emptyCounts(); cache[fishId] = counts end
+    
+    counts.Bloodfish = math.max(0, counts.Bloodfish + 1)
+end
+
 function ExistCount.GetAll(): {[string]: CountsByType}
     return deepCopyCounts(cache)
 end
@@ -196,7 +210,7 @@ end
 function ExistCount.GetById(fishId: string): CountsByType
     local c = cache[fishId]
     if not c then return emptyCounts() end
-    return { Normal = c.Normal or 0, Shiny = c.Shiny or 0, Gold = c.Gold or 0, Rainbow = c.Rainbow or 0 }
+    return { Normal = c.Normal or 0, Shiny = c.Shiny or 0, Gold = c.Gold or 0, Rainbow = c.Rainbow or 0, Bloodfish = c.Bloodfish or 0 }
 end
 
 function ExistCount.GetByIdAndType(fishId: string, fishType: FishTypes.fish_type): number
@@ -210,6 +224,12 @@ function ExistCount.GetByIdAndType(fishId: string, fishType: FishTypes.fish_type
     return 0
 end
 
+function ExistCount.GetBloodfishCount(fishId: string): number
+    local c = cache[fishId]
+    if not c then return 0 end
+    return c.Bloodfish or 0
+end
+
 -- Networking
 Network.Invoked("ExistCount_GetAll", function(_player: Player)
     return ExistCount.GetAll()
@@ -221,6 +241,10 @@ end)
 
 Network.Invoked("ExistCount_GetByIdAndType", function(_player: Player, fishId: string, fishType: FishTypes.fish_type)
     return ExistCount.GetByIdAndType(fishId, fishType)
+end)
+
+Network.Invoked("ExistCount_GetBloodfishCount", function(_player: Player, fishId: string)
+    return ExistCount.GetBloodfishCount(fishId)
 end)
 
 -- Periodic tasks: refresh cache from store and persist deltas

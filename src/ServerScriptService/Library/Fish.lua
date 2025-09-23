@@ -167,9 +167,14 @@ function Fish.Give(player: Player, params: FishTypes.create_params | FishTypes.s
     end
     addToInventory(player, fishData)
 
+    local icon = schema.Icon
+    if schema.MutationIcons and fishData.Mutation then
+        icon = schema.MutationIcons[fishData.Mutation] or schema.Icon
+    end
+
     local tool = toolTemplate:Clone()
     tool.Name = schema.DisplayName
-    tool.TextureId = schema.Icon
+    tool.TextureId = icon
     tool.ToolTip = `Level {fishData.Level}`
     tool:SetAttribute("UID", fishData.UID)
     tool:SetAttribute("Type", fishData.Type)
@@ -212,12 +217,18 @@ local function populateToolsFromInventory(player: Player)
             local toolTemplate = schema._script:FindFirstChild("Tool")
             if toolTemplate and toolTemplate:IsA("Tool") then
                 if not backpack:FindFirstChild(fishData.UID) then
+                    local icon = schema.Icon
+                    if schema.MutationIcons and fishData.Mutation then
+                        icon = schema.MutationIcons[fishData.Mutation] or schema.Icon
+                    end
+
                     local newTool = toolTemplate:Clone()
                     newTool.Name = schema.DisplayName
-                    newTool.TextureId = schema.Icon
+                    newTool.TextureId = icon
                     newTool.ToolTip = `Level {fishData.Level}`
                     newTool:SetAttribute("UID", fishData.UID)
                     newTool:SetAttribute("Type", fishData.Type)
+                    newTool:SetAttribute("Mutation", fishData.Mutation)
                     newTool.Parent = backpack
                     playerFishTools[player.UserId][fishData.UID] = newTool
                 end

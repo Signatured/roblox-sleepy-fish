@@ -11,7 +11,7 @@ local TOPIC = "SleepyFish:AdminGlobalMessage"
 
 local Command = {
 	Name = "GlobalMessage",
-	Aliases = {"globalmessage", "gmsg", "globalmsg", "gm"},
+	Aliases = {"globalmessage", "gmsg", "globalmsg"},
 	Permissions = {"Admin", "Owner", "Developer"},
 	Parameters = {
 		{Type = "String", Name = "Message"},

@@ -23,9 +23,11 @@ local CHASE_MUSIC_IDS = {
 	"rbxassetid://106684853320177"
 }
 local EVENT_MUSIC_IDS = {
-    "rbxassetid://1847683491",
-	"rbxassetid://76893650686729",
-	"rbxassetid://106684853320177"
+    "rbxassetid://85664895056846",
+    -- "rbxassetid://84835690217991",
+    "rbxassetid://81354930332168",
+    "rbxassetid://88542036402751",
+    "rbxassetid://79108411468576"
 }
 local lastIndex: number? = nil
 local defaultVolume = 0.15
@@ -55,6 +57,10 @@ local preEventState = {
     timePosition = 0,
     wasChaseActive = false,
 }
+
+-- Event stop management (linger + fade cancellation)
+local eventStopping = false
+local eventStopToken = 0
 
 -- Preload chase music at script load so it's ready instantly when triggered
 task.spawn(function()
@@ -192,6 +198,9 @@ end
 local function PlayEventMusic(active: boolean)
     if active then
         if isEventMusicActive then return end
+        -- Cancel any pending stop/fade and ensure volume is restored
+        eventStopToken = eventStopToken + 1
+        eventStopping = false
         isEventMusicActive = true
         
         -- Save current state (including chase state)
@@ -213,29 +222,59 @@ local function PlayEventMusic(active: boolean)
         
         print("[MusicManager] Started Blood Moon event music")
     else
-        if not isEventMusicActive then return end
-        isEventMusicActive = false
-        
-        -- Restore previous state
-        if preEventState.wasChaseActive then
-            -- Resume chase music if it was active
-            PlayChaseMusic(true)
-        elseif preEventState.wasPlaying then
-            -- Resume normal music
-            if preEventState.soundId ~= "" then
-                musicSound.SoundId = preEventState.soundId
+        -- If event music isn't active and no stop is scheduled, nothing to do
+        if not isEventMusicActive and not eventStopping then return end
+
+        -- If a stop is already scheduled, don't schedule another
+        if eventStopping then return end
+
+        -- Schedule linger (6s) then fade (1s), then switch back to previous/normal
+        eventStopping = true
+        eventStopToken = eventStopToken + 1
+        local token = eventStopToken
+        task.delay(6, function()
+            if token ~= eventStopToken then return end
+            if not isEventMusicActive then return end
+
+            local startVolume = musicSound.Volume
+            local steps = 20
+            for i = 1, steps do
+                if token ~= eventStopToken then
+                    -- Cancelled by re-activation; restore volume and abort
+                    musicSound.Volume = defaultVolume
+                    return
+                end
+                musicSound.Volume = startVolume * (1 - (i / steps))
+                task.wait(1 / steps)
+            end
+
+            if token ~= eventStopToken then
+                musicSound.Volume = defaultVolume
+                return
+            end
+
+            -- Finalize stop and restore state
+            isEventMusicActive = false
+            eventStopping = false
+            musicSound.Volume = defaultVolume
+
+            if preEventState.wasChaseActive then
+                PlayChaseMusic(true)
+            elseif preEventState.wasPlaying then
+                if preEventState.soundId ~= "" then
+                    musicSound.SoundId = preEventState.soundId
+                else
+                    setRandomTrack()
+                end
+                musicSound.TimePosition = preEventState.timePosition
+                musicSound:Play()
             else
                 setRandomTrack()
+                musicSound:Play()
             end
-            musicSound.TimePosition = preEventState.timePosition
-            musicSound:Play()
-        else
-            -- Start new random track
-            setRandomTrack()
-            musicSound:Play()
-        end
-        
-        print("[MusicManager] Stopped Blood Moon event music")
+
+            print("[MusicManager] Stopped Blood Moon event music")
+        end)
     end
 end
 

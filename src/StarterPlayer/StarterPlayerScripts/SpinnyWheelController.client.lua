@@ -383,8 +383,8 @@ Functions.TagHook(TAG, function(wheelModel: any)
 	local physicalSpinConnection: RBXScriptConnection
 
 	-- Setup the physical wheel model in the workspace
-	local physicalWheelPart = wheelModel:FindFirstChild("Wheel")
-	if physicalWheelPart and physicalWheelPart:IsA("Part") then
+	local physicalWheelPart = wheelModel:FindFirstChild("Inside")
+	if physicalWheelPart then
 		setupPhysicalWheel(physicalWheelPart, schema)
 		
 		local surfaceGui = physicalWheelPart:FindFirstChildOfClass("SurfaceGui")
