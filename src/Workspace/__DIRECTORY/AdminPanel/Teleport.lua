@@ -6,7 +6,7 @@ local Player = require(game.ReplicatedStorage.Library.Player)
 local Teleport: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Teleport",
 	CanTarget = true,
-	Cooldown = 5,
+	Cooldown = 90,
 	OnExecute = function(executor: Player, targetPlayer: Player?): (boolean, (string | (() -> ()))?)
 		-- Need a target to teleport to
 		if not targetPlayer then
