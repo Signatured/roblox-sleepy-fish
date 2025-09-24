@@ -20,6 +20,7 @@ local TOPIC = "SleepyFish:AdminGlobalMessage"
 local FORCE_RARITY_TOPIC = "SleepyFish:ForceRarity"
 local GLOBAL_FORCE_GIVE_TOPIC = "SleepyFish:GlobalForceGive"
 local GLOBAL_SLEEP_TOPIC = "SleepyFish:GlobalSleep"
+local GLOBAL_FORCE_SPAWN_TOPIC = "SleepyFish:GlobalForceSpawn"
 
 local function handleIncomingMessage(message: Message)
 	local data = message and (message :: any).Data
@@ -140,6 +141,38 @@ task.spawn(function()
 	while true do
 		local ok, subOrErr = pcall(function()
 			return MessagingService:SubscribeAsync(GLOBAL_SLEEP_TOPIC, handleGlobalSleep)
+		end)
+		if ok and subOrErr then
+			break
+		end
+		task.wait(5)
+	end
+end)
+
+local function handleGlobalForceSpawn(message: Message)
+	local data = message and (message :: any).Data
+	if typeof(data) ~= "table" then return end
+	local fishId = data.fishId
+	local fishType = data.fishType or "Normal"
+	local mutation = data.mutation
+	
+	if typeof(fishId) ~= "string" then return end
+	
+	-- Validate mutation if provided by checking if it exists in the Mutations directory
+	if mutation and not Directory.Mutations[mutation] then
+		mutation = nil
+	end
+	
+	-- Force spawn the specific fish in the ocean
+	pcall(function()
+		FishGenerator.ForceSpawnSpecificFish(fishId, fishType, mutation)
+	end)
+end
+
+task.spawn(function()
+	while true do
+		local ok, subOrErr = pcall(function()
+			return MessagingService:SubscribeAsync(GLOBAL_FORCE_SPAWN_TOPIC, handleGlobalForceSpawn)
 		end)
 		if ok and subOrErr then
 			break

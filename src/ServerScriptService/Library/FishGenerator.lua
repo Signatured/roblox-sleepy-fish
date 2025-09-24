@@ -748,6 +748,90 @@ function FishGen.ForceSpawnRandomType(rarityId: string, player: Player?, fishTyp
     spawnForcedByRarity(rarityId, player, fishTypeOverride)
 end
 
+function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutation: string?)
+    local schema = Directory.Fish[fishId]
+    if not schema then return end
+    local fishModelTemplate = schema._script:WaitForChild("Model")
+    if not fishModelTemplate or not fishModelTemplate:IsA("Model") then return end
+
+    local uid = Functions.GenerateUID()
+    local selectedFishType: FishTypes.fish_type = "Normal"
+    
+    -- Validate fish type
+    if fishType == "Normal" or fishType == "Shiny" or fishType == "Gold" or fishType == "Rainbow" then
+        selectedFishType = fishType :: FishTypes.fish_type
+    end
+
+    -- Validate mutation
+    local validatedMutation: FishTypes.fish_mutation_type? = nil
+    if mutation == "Bloodfish" then
+        validatedMutation = "Bloodfish"
+    end
+
+    local fishData: FishTypes.data_schema = {
+        UID = uid,
+        FishId = schema._id,
+        Type = selectedFishType,
+        Mutation = validatedMutation,
+        Shiny = false,
+        Level = 1,
+        CreateTime = workspace:GetServerTimeNow(),
+        BaseTime = workspace:GetServerTimeNow(),
+    }
+
+    local fishInstance: Swimming = {
+        UID = uid,
+        FishData = fishData,
+        SpawnTime = workspace:GetServerTimeNow(),
+        Carrier = nil,
+        Model = fishModelTemplate:Clone(),
+        Gui = nil,
+        Beam = nil,
+    }
+    uidToFish[uid] = fishInstance
+
+    local into = chooseSpawnPart()
+    local cf = randomPointIn(into)
+    local yaw = math.rad(math.random(0, 359))
+    local spawnCFrame = CFrame.new(cf.Position) * CFrame.Angles(0, yaw, 0)
+    fishInstance.Model:PivotTo(spawnCFrame)
+    setModelAnchored(fishInstance.Model, true)
+    fishInstance.Model.Name = fishData.FishId
+    fishInstance.Model.Parent = getRoot(selectedFishType)
+    fishInstance.Model:AddTag("SwimmingFish")
+    fishInstance.Model:SetAttribute("UID", uid)
+    fishInstance.Model:SetAttribute("CFrame", spawnCFrame)
+    fishInstance.Model:SetAttribute("OceanFish", true)
+    
+    -- Apply Bloodfish visual effect if mutation is present
+    if validatedMutation == "Bloodfish" then
+        FishTypes.MakeBloodfishModel(fishInstance.Model)
+    end
+    
+    attachGui(fishInstance, schema)
+    makePrompt(fishInstance)
+    
+    -- Broadcast notification to all players about the forced spawn
+    local displayName = schema.DisplayName or schema._id
+    local rarity = schema.Rarity
+
+    if rarity._id == "Mythical" then
+        Notifications.MessageAll(`A Mythical {displayName} has spawned!`, {
+            Rainbow = true,
+            Time = 8,
+        })
+    elseif rarity._id == "Secret" then
+        Notifications.MessageAll(`A SECRET {displayName} has spawned!`, {
+            Rainbow = true,
+            Time = 8,
+        })
+    else
+        Notifications.MessageAll(`A {rarity.DisplayName} {displayName} has spawned!`, {
+            Time = 8,
+        })
+    end
+end
+
 -- Heartbeat: despawn and respawn
 RunService.Heartbeat:Connect(function()
     local now = workspace:GetServerTimeNow()
