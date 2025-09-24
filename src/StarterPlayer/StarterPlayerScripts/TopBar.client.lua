@@ -7,6 +7,7 @@ local Network = require(game.ReplicatedStorage.Library.Client.Network)
 local Save = require(game.ReplicatedStorage.Library.Client.Save)
 local ProductCmds = require(game.ReplicatedStorage.Library.Client.ProductCmds)
 local Marketplace = require(game.ReplicatedStorage.Library.Marketplace)
+local FFlags = require(game.ReplicatedStorage.Library.Client.FFlags)
 
 local localPlayer = Players.LocalPlayer
 
@@ -35,7 +36,7 @@ task.spawn(function()
             :setLabel("Admin")
             :oneClick(true)
             .selected:Connect(function()
-                if ProductCmds.Owns("Admin Panel") then
+                if ProductCmds.Owns("Admin Panel") or FFlags.Get(FFlags.Keys.FreeAdminPanel) then
                     print("open panel")
                 else
                     local product = ProductCmds.GetProductId("Admin Panel")

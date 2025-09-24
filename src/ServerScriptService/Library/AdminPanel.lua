@@ -5,11 +5,14 @@ local MarketplaceService = game:GetService("MarketplaceService")
 local Network = require(game.ServerScriptService.Library.Network)
 local AdminPanelDirectory = require(game.ReplicatedStorage.Game.Library.Directory.AdminPanel)
 local AdminPanelTypes = require(game.ReplicatedStorage.Game.Library.Types.AdminPanel)
+local Products = require(game.ServerScriptService.Library.Products)
+local ProductDirectory = require(game.ReplicatedStorage.Game.Library.Directory.Products)
 
 local AdminPanel = {}
 
 -- Developer product ID for admin permissions (you'll need to set this to your actual product ID)
-local ADMIN_PRODUCT_ID = 0 -- Replace with your actual developer product ID
+
+local ADMIN_PRODUCT_ID = ProductDirectory["Admin Panel"].ProductId
 
 -- Cooldown tracking
 local playerCooldowns: {[Player]: {[string]: number}} = {}
@@ -34,14 +37,9 @@ local function HasAdminPermission(player: Player): boolean
 	end
 	
 	-- Check developer product ownership (if product ID is set)
-	if ADMIN_PRODUCT_ID > 0 then
-		local success, hasProduct = pcall(function()
-			return MarketplaceService:UserOwnsGamePassAsync(player.UserId, ADMIN_PRODUCT_ID)
-		end)
-		
-		if success and hasProduct then
-			return true
-		end
+	local owns = Products.Owns(player, ADMIN_PRODUCT_ID)
+	if owns then
+		return true
 	end
 	
 	return false
