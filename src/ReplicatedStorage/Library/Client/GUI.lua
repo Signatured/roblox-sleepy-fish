@@ -23,6 +23,7 @@ function module.DailyQuests() return PlayerGui:WaitForChild("DailyQuests", WAIT_
 function module.Sell() return PlayerGui:WaitForChild("Sell", WAIT_TIME) end
 function module.GlobalMessage() return PlayerGui:WaitForChild("GlobalMessage", WAIT_TIME) end
 function module.SpinnyWheel() return PlayerGui:WaitForChild("SpinnyWheel", WAIT_TIME) end
+function module.JumpScare() return PlayerGui:WaitForChild("JumpScare", WAIT_TIME) end
 
 task.spawn(function()
     local images = {}

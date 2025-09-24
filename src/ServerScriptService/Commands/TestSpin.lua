@@ -4,7 +4,6 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local CommandManager = require(ServerScriptService.CommandManager)
-local Saving = require(ServerScriptService.Library.Saving)
 local CommandType = require(ReplicatedStorage.Game.Library.Types.Commands)
 local AdminPanel = require(ServerScriptService.Game.Library.AdminPanel)
 
@@ -17,7 +16,7 @@ local Command = {
 	} :: {CommandType.Parameter},
 
 	Execute = function(player, args)
-		AdminPanel.ExecuteCommand(player, "Dance", args[1][1])
+		AdminPanel.ExecuteCommand(player, "Jumpscare", args[1][1])
 	end,
 } :: CommandType.Command
 

@@ -22,7 +22,8 @@ local preloadSounds = {
     "rbxassetid://133240422241361",
     "rbxassetid://91817413999532",
     "rbxassetid://126237239639574",
-    "rbxassetid://137080714801874"
+    "rbxassetid://137080714801874",
+    "rbxassetid://6308606116" -- Jumpscare sound
 }
 
 Audio.PreloadSounds(preloadSounds)
