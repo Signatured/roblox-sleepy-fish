@@ -6,8 +6,7 @@ local Player = require(game.ReplicatedStorage.Library.Player)
 local Spin: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Tiny",
 	CanTarget = true,
-	Cooldown = 90,
-	Duration = 30,
+	Cooldown = 10,
 	OnExecute = function(executor: Player, targetPlayer: Player?): (boolean, (string | (() -> ()))?)
         local target = targetPlayer or executor
         local character = Player.Optional.Character(target)
@@ -16,11 +15,21 @@ local Spin: AdminPanelTypes.AdminCommand = {
 			return false, `You cannot do that right now!`
 		end
 
-		character:ScaleTo(0.1)
+		local scale = character:GetScale()
+		if scale <= 0.1 then
+			return false, `{target.Name} is already smallest size!`
+		end
+
+		if scale > 1 then
+			scale = 1
+		else
+			scale = math.max(scale - 0.2, 0.1)
+		end
+
+		character:ScaleTo(scale)
 		
 		-- Return success and finish function
 		return true, function()
-			character:ScaleTo(1)
 		end
 	end,
 }
