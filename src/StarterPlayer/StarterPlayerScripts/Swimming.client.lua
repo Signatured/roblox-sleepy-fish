@@ -38,6 +38,8 @@ local isSwimming = false
 local swim: BodyVelocity? = nil
 local nextSwimEnableAt = 0
 
+local wasRagdolled = false
+
 -- Returns true if the local player owns the "Double Money" gamepass according to their save
 local function ownsDoubleMoney(): boolean
     local save = Save.Get()
@@ -177,9 +179,17 @@ RunService.RenderStepped:Connect(function()
     local cameraResults = workspace:GetPartBoundsInBox(camera.CFrame, Vector3.new(1, 1, 1), params)
     local cameraInWater = cameraResults and #cameraResults > 0 or false
     local topLayer = workspace:WaitForChild("__THINGS"):FindFirstChild("TopLayer")::BasePart
-        if topLayer then
-            topLayer.Transparency = cameraInWater and 0.6 or 1
-        end
+    if topLayer then
+        topLayer.Transparency = cameraInWater and 0.6 or 1
+    end
+
+    local isRagdolled = LOCAL_PLAYER:GetAttribute("Ragdolled") or LOCAL_PLAYER:GetAttribute("Flinged")
+
+    if not isRagdolled and wasRagdolled and inWater then
+       setSwimmingEnabled(true)
+    end
+
+    wasRagdolled = isRagdolled
 end)
 
 RunService.RenderStepped:Connect(function()
