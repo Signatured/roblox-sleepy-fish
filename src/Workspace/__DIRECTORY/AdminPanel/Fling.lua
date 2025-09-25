@@ -55,19 +55,18 @@ local Fling: AdminPanelTypes.AdminCommand = {
 		-- Calculate fling direction
 		local direction: Vector3
 		
-		if target == executor then
-			-- Self-fling: use random direction
+		-- If executor is nil (e.g., global command via MessagingService) or self-targeted,
+		-- use a random direction to avoid indexing nil executor state
+		if not executor or target == executor then
 			local randomAngle = math.random() * math.pi * 2
 			direction = Vector3.new(math.cos(randomAngle), 0, math.sin(randomAngle))
 		else
-			-- Fling away from executor
+			-- Fling away from executor when we have a valid executor
 			local executorHRP = Player.Optional.HumanoidRootPart(executor)
 			if not executorHRP then
-				-- Fallback to random direction if executor has no HRP
 				local randomAngle = math.random() * math.pi * 2
 				direction = Vector3.new(math.cos(randomAngle), 0, math.sin(randomAngle))
 			else
-				-- Calculate direction from executor to target
 				direction = (targetHRP.Position - executorHRP.Position).Unit
 			end
 		end

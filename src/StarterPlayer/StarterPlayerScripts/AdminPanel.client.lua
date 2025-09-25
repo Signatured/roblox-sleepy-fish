@@ -13,12 +13,13 @@ local LocalPlayer = Players.LocalPlayer
 
 -- State tracking
 local currentTargetPlayer: Player? = nil
-local playerButtons: {[Player]: GuiButton} = {}
+local playerButtons: {[Player]: ImageButton} = {}
 local commandButtons: {[string]: {button: GuiButton, lockedFrame: Frame, textLabel: TextLabel}} = {}
 local adminPanelGui: ScreenGui? = nil
 local initialized = false
 local globalModeEnabled = false
 local globalButton: ImageButton? = nil
+local globalBtnConnection: RBXScriptConnection? = nil
 
 -- Persistent cooldown tracking (survives GUI reopening)
 local cooldownTimers: {[string]: {endTime: number, connection: RBXScriptConnection?}} = {}
@@ -189,7 +190,7 @@ end
 --[[
     Creates a player button from the template
 ]]
-local function createPlayerButton(player: Player, parent: Instance, template: GuiButton): GuiButton
+local function createPlayerButton(player: Player, parent: Instance, template: ImageButton): ImageButton
     local button = template:Clone()::ImageButton
     button.Name = player.Name
     button.Visible = true
@@ -279,7 +280,7 @@ local function updatePlayerList()
     if not scrollingFrame then return end
     
     local template = scrollingFrame:FindFirstChild("PlayerButton")
-    if not template or not template:IsA("GuiButton") then return end
+    if not template or not template:IsA("ImageButton") then return end
     
     -- Hide template
     template.Visible = false
@@ -304,12 +305,17 @@ local function updatePlayerList()
         playerButtons[player] = button
     end
     
-    -- Auto-select LocalPlayer if no target selected
-    if not currentTargetPlayer and playerButtons[LocalPlayer] then
-        playerButtons[LocalPlayer].BackgroundColor3 = Color3.fromRGB(0, 162, 255)
-        playerButtons[LocalPlayer].Image = "rbxassetid://123813453691289" -- Selected image
-        currentTargetPlayer = LocalPlayer
-    end
+		-- Restore previously selected target if still online; otherwise select LocalPlayer
+		if currentTargetPlayer and playerButtons[currentTargetPlayer] then
+			playerButtons[currentTargetPlayer].BackgroundColor3 = Color3.fromRGB(0, 162, 255)
+			playerButtons[currentTargetPlayer].Image = "rbxassetid://123813453691289" -- Selected image
+		else
+			currentTargetPlayer = LocalPlayer
+			if playerButtons[LocalPlayer] then
+				playerButtons[LocalPlayer].BackgroundColor3 = Color3.fromRGB(0, 162, 255)
+				playerButtons[LocalPlayer].Image = "rbxassetid://123813453691289" -- Selected image
+			end
+		end
 end
 
 --[[
@@ -424,16 +430,22 @@ local function setupGlobalThings()
     local globalBtn = globalThingsFrame:FindFirstChild("Global")
     if globalBtn and globalBtn:IsA("ImageButton") then
         globalButton = globalBtn
-        
-        -- Set initial state (off by default)
-        globalModeEnabled = false
-        updateGlobalButton()
-        
-        -- Add ButtonFX
-        ButtonFX(globalBtn)
-        
-        -- Connect click event
-        globalBtn.Activated:Connect(toggleGlobalMode)
+
+		-- Reflect current persisted state
+		updateGlobalButton()
+
+		-- Add ButtonFX once
+		if not globalBtn:GetAttribute("FxApplied") then
+			ButtonFX(globalBtn)
+			globalBtn:SetAttribute("FxApplied", true)
+		end
+
+		-- Ensure we don't stack multiple connections across reopens
+		if globalBtnConnection then
+			globalBtnConnection:Disconnect()
+			globalBtnConnection = nil
+		end
+		globalBtnConnection = globalBtn.Activated:Connect(toggleGlobalMode)
     end
 end
 
@@ -462,12 +474,14 @@ end
     Cleans up when the AdminPanel is closed
 ]]
 local function cleanup()
-    -- Reset target selection
-    currentTargetPlayer = nil
-    
-    -- Reset global state
-    globalButton = nil
-    globalModeEnabled = false
+		-- Keep target selection to restore on next open (only reset visuals/state)
+		
+	-- Disconnect global button connection but keep state to persist across reopens
+	if globalBtnConnection then
+		globalBtnConnection:Disconnect()
+		globalBtnConnection = nil
+	end
+	globalButton = nil
     
     -- Clear player buttons
     for player, button in pairs(playerButtons) do

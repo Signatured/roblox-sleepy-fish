@@ -7,6 +7,7 @@ local Teleport: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Teleport",
 	CanTarget = true,
 	Cooldown = 90,
+	PreventGlobal = true,
 	OnExecute = function(executor: Player?, targetPlayer: Player?): (boolean, (string | (() -> ()))?)
 		-- Console execution cannot teleport (no executor to move)
 		if not executor then
