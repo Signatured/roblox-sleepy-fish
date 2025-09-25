@@ -158,7 +158,7 @@ RunService.RenderStepped:Connect(function()
         local totalMulti = fishMulti * gadgetMulti
         local ownsDoubleMoney = ownsDoubleMoney()
 
-        if not LOCAL_PLAYER:GetAttribute("Grappling") and not LOCAL_PLAYER:GetAttribute("Ragdolled") then
+        if not LOCAL_PLAYER:GetAttribute("Grappling") and not LOCAL_PLAYER:GetAttribute("Ragdolled") and not LOCAL_PLAYER:GetAttribute("Flinged") then
             s.Velocity = ((humanoid.MoveDirection * (defaultWalkspeed + (ownsDoubleMoney and 3 or 0)) + Vector3.new(0, upBoost, 0)) * totalMulti) + Vector3.new(0, 0.25, 0) -- add 2 to Y to swim up by default
         else
             s.Velocity = Vector3.new(0, 0, 0)
