@@ -6,7 +6,7 @@ local Player = require(game.ReplicatedStorage.Library.Player)
 local Fling: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Fling",
 	CanTarget = true,
-	Cooldown = 2,
+	Cooldown = 120,
     Duration = 2,
 	OnExecute = function(executor: Player?, targetPlayer: Player?): (boolean, (string | (() -> ()))?)
 		local target = targetPlayer or executor
@@ -22,6 +22,10 @@ local Fling: AdminPanelTypes.AdminCommand = {
 		-- Check if target can be flung
 		if not targetCharacter or not targetHRP or not targetHumanoid or targetHumanoid.Health <= 0 then
 			return false, "Target cannot be flung right now!"
+		end
+
+        if target:GetAttribute("Flinged") or target:GetAttribute("Ragdolled") then
+			return false, `{target.Name} is already flung or ragdolled!`
 		end
 		
         target:SetAttribute("Flinged", true)

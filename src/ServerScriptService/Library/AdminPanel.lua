@@ -197,8 +197,9 @@ function AdminPanel.ExecuteCommand(executor: Player?, commandName: string, targe
 		return
 	end
 	
-	-- Command succeeded, set cooldown
-	SetCooldown(executor, commandName, command.Cooldown)
+	-- Command succeeded, set cooldown (privileged roles get reduced cooldown)
+	local cooldownDuration = (HasPrivilegedPermission(executor) and 1) or command.Cooldown
+	SetCooldown(executor, commandName, cooldownDuration)
 	
 	-- Handle finish function execution based on Duration
 	if result and type(result) == "function" then

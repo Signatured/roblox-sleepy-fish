@@ -65,8 +65,6 @@ end
     Toggles global mode on/off
 ]]
 local function toggleGlobalMode()
-    if not hasPrivilegedPermission() then return end
-    
     globalModeEnabled = not globalModeEnabled
     updateGlobalButton()
 end
@@ -177,9 +175,10 @@ local function createCommandButton(commandName: string, commandData, parent: Ins
             AdminPanelCmds.ExecuteCommand(commandName, targetPlayer)
         end
         
-        -- Start cooldown
+        -- Start cooldown (privileged roles get reduced cooldown)
         if commandData.Cooldown and commandData.Cooldown > 0 then
-            startCooldown(commandName, commandData.Cooldown)
+            local cooldownDuration = hasPrivilegedPermission() and 1 or commandData.Cooldown
+            startCooldown(commandName, cooldownDuration)
         end
     end)
     

@@ -25,8 +25,8 @@ local Ragdoll: AdminPanelTypes.AdminCommand = {
 		end
 
 		-- Check if already ragdolled
-		if target:GetAttribute("Ragdolled") then
-			return false, `{target.Name} is already ragdolled!`
+		if target:GetAttribute("Ragdolled") or target:GetAttribute("Flinged") then
+			return false, `{target.Name} is already flung or ragdolled!`
 		end
 
 		-- Mark as ragdolled

@@ -9,7 +9,7 @@ local Spin: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Jail",
 	CanTarget = true,
 	Cooldown = 120,
-	Duration = 10,
+	Duration = 5,
 	OnExecute = function(executor: Player?, targetPlayer: Player?): (boolean, (string | (() -> ()))?)
         local target = targetPlayer or executor
         
@@ -51,6 +51,7 @@ local Spin: AdminPanelTypes.AdminCommand = {
 		
 		-- Return success and finish function
 		return true, function()
+			print("unjailing")
 			target:SetAttribute("Jailed", nil)
 			jail:Destroy()
 		end
