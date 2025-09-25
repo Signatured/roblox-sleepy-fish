@@ -561,7 +561,7 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
                     if invCount >= (invLimit :: number) then
                         NotificationCmds.Message("Your inventory is full!", { Color = Color3.fromRGB(255, 0, 0) })
                         local productId = ProductCmds.GetProductId("More Space")
-                        if productId then
+                        if productId and invLimit < GameSettings.MaxInventoryUpgraded3 then
                             Marketplace.Prompt(Players.LocalPlayer, productId, true)
                         end
                         return

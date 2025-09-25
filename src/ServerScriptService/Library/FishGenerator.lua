@@ -79,7 +79,7 @@ local function canPickupFish(player: Player): boolean
         Notifications.Message(player, "Your inventory is full!", { Color = Color3.fromRGB(255, 0, 0) })
         local product = ProductDirectory["More Space"]
         local productId = product and product.ProductId
-        if typeof(productId) == "number" then
+        if typeof(productId) == "number" and invSize < SharedGameSettings.MaxInventoryUpgraded3 then
             Marketplace.Prompt(player, productId, true)
         end
         return false
