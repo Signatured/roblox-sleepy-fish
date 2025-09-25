@@ -16,6 +16,7 @@ export type PlotSave = {
 	Fish: {[string]: PlotTypes.Fish},
 	PaidIndex: number,
 	InventorySize: number,
+	LockTime: number?,
 }
 
 export type IndexData = {

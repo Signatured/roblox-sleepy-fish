@@ -35,6 +35,17 @@ Network.Fired("Steal", function(player: Player, plotId: number, index: number, f
     if typeof(plotId) ~= "number" or typeof(index) ~= "number" then return end
     local plot = ServerPlot.GetById(plotId)
     if not plot then return end
+    
+    -- Check if plot is locked
+    local lockTime = plot:Save("LockTime")
+    local currentTime = workspace:GetServerTimeNow()
+    local isLocked = typeof(lockTime) == "number" and lockTime > currentTime
+    
+    if isLocked then
+        Notifications.Message(player, "This plot is currently locked! You cannot steal from it!", { Color = Color3.fromRGB(255, 0, 0) })
+        return
+    end
+    
     local fish = findFish(plot, index)
     if not fish or typeof(fish) ~= "table" or typeof(fish.UID) ~= "string" or fish.UID ~= fishUID then return end
 
@@ -71,6 +82,17 @@ function module.ExecuteSteal(player: Player): boolean
 
     local plot = ServerPlot.GetById(pending.PlotId)
     if not plot then
+        waitingPurchase[player] = nil
+        return false
+    end
+
+    -- Check if plot is locked (in case it was locked after the initial request)
+    local lockTime = plot:Save("LockTime")
+    local currentTime = workspace:GetServerTimeNow()
+    local isLocked = typeof(lockTime) == "number" and lockTime > currentTime
+    
+    if isLocked then
+        Notifications.Message(player, "This plot is currently locked! You cannot steal from it!", { Color = Color3.fromRGB(255, 0, 0) })
         waitingPurchase[player] = nil
         return false
     end
