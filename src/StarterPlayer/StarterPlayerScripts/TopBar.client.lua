@@ -37,7 +37,11 @@ task.spawn(function()
             :oneClick(true)
             .selected:Connect(function()
                 if ProductCmds.Owns("Admin Panel") or FFlags.Get(FFlags.Keys.FreeAdminPanel) then
-                    print("open panel")
+                    if TabController.GetCurrentTab() == "AdminPanel" then
+                        TabController.CloseTab()
+                    else
+                        TabController.OpenTab("AdminPanel")
+                    end
                 else
                     local product = ProductCmds.GetProductId("Admin Panel")
                     if not product then return end
@@ -48,3 +52,20 @@ task.spawn(function()
             break
     end
 end)
+
+Icon.new()
+            :setLabel("Admin")
+            :oneClick(true)
+            .selected:Connect(function()
+                if ProductCmds.Owns("Admin Panel") or FFlags.Get(FFlags.Keys.FreeAdminPanel) then
+                    if TabController.GetCurrentTab() == "AdminPanel" then
+                        TabController.CloseTab()
+                    else
+                        TabController.OpenTab("AdminPanel")
+                    end
+                else
+                    local product = ProductCmds.GetProductId("Admin Panel")
+                    if not product then return end
+                    Marketplace.Prompt(localPlayer, product, true)
+                end
+            end)

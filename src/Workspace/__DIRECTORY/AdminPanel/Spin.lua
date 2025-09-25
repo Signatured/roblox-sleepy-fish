@@ -6,7 +6,7 @@ local Player = require(game.ReplicatedStorage.Library.Player)
 local Spin: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Spin",
 	CanTarget = true,
-	Cooldown = 45,
+	Cooldown = 3,
 	Duration = 10,
 	OnExecute = function(executor: Player?, targetPlayer: Player?): (boolean, (string | (() -> ()))?)
 		local target = targetPlayer or executor
@@ -16,11 +16,21 @@ local Spin: AdminPanelTypes.AdminCommand = {
 			return false, "Console command requires a target player"
 		end
         local head = Player.Optional.Head(target)
+        local humanoid = Player.Optional.Humanoid(target)
+        local hrp = Player.Optional.HumanoidRootPart(target)
         local spinRate = 20
         
-        if not head then
+        if not head or not humanoid or not hrp then
             return false, `You cannot do that right now!`
         end
+        
+        -- Use HumanoidRootPart mass for more accurate scaling
+        local currentMass = hrp.AssemblyMass
+        local defaultMass = 16 -- Approximate default character mass
+        local massRatio = currentMass / defaultMass
+        
+        -- Extremely aggressive scaling - mass can be 100x+ larger for big characters
+        local torqueMultiplier = math.max(1, massRatio * 50)
         
         local spin1 = head:FindFirstChild("Spin1") :: BodyAngularVelocity?
         local spin2 = head:FindFirstChild("Spin2") :: BodyGyro?
@@ -32,16 +42,16 @@ local Spin: AdminPanelTypes.AdminCommand = {
         if not spin1 then
             spin1 = Instance.new("BodyAngularVelocity") :: BodyAngularVelocity
             assert(spin1)
-            spin1.MaxTorque = Vector3.new(300000, 300000, 300000)
-            spin1.P = 300
+            spin1.MaxTorque = Vector3.new(300000, 300000, 300000) * torqueMultiplier
+            spin1.P = 300 * torqueMultiplier
             spin1.Name = "Spin1"
             spin1.Parent = head
             
             spin2 = Instance.new("BodyGyro") :: BodyGyro
             assert(spin2)
-            spin2.MaxTorque = Vector3.new(400000, 0, 400000)
-            spin2.D = 500
-            spin2.P = 300
+            spin2.MaxTorque = Vector3.new(400000, 0, 400000) * torqueMultiplier
+            spin2.D = 500 * torqueMultiplier
+            spin2.P = 300 * torqueMultiplier
             spin2.Name = "Spin2"
             spin2.Parent = head
         end
