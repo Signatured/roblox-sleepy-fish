@@ -24,6 +24,13 @@ local ADMIN_RANKS = {
 	["Owner"] = true,
 }
 
+-- Privileged ranks that can use global commands
+local PRIVILEGED_RANKS = {
+	["Developer"] = true,
+	["Owner"] = true,
+	["Admin"] = true,
+}
+
 --[[
 	Checks if a player has admin permissions
 	@param player The player to check (can be nil for console)
@@ -48,6 +55,22 @@ local function HasAdminPermission(player: Player?): boolean
 	end
 	
 	return false
+end
+
+--[[
+	Checks if a player has privileged permissions for global commands
+	@param player The player to check (can be nil for console)
+	@return boolean Whether the player has privileged permissions
+]]
+local function HasPrivilegedPermission(player: Player?): boolean
+	-- Console execution always has privileged permissions
+	if not player then
+		return true
+	end
+	
+	-- Check rank attribute for privileged ranks only
+	local rank = player:GetAttribute("Rank")
+	return rank and PRIVILEGED_RANKS[rank] or false
 end
 
 --[[
@@ -99,12 +122,20 @@ end
 	@param executor The player executing the command (nil for console execution)
 	@param commandName The name of the command to execute
 	@param targetPlayer The target player (optional)
+	@param isGlobal Whether this is a global command (optional)
 ]]
-function AdminPanel.ExecuteCommand(executor: Player?, commandName: string, targetPlayer: Player?)
+function AdminPanel.ExecuteCommand(executor: Player?, commandName: string, targetPlayer: Player?, isGlobal: boolean?)
 	-- Check if executor has admin permissions
 	if not HasAdminPermission(executor) then
 		local executorName = executor and executor.Name or "Console"
 		warn(`{executorName} attempted to use admin command without permission`)
+		return
+	end
+	
+	-- Check if executor has privileged permissions for global commands
+	if isGlobal and not HasPrivilegedPermission(executor) then
+		local executorName = executor and executor.Name or "Console"
+		warn(`{executorName} attempted to use global admin command without privileged permission`)
 		return
 	end
 	
@@ -132,7 +163,29 @@ function AdminPanel.ExecuteCommand(executor: Player?, commandName: string, targe
 		return
 	end
 	
-	-- Execute the command
+	-- Handle global command execution
+	if isGlobal then
+		-- Broadcast global command via MessagingService
+		local messagingService = game:GetService("MessagingService")
+		local globalCommandData = {
+			commandName = commandName,
+			executorName = executor and executor.Name or "Console",
+			executorUserId = executor and executor.UserId or 0,
+			timestamp = workspace:GetServerTimeNow()
+		}
+		
+		pcall(function()
+			messagingService:PublishAsync("GlobalAdminCommand", globalCommandData)
+		end)
+		
+		-- Execute locally on all players
+		for _, player in ipairs(game.Players:GetPlayers()) do
+			local success, result = command.OnExecute(executor, player)
+		end
+		return -- Don't continue with normal execution flow for global commands
+	end
+	
+	-- Execute the command normally
 	local success, result = command.OnExecute(executor, targetPlayer)
 	
 	-- Check if command execution was successful
@@ -179,8 +232,29 @@ function AdminPanel.ExecuteConsoleCommand(commandName: string, targetPlayer: Pla
 end
 
 -- Network event handler for admin commands
-Network.Fired("AdminPanel_ExecuteCommand", function(player: Player, commandName: string, targetPlayer: Player?)
-	AdminPanel.ExecuteCommand(player, commandName, targetPlayer)
+Network.Fired("AdminPanel_ExecuteCommand", function(player: Player, commandName: string, targetPlayer: Player?, isGlobal: boolean?)
+	AdminPanel.ExecuteCommand(player, commandName, targetPlayer, isGlobal)
+end)
+
+-- MessagingService listener for global commands
+local messagingService = game:GetService("MessagingService")
+pcall(function()
+	messagingService:SubscribeAsync("GlobalAdminCommand", function(message)
+		local data = message.Data
+		if not data or not data.commandName then return end
+		
+		-- Get command from directory
+		local command: AdminPanelTypes.AdminCommand? = AdminPanelDirectory[data.commandName]
+		if not command then return end
+		
+		-- Execute the command on all players in this server
+		for _, player in ipairs(game.Players:GetPlayers()) do
+			local success, result = command.OnExecute(nil, player)
+		end
+		
+		-- Log global command execution
+		print(`[Global Admin Command] {data.executorName} executed '{data.commandName}' on all players`)
+	end)
 end)
 
 return AdminPanel

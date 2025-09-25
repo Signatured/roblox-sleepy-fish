@@ -50,16 +50,17 @@ end
 	Executes an admin command on the server
 	@param commandName The name of the command to execute
 	@param targetPlayer The target player (optional)
+	@param isGlobal Whether this is a global command (optional)
 ]]
-function AdminPanelCmds.ExecuteCommand(commandName: string, targetPlayer: Player?)
+function AdminPanelCmds.ExecuteCommand(commandName: string, targetPlayer: Player?, isGlobal: boolean?)
 	-- Check if local player has admin permissions
 	if not HasAdminPermission() then
 		-- Silently fail - don't give feedback to non-admins
 		return
 	end
 	
-	-- Send command to server
-	Network.Fire("AdminPanel_ExecuteCommand", commandName, targetPlayer)
+	-- Send command to server with global flag
+	Network.Fire("AdminPanel_ExecuteCommand", commandName, targetPlayer, isGlobal or false)
 end
 
 return AdminPanelCmds

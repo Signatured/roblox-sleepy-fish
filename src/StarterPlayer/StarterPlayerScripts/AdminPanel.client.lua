@@ -17,9 +17,26 @@ local playerButtons: {[Player]: GuiButton} = {}
 local commandButtons: {[string]: {button: GuiButton, lockedFrame: Frame, textLabel: TextLabel}} = {}
 local adminPanelGui: ScreenGui? = nil
 local initialized = false
+local globalModeEnabled = false
+local globalButton: ImageButton? = nil
 
 -- Persistent cooldown tracking (survives GUI reopening)
 local cooldownTimers: {[string]: {endTime: number, connection: RBXScriptConnection?}} = {}
+
+-- Privileged ranks that can use global commands
+local PRIVILEGED_RANKS = {
+    ["Developer"] = true,
+    ["Owner"] = true,
+    ["Admin"] = true,
+}
+
+--[[
+    Checks if the local player has privileged permissions for global commands
+]]
+local function hasPrivilegedPermission(): boolean
+    local rank = LocalPlayer:GetAttribute("Rank")
+    return rank and PRIVILEGED_RANKS[rank] or false
+end
 
 --[[
     Gets the AdminPanel GUI
@@ -29,6 +46,29 @@ local function getGui(): ScreenGui?
         adminPanelGui = GUI.AdminPanel()
     end
     return adminPanelGui
+end
+
+--[[
+    Updates the global button appearance
+]]
+local function updateGlobalButton()
+    if not globalButton then return end
+    
+    if globalModeEnabled then
+        globalButton.Image = "rbxassetid://77069495828979" -- Check mark
+    else
+        globalButton.Image = "rbxassetid://74498973059780" -- X mark
+    end
+end
+
+--[[
+    Toggles global mode on/off
+]]
+local function toggleGlobalMode()
+    if not hasPrivilegedPermission() then return end
+    
+    globalModeEnabled = not globalModeEnabled
+    updateGlobalButton()
 end
 
 --[[
@@ -129,7 +169,13 @@ local function createCommandButton(commandName: string, commandData, parent: Ins
         end
         
         local targetPlayer = currentTargetPlayer or LocalPlayer
-        AdminPanelCmds.ExecuteCommand(commandName, targetPlayer)
+        
+        -- Execute command with global flag if global mode is enabled
+        if globalModeEnabled and hasPrivilegedPermission() then
+            AdminPanelCmds.ExecuteCommand(commandName, targetPlayer, true) -- true for global
+        else
+            AdminPanelCmds.ExecuteCommand(commandName, targetPlayer)
+        end
         
         -- Start cooldown
         if commandData.Cooldown and commandData.Cooldown > 0 then
@@ -358,6 +404,41 @@ local function onPlayerRemoving(player: Player)
 end
 
 --[[
+    Sets up the GlobalThings frame and Global button
+]]
+local function setupGlobalThings()
+    local gui = getGui()
+    if not gui then return end
+    
+    local frame = gui:FindFirstChild("Frame")
+    if not frame then return end
+    
+    local globalThingsFrame = frame:FindFirstChild("GlobalThings")::GuiButton
+    if not globalThingsFrame then return end
+    
+    -- Only show GlobalThings frame for privileged users
+    globalThingsFrame.Visible = hasPrivilegedPermission()
+    
+    if not hasPrivilegedPermission() then return end
+    
+    -- Set up the Global button
+    local globalBtn = globalThingsFrame:FindFirstChild("Global")
+    if globalBtn and globalBtn:IsA("ImageButton") then
+        globalButton = globalBtn
+        
+        -- Set initial state (off by default)
+        globalModeEnabled = false
+        updateGlobalButton()
+        
+        -- Add ButtonFX
+        ButtonFX(globalBtn)
+        
+        -- Connect click event
+        globalBtn.Activated:Connect(toggleGlobalMode)
+    end
+end
+
+--[[
     Initializes the AdminPanel GUI
 ]]
 local function setup()
@@ -365,6 +446,9 @@ local function setup()
     
     local gui = getGui()
     if not gui then return end
+    
+    -- Set up global things
+    setupGlobalThings()
     
     -- Set up commands
     setupCommands()
@@ -381,6 +465,10 @@ end
 local function cleanup()
     -- Reset target selection
     currentTargetPlayer = nil
+    
+    -- Reset global state
+    globalButton = nil
+    globalModeEnabled = false
     
     -- Clear player buttons
     for player, button in pairs(playerButtons) do
