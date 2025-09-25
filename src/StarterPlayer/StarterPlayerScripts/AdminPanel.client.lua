@@ -169,8 +169,10 @@ local function createCommandButton(commandName: string, commandData, parent: Ins
         
         local targetPlayer = currentTargetPlayer or LocalPlayer
         
-        -- Execute command with global flag if global mode is enabled
-        if globalModeEnabled and hasPrivilegedPermission() then
+        -- Execute command with global flag if global mode is enabled and command allows it
+        local commandConfig = AdminPanelDirectory[commandName]
+        local preventGlobal = commandConfig and commandConfig.PreventGlobal
+        if globalModeEnabled and hasPrivilegedPermission() and not preventGlobal then
             AdminPanelCmds.ExecuteCommand(commandName, targetPlayer, true) -- true for global
         else
             AdminPanelCmds.ExecuteCommand(commandName, targetPlayer)

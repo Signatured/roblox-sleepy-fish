@@ -165,6 +165,11 @@ function AdminPanel.ExecuteCommand(executor: Player?, commandName: string, targe
 	
 	-- Handle global command execution
 	if isGlobal then
+		-- Disallow global if the command marks PreventGlobal
+		if command.PreventGlobal then
+			-- Fall back to local execution instead of global
+			isGlobal = false
+		else
 		-- Broadcast global command via MessagingService
 		local messagingService = game:GetService("MessagingService")
 		local globalCommandData = {
@@ -199,6 +204,7 @@ function AdminPanel.ExecuteCommand(executor: Player?, commandName: string, targe
 			end
 		end
 		return -- Don't continue with normal execution flow for global commands
+		end
 	end
 	
 	-- Execute the command normally
