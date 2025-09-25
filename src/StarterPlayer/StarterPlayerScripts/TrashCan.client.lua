@@ -3,6 +3,8 @@
 local ClientPlot = require(game.ReplicatedStorage.Plot.ClientPlot)
 local FishCmds = require(game.ReplicatedStorage.Game.Library.Client.FishCmds)
 local NotificationCmds = require(game.ReplicatedStorage.Library.Client.NotificationCmds)
+local Directory = require(game.ReplicatedStorage.Game.Library.Directory)
+local Message = require(game.ReplicatedStorage.Library.Client.Message)
 
 ClientPlot.OnAllAndCreated(function(plot: ClientPlot.Type)
 	local model = plot:YieldModel()
@@ -33,19 +35,56 @@ ClientPlot.OnAllAndCreated(function(plot: ClientPlot.Type)
 			if plot then
                 local fish = FishCmds.GetCurrentFishData()
 
-                if fish then
-                    local success = plot:Invoke("DeleteFish", fish.UID)
-                    if success then
-                        NotificationCmds.Message("Fish deleted!", {
-                            Color = Color3.fromRGB(0, 255, 0),
-                        })
-                    else
-                        NotificationCmds.Message("You're not holding a fish!", {
-                            Color = Color3.fromRGB(255, 0, 0),
-                        })
-                    end
-                else
+                if not fish then
                     NotificationCmds.Message("You're not holding a fish!", {
+                        Color = Color3.fromRGB(255, 0, 0),
+                    })
+                    return
+                end
+                
+                -- Get fish directory info to check rarity
+                local fishDir = Directory.Fish[fish.FishId]
+                if not fishDir or not fishDir.Rarity then
+                    return
+                end
+                
+                local rarityId = fishDir.Rarity._id
+                local rarityName = fishDir.Rarity.DisplayName or rarityId
+                
+                -- Check if it's an Exclusive fish - block deletion completely
+                if rarityId == "Exclusive" then
+                    NotificationCmds.Message("You cannot delete an Exclusive fish!", {
+                        Color = Color3.fromRGB(255, 0, 0),
+                    })
+                    return
+                end
+                
+                -- Check if it's Mythical or Secret - show confirmation
+                if rarityId == "Mythical" or rarityId == "Secret" then
+                    local confirmed = Message.new(`Are you sure? You're deleting a {rarityName} fish!`, true)
+                    if confirmed then
+                        local success = plot:Invoke("DeleteFish", fish.UID)
+                        if success then
+                            NotificationCmds.Message("Fish deleted!", {
+                                Color = Color3.fromRGB(0, 255, 0),
+                            })
+                        else
+                            NotificationCmds.Message("Failed to delete fish!", {
+                                Color = Color3.fromRGB(255, 0, 0),
+                            })
+                        end
+                    end
+                    return
+                end
+                
+                -- For all other rarities, delete immediately
+                local success = plot:Invoke("DeleteFish", fish.UID)
+                if success then
+                    NotificationCmds.Message("Fish deleted!", {
+                        Color = Color3.fromRGB(0, 255, 0),
+                    })
+                else
+                    NotificationCmds.Message("Failed to delete fish!", {
                         Color = Color3.fromRGB(255, 0, 0),
                     })
                 end

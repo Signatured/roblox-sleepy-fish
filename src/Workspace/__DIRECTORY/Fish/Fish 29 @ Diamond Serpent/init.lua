@@ -10,13 +10,11 @@ return {
         Bloodfish = "rbxassetid://0",
     },
     Rarity = Rarity.Mythical,
-    -- Better than Narwhal (450), below Firefly Squid (700)
-    MoneyPerSecond = 520,
-    BaseUpgradeCost = 12500,
+    MoneyPerSecond = 475,
+    BaseUpgradeCost = 11500,
     BillboardOffset = 9,
     PedestalOffset = -2.5,
-    -- Slightly rarer than Narwhal (1) following mythical scaling (lower weight = rarer)
-    RarityWeight = 0.8,
+    RarityWeight = 0.5,
     IndexOffset = 8,
     IndexPositionOffset = Vector3.new(-5, 2, 0),
 }::FishTypes.raw_dir

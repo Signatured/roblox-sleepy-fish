@@ -428,13 +428,11 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             local cost = plot:GetUpgradeCost(pedestalId)
             if not cost then
                 buttonText.Text = "Max!"
-                return
+            else
+                buttonText.Text = `${Functions.NumberShorten(cost)}`
+                -- Ensure button image reflects affordability on first render
+                UpdateUpgradeButtonImage(plot, model)
             end
-
-            buttonText.Text = `${Functions.NumberShorten(cost)}`
-
-            -- Ensure button image reflects affordability on first render
-            UpdateUpgradeButtonImage(plot, model)
         else
             upgradeFrame.Visible = false
             placeFrame.Visible = true
