@@ -181,6 +181,22 @@ function AdminPanel.ExecuteCommand(executor: Player?, commandName: string, targe
 		-- Execute locally on all players
 		for _, player in ipairs(game.Players:GetPlayers()) do
 			local success, result = command.OnExecute(executor, player)
+			
+			-- Handle finish function execution based on Duration
+			if success and result and type(result) == "function" then
+				local onFinish = result :: () -> ()
+				local duration = command.Duration
+				if duration and duration > 0 then
+					-- Delay the finish function execution in a separate thread
+					task.spawn(function()
+						task.wait(duration)
+						onFinish()
+					end)
+				else
+					-- Call immediately if no duration or duration is 0
+					onFinish()
+				end
+			end
 		end
 		return -- Don't continue with normal execution flow for global commands
 	end
@@ -251,6 +267,22 @@ pcall(function()
 		-- Execute the command on all players in this server
 		for _, player in ipairs(game.Players:GetPlayers()) do
 			local success, result = command.OnExecute(nil, player)
+			
+			-- Handle finish function execution based on Duration
+			if success and result and type(result) == "function" then
+				local onFinish = result :: () -> ()
+				local duration = command.Duration
+				if duration and duration > 0 then
+					-- Delay the finish function execution in a separate thread
+					task.spawn(function()
+						task.wait(duration)
+						onFinish()
+					end)
+				else
+					-- Call immediately if no duration or duration is 0
+					onFinish()
+				end
+			end
 		end
 		
 		-- Log global command execution

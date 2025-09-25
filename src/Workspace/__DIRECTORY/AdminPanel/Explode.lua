@@ -27,6 +27,8 @@ local Spin: AdminPanelTypes.AdminCommand = {
 			explosion.Position = hrp.Position
 			explosion.Parent = character
 			explosion.DestroyJointRadiusPercent = 0.2
+
+			humanoid.Health = 0
 		end
 		
 		-- Return success and finish function
