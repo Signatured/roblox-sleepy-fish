@@ -1,6 +1,6 @@
 --!strict
 
-local MarketplaceService = game:GetService("MarketplaceService")
+local _MarketplaceService = game:GetService("MarketplaceService")
 
 local Network = require(game.ServerScriptService.Library.Network)
 local AdminPanelDirectory = require(game.ReplicatedStorage.Game.Library.Directory.AdminPanel)
@@ -26,10 +26,15 @@ local ADMIN_RANKS = {
 
 --[[
 	Checks if a player has admin permissions
-	@param player The player to check
+	@param player The player to check (can be nil for console)
 	@return boolean Whether the player has admin permissions
 ]]
-local function HasAdminPermission(player: Player): boolean
+local function HasAdminPermission(player: Player?): boolean
+	-- Console execution always has admin permissions
+	if not player then
+		return true
+	end
+	
 	-- Check rank attribute
 	local rank = player:GetAttribute("Rank")
 	if rank and ADMIN_RANKS[rank] then
@@ -47,11 +52,16 @@ end
 
 --[[
 	Checks if a player is on cooldown for a specific command
-	@param player The player to check
+	@param player The player to check (can be nil for console)
 	@param commandName The command to check cooldown for
 	@return boolean Whether the player is on cooldown
 ]]
-local function IsOnCooldown(player: Player, commandName: string): boolean
+local function IsOnCooldown(player: Player?, commandName: string): boolean
+	-- Console execution bypasses cooldowns
+	if not player then
+		return false
+	end
+	
 	local playerCooldown = playerCooldowns[player]
 	if not playerCooldown then
 		return false
@@ -67,11 +77,16 @@ end
 
 --[[
 	Sets a cooldown for a player and command
-	@param player The player to set cooldown for
+	@param player The player to set cooldown for (can be nil for console)
 	@param commandName The command to set cooldown for
 	@param duration The cooldown duration in seconds
 ]]
-local function SetCooldown(player: Player, commandName: string, duration: number)
+local function SetCooldown(player: Player?, commandName: string, duration: number)
+	-- Console execution doesn't set cooldowns
+	if not player then
+		return
+	end
+	
 	if not playerCooldowns[player] then
 		playerCooldowns[player] = {}
 	end
@@ -81,14 +96,15 @@ end
 
 --[[
 	Executes an admin command
-	@param executor The player executing the command
+	@param executor The player executing the command (nil for console execution)
 	@param commandName The name of the command to execute
 	@param targetPlayer The target player (optional)
 ]]
-function AdminPanel.ExecuteCommand(executor: Player, commandName: string, targetPlayer: Player?)
+function AdminPanel.ExecuteCommand(executor: Player?, commandName: string, targetPlayer: Player?)
 	-- Check if executor has admin permissions
 	if not HasAdminPermission(executor) then
-		warn(`Player {executor.Name} attempted to use admin command without permission`)
+		local executorName = executor and executor.Name or "Console"
+		warn(`{executorName} attempted to use admin command without permission`)
 		return
 	end
 	
@@ -101,8 +117,14 @@ function AdminPanel.ExecuteCommand(executor: Player, commandName: string, target
 	
 	-- Check if command can target players and if target is provided when needed
 	if command.CanTarget and not targetPlayer then
-		warn(`Command '{commandName}' requires a target player`)
-		return
+		-- If executor is nil (console), make the target the executor (which will be nil)
+		if not executor then
+			warn(`Console command '{commandName}' requires a target player`)
+			return
+		else
+			-- For player executors, use them as the target if no target specified
+			targetPlayer = executor
+		end
 	end
 	
 	-- Check cooldown
@@ -117,7 +139,8 @@ function AdminPanel.ExecuteCommand(executor: Player, commandName: string, target
 	if not success then
 		-- Command failed, result should be an error message
 		local errorMessage = result or "Command execution failed"
-		warn(`Command '{commandName}' failed for {executor.Name}: {errorMessage}`)
+		local executorName = executor and executor.Name or "Console"
+		warn(`Command '{commandName}' failed for {executorName}: {errorMessage}`)
 		return
 	end
 	
@@ -145,6 +168,15 @@ end
 game.Players.PlayerRemoving:Connect(function(player)
 	playerCooldowns[player] = nil
 end)
+
+--[[
+	Executes an admin command from console (server-side)
+	@param commandName The name of the command to execute
+	@param targetPlayer The target player (required for console execution)
+]]
+function AdminPanel.ExecuteConsoleCommand(commandName: string, targetPlayer: Player?)
+	AdminPanel.ExecuteCommand(nil, commandName, targetPlayer)
+end
 
 -- Network event handler for admin commands
 Network.Fired("AdminPanel_ExecuteCommand", function(player: Player, commandName: string, targetPlayer: Player?)

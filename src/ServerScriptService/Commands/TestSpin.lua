@@ -16,7 +16,13 @@ local Command = {
 	} :: {CommandType.Parameter},
 
 	Execute = function(player, args)
-		AdminPanel.ExecuteCommand(player, "Ragdoll", args[1][1])
+		-- Example: Execute as console (nil executor) with target player
+		if args[1] and args[1][1] then
+			AdminPanel.ExecuteConsoleCommand("Ragdoll", args[1][1])
+		else
+			-- Fallback: Execute as player
+			AdminPanel.ExecuteCommand(player, "Ragdoll", args[1] and args[1][1] or nil)
+		end
 	end,
 } :: CommandType.Command
 

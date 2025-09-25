@@ -10,8 +10,13 @@ local Spin: AdminPanelTypes.AdminCommand = {
 	CanTarget = true,
 	Cooldown = 120,
 	Duration = 10,
-	OnExecute = function(executor: Player, targetPlayer: Player?): (boolean, (string | (() -> ()))?)
+	OnExecute = function(executor: Player?, targetPlayer: Player?): (boolean, (string | (() -> ()))?)
         local target = targetPlayer or executor
+        
+        -- If executor is nil (console) and no target specified, return error
+        if not target then
+            return false, "Console command requires a target player"
+        end
         local hrp = Player.Optional.HumanoidRootPart(target)
         local humanoid = Player.Optional.Humanoid(target)
 

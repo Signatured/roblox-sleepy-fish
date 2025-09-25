@@ -21,10 +21,15 @@ local Spin: AdminPanelTypes.AdminCommand = {
 	CanTarget = true,
 	Cooldown = 60,
 	Duration = 30,
-	OnExecute = function(executor: Player, targetPlayer: Player?): (boolean, (string | (() -> ()))?)
+	OnExecute = function(executor: Player?, targetPlayer: Player?): (boolean, (string | (() -> ()))?)
 		local Network = require(game.ServerScriptService.Library.Network)
 		
         local target = targetPlayer or executor
+        
+        -- If executor is nil (console) and no target specified, return error
+        if not target then
+            return false, "Console command requires a target player"
+        end
         
 		if target:GetAttribute("Dancing") then
 			return false, `{target.Name} is already dancing!`

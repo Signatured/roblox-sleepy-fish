@@ -6,9 +6,14 @@ local Jumpscare: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Jumpscare",
 	CanTarget = true,
 	Cooldown = 90,
-	OnExecute = function(executor: Player, targetPlayer: Player?): (boolean, (string | (() -> ()))?)
+	OnExecute = function(executor: Player?, targetPlayer: Player?): (boolean, (string | (() -> ()))?)
         local Network = require(game.ServerScriptService.Library.Network)
 		local target = targetPlayer or executor
+		
+		-- If executor is nil (console) and no target specified, return error
+		if not target then
+			return false, "Console command requires a target player"
+		end
 
 		-- Fire the jumpscare event to the target player
 		Network.Fire(target, "AdminPanel_Jumpscare")

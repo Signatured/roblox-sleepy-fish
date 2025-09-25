@@ -7,7 +7,12 @@ local Teleport: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Teleport",
 	CanTarget = true,
 	Cooldown = 90,
-	OnExecute = function(executor: Player, targetPlayer: Player?): (boolean, (string | (() -> ()))?)
+	OnExecute = function(executor: Player?, targetPlayer: Player?): (boolean, (string | (() -> ()))?)
+		-- Console execution cannot teleport (no executor to move)
+		if not executor then
+			return false, "Console cannot use teleport command (no executor to teleport)"
+		end
+		
 		-- Need a target to teleport to
 		if not targetPlayer then
 			return false, "You need to select a target player to teleport to!"
