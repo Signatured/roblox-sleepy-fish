@@ -184,34 +184,9 @@ function AdminPanel.ExecuteCommand(executor: Player?, commandName: string, targe
 			messagingService:PublishAsync("GlobalAdminCommand", globalCommandData)
 		end)
 		
-		-- Execute locally on all players
-		for _, player in ipairs(game.Players:GetPlayers()) do
-			local success, result = command.OnExecute(executor, player)
-
-			-- If the command specifies a TargetMessage, notify the player
-			if command.TargetMessage then
-				local execName = (executor and executor.Name) or "An Admin"
-				local msg = string.gsub(command.TargetMessage, "<name>", execName)
-				Notifications.Message(player, msg, { Color = Color3.fromRGB(0, 255, 0), Time = 7 })
-			end
-			
-			-- Handle finish function execution based on Duration
-			if success and result and type(result) == "function" then
-				local onFinish = result :: () -> ()
-				local duration = command.Duration
-				if duration and duration > 0 then
-					-- Delay the finish function execution in a separate thread
-					task.spawn(function()
-						task.wait(duration)
-						onFinish()
-					end)
-				else
-					-- Call immediately if no duration or duration is 0
-					onFinish()
-				end
-			end
-		end
-		return -- Don't continue with normal execution flow for global commands
+		-- Do not execute locally here to avoid double execution.
+		-- Command will run via MessagingService on all servers, including origin.
+		return -- Exit after publishing global event
 		end
 	end
 	
@@ -233,7 +208,13 @@ function AdminPanel.ExecuteCommand(executor: Player?, commandName: string, targe
 
 	-- Notify targeted player if a TargetMessage exists
 	if command.TargetMessage and targetPlayer then
-		local execName = (executor and executor.Name) or "An Admin"
+		local execName: string
+		if executor and executor.Name then
+			execName = executor.Name
+		else
+			local startsWithName = string.match(command.TargetMessage, "^%s*<name>") ~= nil
+			execName = startsWithName and "An Admin" or "an Admin"
+		end
 		local msg = string.gsub(command.TargetMessage, "<name>", execName)
 		Notifications.Message(targetPlayer, msg, { Color = Color3.fromRGB(0, 255, 0), Time = 7 })
 	end
@@ -291,7 +272,8 @@ pcall(function()
 
 				-- If the command specifies a TargetMessage, notify the player (global cross-server)
 				if command.TargetMessage then
-					local execName = "An Admin"
+					local startsWithName = string.match(command.TargetMessage, "^%s*<name>") ~= nil
+					local execName = startsWithName and "An Admin" or "an Admin"
 					local msg = string.gsub(command.TargetMessage, "<name>", execName)
 					Notifications.Message(player, msg, { Color = Color3.fromRGB(0, 255, 0), Time = 7 })
 				end
