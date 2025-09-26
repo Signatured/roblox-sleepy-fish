@@ -748,7 +748,7 @@ function FishGen.ForceSpawnRandomType(rarityId: string, player: Player?, fishTyp
     spawnForcedByRarity(rarityId, player, fishTypeOverride)
 end
 
-function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutation: string?)
+function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutation: string?, adminSpawned: boolean?)
     local schema = Directory.Fish[fishId]
     if not schema then return end
     local fishModelTemplate = schema._script:WaitForChild("Model")
@@ -815,21 +815,25 @@ function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutat
     local displayName = schema.DisplayName or schema._id
     local rarity = schema.Rarity
 
-    if rarity._id == "Mythical" then
-        Notifications.MessageAll(`A Mythical {displayName} has spawned!`, {
-            Rainbow = true,
-            Time = 8,
-        })
-    elseif rarity._id == "Secret" then
-        Notifications.MessageAll(`A SECRET {displayName} has spawned!`, {
-            Rainbow = true,
-            Time = 8,
-        })
-    else
-        Notifications.MessageAll(`A {rarity.DisplayName} {displayName} has spawned!`, {
-            Time = 8,
-        })
-    end
+	-- Include fish type in message if not Normal, and allow admin prefix override
+	local typeText = (selectedFishType ~= "Normal") and (selectedFishType .. " ") or ""
+	local prefix = adminSpawned and "Admin spawned a" or "A"
+
+	if rarity._id == "Mythical" then
+		Notifications.MessageAll(`{prefix} Mythical {typeText}{displayName} has spawned!`, {
+			Rainbow = true,
+			Time = 8,
+		})
+	elseif rarity._id == "Secret" then
+		Notifications.MessageAll(`{prefix} SECRET {typeText}{displayName} has spawned!`, {
+			Rainbow = true,
+			Time = 8,
+		})
+	else
+		Notifications.MessageAll(`{prefix} {rarity.DisplayName} {typeText}{displayName} has spawned!`, {
+			Time = 8,
+		})
+	end
 end
 
 -- Heartbeat: despawn and respawn

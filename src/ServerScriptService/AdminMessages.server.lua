@@ -163,9 +163,9 @@ local function handleGlobalForceSpawn(message: Message)
 		mutation = nil
 	end
 	
-	-- Force spawn the specific fish in the ocean
+	-- Force spawn the specific fish in the ocean (admin-originated)
 	pcall(function()
-		FishGenerator.ForceSpawnSpecificFish(fishId, fishType, mutation)
+		FishGenerator.ForceSpawnSpecificFish(fishId, fishType, mutation, true)
 	end)
 end
 
