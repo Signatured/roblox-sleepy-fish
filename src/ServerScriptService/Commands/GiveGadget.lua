@@ -10,7 +10,7 @@ local GadgetManager = require(ServerScriptService.Game.Library.Gadgets)
 local Command = {
 	Name = "GiveGadget",
 	Aliases = {"gg", "givegadget"},
-	Permissions = {"Admin", "Owner", "Tester", "Developer"}, 
+	Permissions = {"Admin", "Owner", "Developer"}, 
 	Parameters = {
 		{Type = "Player", Name = "TargetPlayer", Optional = true},
 		{Type = "String", Name = "GadgetId"},

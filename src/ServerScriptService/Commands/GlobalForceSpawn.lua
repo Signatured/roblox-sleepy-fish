@@ -13,7 +13,7 @@ local GLOBAL_FORCE_SPAWN_TOPIC = "SleepyFish:GlobalForceSpawn"
 local Command = {
 	Name = "GlobalForceSpawn",
 	Aliases = {"globalforcespawn", "gfs", "globalspawn"},
-	Permissions = {"Owner", "Developer"},
+	Permissions = {"Admin", "Owner", "Developer"},
 	Parameters = {
 		{Type = "String", Name = "FishId"},
 		{Type = "String", Name = "Type", Optional = true},

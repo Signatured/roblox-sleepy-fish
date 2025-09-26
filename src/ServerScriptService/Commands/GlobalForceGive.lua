@@ -13,7 +13,7 @@ local GLOBAL_FORCE_GIVE_TOPIC = "SleepyFish:GlobalForceGive"
 local Command = {
 	Name = "GlobalForceGive",
 	Aliases = {"globalforcegive", "gfg", "globalgive"},
-	Permissions = {"Owner", "Developer"},
+	Permissions = {"Admin", "Owner", "Developer"},
 	Parameters = {
 		{Type = "String", Name = "FishId"},
 		{Type = "String", Name = "Type", Optional = true},

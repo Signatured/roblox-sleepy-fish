@@ -13,7 +13,7 @@ local BanDataStore = DataStoreService:GetDataStore("PlayerBans")
 local Command = {
 	Name = "Ban",
 	Aliases = {"ban"},
-	Permissions = {"Owner", "Developer"}, -- Only highest level admins can ban
+	Permissions = {"Admin", "Owner", "Developer"},
 	Parameters = {
 		{Type = "Player", Name = "TargetPlayer"},
 		{Type = "String", Name = "Reason"},

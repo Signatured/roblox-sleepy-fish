@@ -12,7 +12,7 @@ local GLOBAL_SLEEP_TOPIC = "SleepyFish:GlobalSleep"
 local Command = {
 	Name = "GlobalSleep",
 	Aliases = {"globalsleep", "gsleep", "sleepall"},
-	Permissions = {"Owner", "Developer"},
+	Permissions = {"Admin", "Owner", "Developer"},
 	Parameters = {
 		{Type = "Number", Name = "Duration", Optional = true}
 	} :: {CommandType.Parameter},

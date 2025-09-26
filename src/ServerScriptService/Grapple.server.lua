@@ -51,6 +51,12 @@ Network.Invoked("Grapple_HitFish", function(player: Player, uid: string)
 		return false
 	end
 
+	-- Check if already being grappled by someone else
+	local currentGrappler = hitModel:GetAttribute("Grappling")
+	if currentGrappler and currentGrappler ~= player.UserId then
+		return false -- Already being grappled by another player
+	end
+	
 	-- Mark as grappling
 	hitModel:SetAttribute("Grappling", player.UserId)
 	-- Tell all clients to visually attach this player's hook to the fish
@@ -63,7 +69,15 @@ Network.Invoked("Grapple_HitFish", function(player: Player, uid: string)
 		end
 	end
 
+	-- Clean up any existing LinearVelocity from previous grapples
+	for _, child in ipairs(primary:GetChildren()) do
+		if child:IsA("LinearVelocity") or child:IsA("Attachment") and child.Name == "GrappleAttachment" then
+			child:Destroy()
+		end
+	end
+
 	local att = Instance.new("Attachment")
+	att.Name = "GrappleAttachment"
 	att.Parent = primary
 
 	local lv = Instance.new("LinearVelocity")
@@ -73,7 +87,11 @@ Network.Invoked("Grapple_HitFish", function(player: Player, uid: string)
 
 	local connection
 	connection = game:GetService("RunService").Heartbeat:Connect(function(dt)
-		if not player.Parent or not hitModel or not hitModel.Parent or player:GetAttribute("Dead") then
+		-- Get fresh references to avoid stale position data
+		local character = player.Character
+		local currentHrp = character and character:FindFirstChild("HumanoidRootPart")
+		
+		if not player.Parent or not hitModel or not hitModel.Parent or player:GetAttribute("Dead") or not currentHrp then
 			for _, inst in ipairs(hitModel:GetDescendants()) do
 				if inst:IsA("BasePart") then
 					(inst :: BasePart).Anchored = true
@@ -88,7 +106,18 @@ Network.Invoked("Grapple_HitFish", function(player: Player, uid: string)
 			Network.FireAll("Grapple_End", player.UserId)
 			return
 		end
-		local toPlayer = (hrp.Position - primary.Position)
+		
+		-- Verify we still own this grapple (prevent race conditions)
+		if hitModel:GetAttribute("Grappling") ~= player.UserId then
+			if connection then connection:Disconnect() end
+			if lv then lv:Destroy() end
+			if att then att:Destroy() end
+			-- End the visual on all clients
+			Network.FireAll("Grapple_End", player.UserId)
+			return
+		end
+		
+		local toPlayer = ((currentHrp :: BasePart).Position - primary.Position)
 		local dist = toPlayer.Magnitude
 		if dist < 6 then
 			-- close enough: make the player carry the fish

@@ -12,7 +12,7 @@ local FORCE_RARITY_TOPIC = "SleepyFish:ForceRarity"
 local Command = {
 	Name = "GlobalForceRarity",
 	Aliases = {"globalforce", "gfr"},
-	Permissions = {"Owner", "Developer"},
+	Permissions = {"Admin", "Owner", "Developer"},
 	Parameters = {
 		{Type = "String", Name = "RarityId"},
 		{Type = "String", Name = "Type", Optional = true},

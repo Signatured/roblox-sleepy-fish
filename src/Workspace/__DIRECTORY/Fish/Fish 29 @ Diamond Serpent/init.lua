@@ -5,9 +5,9 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Diamond Serpent",
-    Icon = "rbxassetid://0",
+    Icon = "rbxassetid://95772149220135",
     MutationIcons = {
-        Bloodfish = "rbxassetid://0",
+        Bloodfish = "rbxassetid://95772149220135",
     },
     Rarity = Rarity.Mythical,
     MoneyPerSecond = 475,
