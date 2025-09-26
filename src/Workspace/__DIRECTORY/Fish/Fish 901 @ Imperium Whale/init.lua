@@ -7,7 +7,7 @@ return {
     DisplayName = "Imperium Whale",
     Icon = "rbxassetid://99968950359680",
     MutationIcons = {
-        Bloodfish = "rbxassetid://99968950359680",
+        Bloodfish = "rbxassetid://124483285860707",
     },
     Rarity = Rarity.Exclusive,
     MoneyPerSecond = 150,

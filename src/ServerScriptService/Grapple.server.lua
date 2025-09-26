@@ -4,6 +4,7 @@ local _Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local _ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Signal = require(game.ReplicatedStorage.Library.Signal)
 local Network = require(ServerScriptService.Library.Network)
 local Gadgets = require(ServerScriptService.Game.Library.Gadgets)
 local FishGen = require(ServerScriptService.Game.Library.FishGenerator)
@@ -148,6 +149,39 @@ end)
 -- Client signals a full cycle return (no fish attached): broadcast end to others
 Network.Fired("Grapple_Returned", function(player: Player)
 	Network.FireAll("Grapple_End", player.UserId)
+end)
+
+
+-- Stop grappling immediately on death signal
+Signal.Fired("Death"):Connect(function(player: Player)
+	if not player or not player.Parent then return end
+
+	local things = workspace:FindFirstChild("__THINGS")
+	local swimmingRoot = things and things:FindFirstChild("SwimmingFish")
+	if not swimmingRoot then
+		Network.FireAll("Grapple_End", player.UserId)
+		return
+	end
+
+	for _, m in ipairs(swimmingRoot:GetDescendants()) do
+		if m:IsA("Model") and m:GetAttribute("Grappling") == player.UserId then
+			local primary = m.PrimaryPart or m:FindFirstChildWhichIsA("BasePart")
+			if primary then
+				for _, child in ipairs(primary:GetChildren()) do
+					if child:IsA("LinearVelocity") or (child:IsA("Attachment") and child.Name == "GrappleAttachment") then
+						child:Destroy()
+					end
+				end
+			end
+			for _, inst in ipairs(m:GetDescendants()) do
+				if inst:IsA("BasePart") then
+					(inst :: BasePart).Anchored = true
+				end
+			end
+			m:SetAttribute("Grappling", nil)
+			Network.FireAll("Grapple_End", player.UserId)
+		end
+	end
 end)
 
 

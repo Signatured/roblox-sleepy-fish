@@ -91,6 +91,13 @@ local function packRainbow(shopGui: ScreenGui)
 	Functions.GradientScroll(starterPack:WaitForChild("Background"):WaitForChild("RainbowGradientWrapped")::UIGradient, 3)
 	Functions.GradientScroll(expertPack:WaitForChild("Background"):WaitForChild("RainbowGradientWrapped")::UIGradient, 3)
     Functions.GradientScroll(fishImage:WaitForChild("Rarity"):WaitForChild("RainbowGradientWrapped")::UIGradient, 2)
+
+	-- AdminPanel title rainbow scroll
+	local adminPanel = scrollingFrame:WaitForChild("AdminPanel")
+	local title = adminPanel:WaitForChild("Title")
+	if title and title:IsA("TextLabel") then
+		Functions.GradientScroll(title:WaitForChild("RainbowGradientWrapped")::UIGradient, 3)
+	end
 end
 
 local function doesOwnGamepass(gamepassId: number): boolean

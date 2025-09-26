@@ -7,6 +7,7 @@ local Assets = game.ReplicatedStorage.Assets
 
 local Spin: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Jail",
+	Icon = "rbxassetid://97856294250106",
 	TargetMessage = "You were jailed by <name> with Admin Panel!",
 	CanTarget = true,
 	Cooldown = 120,

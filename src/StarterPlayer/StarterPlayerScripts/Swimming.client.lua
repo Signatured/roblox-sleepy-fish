@@ -167,7 +167,7 @@ RunService.RenderStepped:Connect(function()
         end
     end
 
-    if isSwimming and (LOCAL_PLAYER:GetAttribute("CarryingFishId") or LOCAL_PLAYER:GetAttribute("ActivePrompt")) then
+    if isSwimming and (LOCAL_PLAYER:GetAttribute("CarryingFishId") or LOCAL_PLAYER:GetAttribute("ActivePrompt") or LOCAL_PLAYER:GetAttribute("Grappling")) then
         GadgetCmds.UnequipMagicCarpet()
         local removedCloak = GadgetCmds.UnequipInvisibilityCloak()
         if removedCloak then

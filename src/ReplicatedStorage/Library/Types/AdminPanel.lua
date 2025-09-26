@@ -2,6 +2,7 @@
 
 export type AdminCommand = {
 	DisplayName: string,
+	Icon: string,
 	TargetMessage: string?,
 	CanTarget: boolean,
 	OnExecute: (executor: Player?, targetPlayer: Player?) -> (boolean, (string | (() -> ()))?),

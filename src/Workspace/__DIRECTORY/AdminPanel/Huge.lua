@@ -5,6 +5,7 @@ local Player = require(game.ReplicatedStorage.Library.Player)
 
 local Spin: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Huge",
+	Icon = "rbxassetid://109796812355278",
 	TargetMessage = "You were made huge by <name> with Admin Panel!",
 	CanTarget = true,
 	Cooldown = 10,

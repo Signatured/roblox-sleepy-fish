@@ -7,7 +7,7 @@ return {
     DisplayName = "Diamond Serpent",
     Icon = "rbxassetid://95772149220135",
     MutationIcons = {
-        Bloodfish = "rbxassetid://95772149220135",
+        Bloodfish = "rbxassetid://116277252793850",
     },
     Rarity = Rarity.Mythical,
     MoneyPerSecond = 475,

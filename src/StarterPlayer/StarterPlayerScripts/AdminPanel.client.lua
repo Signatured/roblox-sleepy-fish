@@ -6,6 +6,7 @@ local GUI = require(game.ReplicatedStorage.Game.Library.Client.GUI)
 local TabController = require(game.ReplicatedStorage.Library.Client.TabController)
 local AdminPanelCmds = require(game.ReplicatedStorage.Game.Library.Client.AdminPanelCmds)
 local AdminPanelDirectory = require(game.ReplicatedStorage.Game.Library.Directory.AdminPanel)
+local NotificationCmds = require(game.ReplicatedStorage.Library.Client.NotificationCmds)
 local ButtonFX = require(game.ReplicatedStorage.Library.Client.GUIFX.ButtonFX)
 local GetAvatarFromUserIdAsync = require(game.ReplicatedStorage.Library.Functions.GetAvatarFromUserIdAsync)
 
@@ -20,6 +21,7 @@ local initialized = false
 local globalModeEnabled = false
 local globalButton: ImageButton? = nil
 local globalBtnConnection: RBXScriptConnection? = nil
+local textBoxConnection: RBXScriptConnection? = nil
 
 -- Persistent cooldown tracking (survives GUI reopening)
 local cooldownTimers: {[string]: {endTime: number, connection: RBXScriptConnection?}} = {}
@@ -138,11 +140,25 @@ local function createCommandButton(commandName: string, commandData, parent: Ins
     button.Name = commandName
     button.Visible = true
     
-    -- Set the display name
-    local title = button:FindFirstChild("Title")
-    if title and title:IsA("TextLabel") then
-        title.Text = string.lower(";" .. commandData.DisplayName)
-    end
+	-- Find child container (supports new layout where Title/Icon are under Content)
+	local contentContainer = button:FindFirstChild("Content")
+	local titleParent: Instance = contentContainer or button
+	local iconParent: Instance = contentContainer or button
+
+	-- Set the display name
+	local title = titleParent:FindFirstChild("Title")
+	if title and title:IsA("TextLabel") then
+		title.Text = string.lower(";" .. commandData.DisplayName)
+	end
+
+	-- Set the icon image if present on template and command data
+	local icon = iconParent:FindFirstChild("Icon")
+	if icon and icon:IsA("ImageLabel") then
+		local iconId = (commandData and commandData.Icon)
+		if typeof(iconId) == "string" and #iconId > 0 then
+			icon.Image = iconId
+		end
+	end
     
     -- Get the locked frame and its text label
     local lockedFrame = button:FindFirstChild("Locked")::Frame
@@ -452,6 +468,116 @@ local function setupGlobalThings()
 end
 
 --[[
+    Sets up the TextBox command input under AdminPanel/Frame
+]]
+local function setupTextBox()
+    local gui = getGui()
+    if not gui then return end
+
+    print("test1")
+
+    local frame = gui:FindFirstChild("Frame")
+    if not frame then return end
+
+    print("test2")
+
+    local tbl = frame:FindFirstChild("TextBox")
+    if not tbl or not tbl:IsA("ImageLabel") then return end
+
+    local tb = tbl:FindFirstChild("TextBox")
+    if not tb or not tb:IsA("TextBox") then return end
+
+    if textBoxConnection then
+        textBoxConnection:Disconnect()
+        textBoxConnection = nil
+    end
+
+    textBoxConnection = tb.FocusLost:Connect(function(enterPressed: boolean)
+        if not enterPressed then return end
+
+        local raw = tb.Text or ""
+        if string.match(raw, "^%s*$") then return end
+
+        -- Clear immediately on submit
+        tb.Text = ""
+
+        -- Parse first two tokens (command and target)
+        local cmdToken, targetToken = string.match(raw, "^%s*(%S+)%s*(%S*)")
+        if not cmdToken or cmdToken == "" then return end
+
+        -- Strip optional leading ';'
+        if string.sub(cmdToken, 1, 1) == ";" then
+            cmdToken = string.sub(cmdToken, 2)
+        end
+        local cmdLower = string.lower(cmdToken)
+
+        -- Resolve to canonical command name from AdminPanelDirectory
+        local resolvedName: string? = nil
+        local resolvedConfig: any = nil
+        for key, cfg in pairs(AdminPanelDirectory) do
+            if string.lower(key) == cmdLower or (cfg and cfg.DisplayName and string.lower(cfg.DisplayName) == cmdLower) then
+                resolvedName = key
+                resolvedConfig = cfg
+                break
+            end
+        end
+        if not resolvedName then
+            NotificationCmds.Message("That's not a valid command!", { Color = Color3.fromRGB(255, 0, 0) })
+            return
+        end
+
+        -- Check client-side cooldown for this command
+        local cooldownData = cooldownTimers[resolvedName]
+        if cooldownData then
+            local remaining = cooldownData.endTime - workspace:GetServerTimeNow()
+            if remaining > 0 then
+                NotificationCmds.Message("That command is on cooldown for " .. tostring(math.ceil(remaining)) .. " seconds!", { Color = Color3.fromRGB(255, 0, 0) })
+                return
+            end
+        end
+
+        -- Determine target player (defaults to LocalPlayer when omitted)
+        local targetPlayer: Player? = nil
+        if not targetToken or targetToken == "" then
+            targetPlayer = LocalPlayer
+        else
+            -- Find an online player by exact (case-insensitive) or prefix match on Name/DisplayName
+            local function findPlayerByQuery(query: string): Player?
+                local q = string.lower(query)
+                -- exact
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if string.lower(p.Name) == q or string.lower(p.DisplayName) == q then
+                        return p
+                    end
+                end
+                -- prefix
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if string.sub(string.lower(p.Name), 1, #q) == q or string.sub(string.lower(p.DisplayName), 1, #q) == q then
+                        return p
+                    end
+                end
+                return nil
+            end
+
+            targetPlayer = findPlayerByQuery(targetToken)
+            if not targetPlayer then
+                NotificationCmds.Message(targetToken .. " isn't online!", { Color = Color3.fromRGB(255, 0, 0) })
+                return
+            end
+        end
+
+        -- Execute the command (non-global from textbox)
+        AdminPanelCmds.ExecuteCommand(resolvedName :: string, targetPlayer)
+
+        -- Start cooldown visualization if applicable
+        if resolvedConfig and resolvedConfig.Cooldown and resolvedConfig.Cooldown > 0 then
+            local duration = hasPrivilegedPermission() and 1 or resolvedConfig.Cooldown
+            startCooldown(resolvedName :: string, duration)
+        end
+    end)
+end
+
+--[[
     Initializes the AdminPanel GUI
 ]]
 local function setup()
@@ -468,6 +594,9 @@ local function setup()
     
     -- Set up player list
     updatePlayerList()
+    
+    -- Set up TextBox submit handling
+    setupTextBox()
     
     initialized = true
 end
@@ -500,6 +629,12 @@ local function cleanup()
         end
     end
     commandButtons = {}
+    
+    -- Disconnect textbox handler
+    if textBoxConnection then
+        textBoxConnection:Disconnect()
+        textBoxConnection = nil
+    end
     
     -- Note: We don't clear cooldownTimers here so they persist across GUI reopening
     

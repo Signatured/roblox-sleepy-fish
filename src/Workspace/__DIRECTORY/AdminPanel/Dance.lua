@@ -18,6 +18,7 @@ local DANCE_IDS = {
 
 local Spin: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Dance",
+	Icon = "rbxassetid://136314566712324",
 	TargetMessage = "<name> made you dance with Admin Panel!",
 	CanTarget = true,
 	Cooldown = 60,

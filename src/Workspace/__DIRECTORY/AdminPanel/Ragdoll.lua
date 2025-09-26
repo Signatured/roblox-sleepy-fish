@@ -5,6 +5,7 @@ local Player = require(game.ReplicatedStorage.Library.Player)
 
 local Ragdoll: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Ragdoll",
+    Icon = "rbxassetid://97585097594342",
 	TargetMessage = "You were ragdolled by <name> with Admin Panel!",
 	CanTarget = true,
 	Cooldown = 120,

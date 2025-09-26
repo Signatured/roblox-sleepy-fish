@@ -4,6 +4,7 @@ local AdminPanelTypes = require(game.ReplicatedStorage.Game.Library.Types.AdminP
 
 local Jumpscare: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Jumpscare",
+	Icon = "rbxassetid://87758218713205",
 	TargetMessage = "You were jumpscared by <name> with Admin Panel!",
 	CanTarget = true,
 	Cooldown = 90,

@@ -7,7 +7,7 @@ return {
     DisplayName = "Oblivion Sea Dragon",
     Icon = "rbxassetid://105441199491812",
     MutationIcons = {
-        Bloodfish = "rbxassetid://105441199491812",
+        Bloodfish = "rbxassetid://109557521648928",
     },
     Rarity = Rarity.Secret,
     MoneyPerSecond = 950,

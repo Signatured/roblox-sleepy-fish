@@ -430,6 +430,33 @@ Network.Fired("Grapple_End", function(userId: number)
 	otherGrapples[userId] = nil
 end)
 
+-- Stop local grappling immediately if player is tagged Dead
+localPlayer:GetAttributeChangedSignal("Dead"):Connect(function()
+	if localPlayer:GetAttribute("Dead") == true and localPlayer:GetAttribute("Grappling") then
+		-- Destroy any local hook part
+		for _, inst in ipairs(Workspace:GetChildren()) do
+			if inst:IsA("BasePart") and inst.Name == "GrappleHook" then
+				inst:Destroy()
+			end
+		end
+		-- Restore tool mesh
+		local tool = getEquippedGrapple()
+		local handle = tool and tool:FindFirstChild("Handle")
+		local mesh = handle and handle:FindFirstChildOfClass("SpecialMesh")
+		if mesh and mesh:IsA("SpecialMesh") then
+			(mesh :: SpecialMesh).MeshId = MESH_TOOL_DEFAULT
+		end
+		-- Clear state and notify server to end cycle
+		localPlayer:SetAttribute("Grappling", nil)
+		Network.Fire("Grapple_Returned")
+		-- Equip best coil to ensure visuals/tool reset
+		local ok = pcall(function()
+			GadgetCmds.EquipBestCoil()
+		end)
+		ok = ok -- silence
+	end
+end)
+
 return {}
 
 

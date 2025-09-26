@@ -5,6 +5,7 @@ local Player = require(game.ReplicatedStorage.Library.Player)
 
 local Spin: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Spin",
+    Icon = "rbxassetid://108891687436150",
 	TargetMessage = "You were spun by <name> with Admin Panel!",
 	CanTarget = true,
 	Cooldown = 45,
