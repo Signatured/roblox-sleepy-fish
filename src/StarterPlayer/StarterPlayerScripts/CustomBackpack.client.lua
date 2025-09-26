@@ -10,6 +10,5 @@ local Satchel = require(game.ReplicatedStorage.Game.Modules.Satchel)
 RunService.RenderStepped:Connect(function()
     StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
 
-    print(TabController.GetCurrentTab() ~= "SpinnyWheel", TabController.GetCurrentTab())
     Satchel:SetBackpackEnabled(TabController.GetCurrentTab() ~= "SpinnyWheel")
 end)

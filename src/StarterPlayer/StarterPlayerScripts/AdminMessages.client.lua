@@ -58,7 +58,7 @@ local function showNext()
 	fadeIn1.Completed:Wait()
 
 	-- Display duration
-	task.wait(7)
+	task.wait(10)
 
 	-- Fade out over 0.5s
 	local fadeOut1 = tween(messageLabel, 0.5, {TextTransparency = 1})

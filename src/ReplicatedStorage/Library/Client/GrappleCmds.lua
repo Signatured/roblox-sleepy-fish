@@ -182,6 +182,27 @@ local function shootGrapple(targetPosition: Vector3)
 							if not primary then break end
 							local tipPos = primary.Position - direction * 1
 							hookPart.CFrame = CFrame.new(tipPos, tipPos + direction)
+
+							-- Cancel if player moved too far from the targeted fish
+							local character2 = localPlayer.Character
+							local hrp2 = character2 and character2:FindFirstChild("HumanoidRootPart")
+							if hrp2 and hrp2:IsA("BasePart") then
+								local distToFish = ((hrp2 :: BasePart).Position - primary.Position).Magnitude
+								if distToFish > 45 then
+									-- Cleanly end local grapple cycle
+									local refreshTool3 = getEquippedGrapple()
+									local refreshHandle3 = refreshTool3 and refreshTool3:FindFirstChild("Handle")
+									local refreshMesh3 = refreshHandle3 and refreshHandle3:FindFirstChildOfClass("SpecialMesh")
+									if refreshMesh3 and refreshMesh3:IsA("SpecialMesh") then
+										(refreshMesh3 :: SpecialMesh).MeshId = MESH_TOOL_DEFAULT
+									end
+									localPlayer:SetAttribute("Grappling", nil)
+									if hookPart then hookPart:Destroy() end
+									Network.Fire("Grapple_Returned")
+									pcall(function() GadgetCmds.EquipBestCoil() end)
+									return
+								end
+							end
 							RunService.Heartbeat:Wait()
 						end
 						-- Restore tool mesh on successful reel completion
