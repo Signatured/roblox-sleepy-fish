@@ -198,10 +198,10 @@ local function createPlayerButton(player: Player, parent: Instance, template: Im
     button.Visible = true
     button.Image = "rbxassetid://75836186235217" -- Default unselected image
     
-    -- Set the display name
+    -- Set the name
     local title = button:FindFirstChild("Title")
     if title and title:IsA("TextLabel") then
-        title.Text = player.DisplayName
+        title.Text = player.Name
     end
     
     -- Set up the player face

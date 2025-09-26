@@ -16,6 +16,7 @@ return {
     RarityWeight = 40,
     IndexOffset = -0.5,
     IndexPositionOffset = Vector3.new(0, 0, 0),
+    IndexRotationOffset = Vector3.new(0, math.rad(180), 0),
 }::FishTypes.raw_dir
 
 

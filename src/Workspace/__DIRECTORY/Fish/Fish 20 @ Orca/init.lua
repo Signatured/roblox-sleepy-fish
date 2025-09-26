@@ -15,8 +15,9 @@ return {
     BillboardOffset = 7,
     PedestalOffset = -3.5,
     RarityWeight = 20,
-    -- IndexOffset = -1,
-    -- IndexPositionOffset = Vector3.new(-0.5, 0, 0),
+    IndexOffset = 6,
+    IndexPositionOffset = Vector3.new(-3, 0, 0),
+    IndexRotationOffset = Vector3.new(0, math.rad(160), 0),
 }::FishTypes.raw_dir
 
 
