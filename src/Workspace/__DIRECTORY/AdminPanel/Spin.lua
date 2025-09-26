@@ -5,6 +5,7 @@ local Player = require(game.ReplicatedStorage.Library.Player)
 
 local Spin: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Spin",
+	TargetMessage = "You were spun by <name> with Admin Panel!",
 	CanTarget = true,
 	Cooldown = 45,
 	Duration = 10,

@@ -3,6 +3,7 @@
 local _MarketplaceService = game:GetService("MarketplaceService")
 
 local Network = require(game.ServerScriptService.Library.Network)
+local Notifications = require(game.ServerScriptService.Library.Notifications)
 local AdminPanelDirectory = require(game.ReplicatedStorage.Game.Library.Directory.AdminPanel)
 local AdminPanelTypes = require(game.ReplicatedStorage.Game.Library.Types.AdminPanel)
 local Products = require(game.ServerScriptService.Library.Products)
@@ -186,6 +187,13 @@ function AdminPanel.ExecuteCommand(executor: Player?, commandName: string, targe
 		-- Execute locally on all players
 		for _, player in ipairs(game.Players:GetPlayers()) do
 			local success, result = command.OnExecute(executor, player)
+
+			-- If the command specifies a TargetMessage, notify the player
+			if command.TargetMessage then
+				local execName = (executor and executor.Name) or "An Admin"
+				local msg = string.gsub(command.TargetMessage, "<name>", execName)
+				Notifications.Message(player, msg, { Color = Color3.fromRGB(0, 255, 0), Time = 7 })
+			end
 			
 			-- Handle finish function execution based on Duration
 			if success and result and type(result) == "function" then
@@ -222,6 +230,13 @@ function AdminPanel.ExecuteCommand(executor: Player?, commandName: string, targe
 	-- Command succeeded, set cooldown (privileged roles get reduced cooldown)
 	local cooldownDuration = (HasPrivilegedPermission(executor) and 1) or command.Cooldown
 	SetCooldown(executor, commandName, cooldownDuration)
+
+	-- Notify targeted player if a TargetMessage exists
+	if command.TargetMessage and targetPlayer then
+		local execName = (executor and executor.Name) or "An Admin"
+		local msg = string.gsub(command.TargetMessage, "<name>", execName)
+		Notifications.Message(targetPlayer, msg, { Color = Color3.fromRGB(0, 255, 0), Time = 7 })
+	end
 	
 	-- Handle finish function execution based on Duration
 	if result and type(result) == "function" then
@@ -272,7 +287,14 @@ pcall(function()
 		
 		-- Execute the command on all players in this server
 		for _, player in ipairs(game.Players:GetPlayers()) do
-			local success, result = command.OnExecute(nil, player)
+				local success, result = command.OnExecute(nil, player)
+
+				-- If the command specifies a TargetMessage, notify the player (global cross-server)
+				if command.TargetMessage then
+					local execName = "An Admin"
+					local msg = string.gsub(command.TargetMessage, "<name>", execName)
+					Notifications.Message(player, msg, { Color = Color3.fromRGB(0, 255, 0), Time = 7 })
+				end
 			
 			-- Handle finish function execution based on Duration
 			if success and result and type(result) == "function" then

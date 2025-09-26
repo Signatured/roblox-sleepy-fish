@@ -5,6 +5,7 @@ local Player = require(game.ReplicatedStorage.Library.Player)
 
 local Spin: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Tiny",
+	TargetMessage = "You were made tiny by <name> with Admin Panel!",
 	CanTarget = true,
 	Cooldown = 10,
 	OnExecute = function(executor: Player?, targetPlayer: Player?): (boolean, (string | (() -> ()))?)

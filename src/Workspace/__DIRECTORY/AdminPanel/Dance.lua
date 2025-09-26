@@ -18,6 +18,7 @@ local DANCE_IDS = {
 
 local Spin: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Dance",
+	TargetMessage = "<name> made you dance with Admin Panel!",
 	CanTarget = true,
 	Cooldown = 60,
 	Duration = 30,

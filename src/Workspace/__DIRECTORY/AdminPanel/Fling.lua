@@ -5,6 +5,7 @@ local Player = require(game.ReplicatedStorage.Library.Player)
 
 local Fling: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Fling",
+    TargetMessage = "You were flung by <name> with Admin Panel!",
 	CanTarget = true,
 	Cooldown = 120,
     Duration = 2,

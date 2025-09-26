@@ -7,9 +7,10 @@ local Assets = game.ReplicatedStorage.Assets
 
 local Spin: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Jail",
+	TargetMessage = "You were jailed by <name> with Admin Panel!",
 	CanTarget = true,
 	Cooldown = 120,
-	Duration = 5,
+	Duration = 10,
 	OnExecute = function(executor: Player?, targetPlayer: Player?): (boolean, (string | (() -> ()))?)
         local target = targetPlayer or executor
         

@@ -5,6 +5,7 @@ local Player = require(game.ReplicatedStorage.Library.Player)
 
 local Teleport: AdminPanelTypes.AdminCommand = {
 	DisplayName = "Teleport",
+	TargetMessage = "<name> teleported to you with Admin Panel!",
 	CanTarget = true,
 	Cooldown = 90,
 	PreventGlobal = true,
