@@ -8,6 +8,7 @@ local AdminPanelDirectory = require(game.ReplicatedStorage.Game.Library.Director
 local AdminPanelTypes = require(game.ReplicatedStorage.Game.Library.Types.AdminPanel)
 local Products = require(game.ServerScriptService.Library.Products)
 local ProductDirectory = require(game.ReplicatedStorage.Game.Library.Directory.Products)
+local FFlags = require(game.ServerScriptService.Library.FFlags)
 
 local AdminPanel = {}
 
@@ -52,6 +53,10 @@ local function HasAdminPermission(player: Player?): boolean
 	-- Check developer product ownership (if product ID is set)
 	local owns = Products.Owns(player, ADMIN_PRODUCT_ID)
 	if owns then
+		return true
+	end
+
+	if FFlags.Get(FFlags.Keys.FreeAdminPanel) then
 		return true
 	end
 	

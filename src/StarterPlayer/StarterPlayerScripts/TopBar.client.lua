@@ -11,6 +11,18 @@ local FFlags = require(game.ReplicatedStorage.Library.Client.FFlags)
 
 local localPlayer = Players.LocalPlayer
 
+-- Privileged ranks can always open Admin Panel
+local PRIVILEGED_RANKS = {
+	["Developer"] = true,
+	["Owner"] = true,
+	["Admin"] = true,
+}
+
+local function hasPrivilegedPermission(): boolean
+	local rank = localPlayer:GetAttribute("Rank")
+	return (rank and PRIVILEGED_RANKS[rank]) or false
+end
+
 task.spawn(function()
     while true do
         local save = Save.Get()
@@ -32,11 +44,11 @@ task.spawn(function()
                 end
             end)
 
-        Icon.new()
+		Icon.new()
             :setLabel("Admin")
             :oneClick(true)
             .selected:Connect(function()
-                if ProductCmds.Owns("Admin Panel") or FFlags.Get(FFlags.Keys.FreeAdminPanel) then
+				if hasPrivilegedPermission() or ProductCmds.Owns("Admin Panel") or FFlags.Get(FFlags.Keys.FreeAdminPanel) then
                     if TabController.GetCurrentTab() == "AdminPanel" then
                         TabController.CloseTab()
                     else

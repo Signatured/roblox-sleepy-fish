@@ -103,6 +103,29 @@ local function handleGlobalForceGive(message: Message)
 			end
 		end)
 	end
+
+	local schema = Directory.Fish[fishId]
+	if schema then
+		local rarity = schema.Rarity
+		local displayName = schema.DisplayName or fishId
+		local typeText = (fishType ~= "Normal") and (fishType .. " ") or ""
+
+		if rarity._id == "Mythical" then
+			Notifications.MessageAll(`An Admin gave you a Mythical {typeText}{displayName}!`, {
+				Rainbow = true,
+				Time = 8,
+			})
+		elseif rarity._id == "Secret" then
+			Notifications.MessageAll(`An Admin gave you a SECRET {typeText}{displayName}!`, {
+				Rainbow = true,
+				Time = 8,
+			})
+		else
+			Notifications.MessageAll(`An Admin gave you a {rarity.DisplayName} {typeText}{displayName}!`, {
+				Time = 8,
+			})
+		end
+	end
 end
 
 task.spawn(function()
