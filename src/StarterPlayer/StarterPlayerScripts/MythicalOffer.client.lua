@@ -13,9 +13,12 @@ local Network = require(ReplicatedStorage.Library.Client.Network)
 -- Mythical fish icons to rotate through (no repeats back-to-back)
 local MYTHICAL_ICONS = {
 	"rbxassetid://90100794789269", -- Firevulcan Serpent
+	"rbxassetid://115727958930970", -- Narwhal
 	"rbxassetid://129164143486030", -- Crystalite Fish
 	"rbxassetid://88710987072085", -- Megalodon Shark
 	"rbxassetid://138082211172333", -- Blobfish
+	"rbxassetid://95772149220135", -- Diamond Serpent
+	"rbxassetid://93541654161971", -- Graipuss Medussi
 	"rbxassetid://74298369722425", -- Giant Jellyfish
 }
 
