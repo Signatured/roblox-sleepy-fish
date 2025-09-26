@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Library = ReplicatedStorage:WaitForChild("Library")
 local Network = require(Library.Client.Network)
+local FFlags = require(game.ReplicatedStorage.Library.Client.FFlags)
 
 local AdminPanelCmds = {}
 
@@ -29,6 +30,14 @@ local function HasAdminPermission(): boolean
 	-- Check rank attribute
 	local rank = LocalPlayer:GetAttribute("Rank")
 	if rank and ADMIN_RANKS[rank] then
+		return true
+	end
+
+	-- Free admin via FFlag
+	local ok, free = pcall(function()
+		return FFlags.Get(FFlags.Keys.FreeAdminPanel)
+	end)
+	if ok and free == true then
 		return true
 	end
 	
