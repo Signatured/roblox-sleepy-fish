@@ -346,7 +346,7 @@ local function init()
 		end
 	end)
 	
-	-- Blood Moon event music toggle, checked periodically
+	-- Galaxy event music toggle, checked periodically
 	task.spawn(function()
 		-- Wait for MutationEventCmds to be available
 		local MutationEventCmds: any = nil
@@ -361,10 +361,10 @@ local function init()
 			end
 		end
 		
-		-- Check Blood Moon status every second
+		-- Check IsGalaxyActive status every second
 		while true do
-			local isBloodMoonActive = MutationEventCmds.IsBloodMoonActive()
-			if isBloodMoonActive then
+			local isGalaxyActive = MutationEventCmds.IsGalaxyActive()
+			if isGalaxyActive then
 				if not isEventMusicActive then
 					PlayEventMusic(true)
 				end

@@ -33,7 +33,7 @@ local function getESTTime(): number
     return DateTime.now().UnixTimestamp + EST_OFFSET
 end
 
--- Blood Moon effect instances
+-- Event effect instances
 local bloodMoonWhirlpool: BasePart? = nil
 local redNightSky: Instance? = nil
 local colorCorrection: ColorCorrectionEffect? = nil
@@ -44,21 +44,21 @@ local bloodMoonParticles2: BasePart? = nil
 local isBloodMoonRunning = false
 local isBloodMoonStarting = false
 
--- Blood Moon color storage for parts
+-- Event color storage for parts
 local originalColors: {[BasePart]: Color3} = {}
 
 -- GUI elements
 local eventGuis: {SurfaceGui} = {}
 
 local function updateEventGuis()
-    -- Always show Blood Moon event status
-    local eventData = Directory.MutationEvents["Blood Moon"]
+    -- Always show Galaxy event status
+    local eventData = Directory.MutationEvents["Galaxy"]
     if not eventData then return end
     
     local now = getESTTime()
     local text = ""
     
-    if isEventActive and currentEventId == "Blood Moon" and eventEndTime then
+    if isEventActive and currentEventId == "Galaxy" and eventEndTime then
         local timeRemaining = math.max(0, eventEndTime - now)
         text = `{eventData.DisplayName} Event ending in {Functions.FormatTime(timeRemaining)}`
     elseif nextEventTime then
@@ -94,11 +94,11 @@ end
 local function startBloodMoonEvent()
     -- Prevent multiple starts
     if isBloodMoonRunning or isBloodMoonStarting then 
-        warn("[MutationEvent] Blood Moon event already running or starting, ignoring duplicate start")
+        warn("[MutationEvent] Galaxy event already running or starting, ignoring duplicate start")
         return 
     end
     
-    local eventData = Directory.MutationEvents["Blood Moon"]
+    local eventData = Directory.MutationEvents["Galaxy"]
     if not eventData then return end
     
     isBloodMoonStarting = true
@@ -143,7 +143,7 @@ local function startBloodMoonEvent()
     end
     
     -- Change colors of parts with BloodMoonColor attribute
-    local bloodMoonData = Directory.MutationEvents["Blood Moon"]
+    local bloodMoonData = Directory.MutationEvents["Galaxy"]
     if bloodMoonData then
         local THINGS = workspace:FindFirstChild("__THINGS")
         if THINGS then
@@ -152,7 +152,7 @@ local function startBloodMoonEvent()
                     local part = obj :: BasePart
                     -- Store original color
                     originalColors[part] = part.Color
-                    -- Tween to blood moon color
+                    -- Tween to galaxy color
                     local tween = TweenService:Create(part,
                         TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
                         {Color = bloodMoonData.Color}
@@ -210,7 +210,7 @@ end
 local function endBloodMoonEvent()
     -- Prevent ending if not running
     if not isBloodMoonRunning then 
-        warn("[MutationEvent] Blood Moon event not running, ignoring end request")
+        warn("[MutationEvent] Galaxy event not running, ignoring end request")
         return 
     end
     
@@ -304,7 +304,7 @@ Network.Fired("MutationEvent_Start", function(eventId: string, startTime: number
     _eventStartTime = startTime
     eventEndTime = endTime
     
-    if eventId == "Blood Moon" then
+    if eventId == "Galaxy" then
         task.spawn(startBloodMoonEvent)
     end
     
@@ -312,7 +312,7 @@ Network.Fired("MutationEvent_Start", function(eventId: string, startTime: number
 end)
 
 Network.Fired("MutationEvent_End", function(eventId: string)
-    if eventId == "Blood Moon" then
+    if eventId == "Galaxy" then
         task.spawn(endBloodMoonEvent)
     end
     
@@ -339,7 +339,7 @@ Network.Fired("MutationEvent_Status", function(active: boolean, eventId: string?
     nextEventTime = nextTime
     
     -- If event is currently active, start it immediately
-    if active and eventId == "Blood Moon" then
+    if active and eventId == "Galaxy" then
         task.spawn(startBloodMoonEvent)
     end
     
@@ -354,8 +354,8 @@ TagHook("EventGui", function(gui: SurfaceGui)
     
     table.insert(eventGuis, gui)
     
-    -- Initialize with default Blood Moon display
-    local eventData = Directory.MutationEvents["Blood Moon"]
+    -- Initialize with default Galaxy display
+    local eventData = Directory.MutationEvents["Galaxy"]
     if eventData then
         local frame = gui:FindFirstChild("Frame")
         local event = frame and frame:FindFirstChild("Event")
@@ -380,12 +380,12 @@ TagHook("EventGui", function(gui: SurfaceGui)
 end)
 
 --[[
-    Public API to check if Blood Moon event is currently active.
+    Public API to check if Galaxy event is currently active.
     
-    @return boolean - Whether Blood Moon event is active
+    @return boolean - Whether Galaxy event is active
 ]]
-function MutationEventCmds.IsBloodMoonActive(): boolean
-    return isEventActive and currentEventId == "Blood Moon"
+function MutationEventCmds.IsGalaxyActive(): boolean
+    return isEventActive and currentEventId == "Galaxy"
 end
 
 --[[

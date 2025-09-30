@@ -348,8 +348,23 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, upgradeFrame: F
     local placeButton = placeFrame:WaitForChild("Button")::GuiButton
     ButtonFX(placeButton)
     placeButton.Activated:Connect(function()
-        local fishData = FishCmds.GetCurrentFishData()
-        if not fishData then
+        -- Check if there's a fish on this pedestal and if it's a lucky block
+        local fish = plot:Save("Fish")::{[string]: PlotTypes.Fish}
+        local fishData = fish[tostring(pedestalId)]
+        
+        if fishData then
+            -- Fish exists - check if it's a lucky block
+            local dir = Directory.Fish[fishData.FishId]
+            if dir.LuckyBlockId then
+                -- This is a lucky block - trigger opening
+                plot:Invoke("OpenLuckyBlock", pedestalId)
+                return
+            end
+        end
+        
+        -- No fish or not a lucky block - normal place behavior
+        local currentFishData = FishCmds.GetCurrentFishData()
+        if not currentFishData then
             NotificationCmds.Message("Equip a fish to place it!", {
                 Color = Color3.fromRGB(255, 0, 0),
             })
@@ -358,11 +373,11 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, upgradeFrame: F
 
         -- playing here as verification from the server takes too long and sounds bad
         Audio.Play("rbxassetid://134182180985783", script, 1, 0.4)
-        NotificationCmds.Message(`You placed down a {fishData.FishId}!`, {
+        NotificationCmds.Message(`You placed down a {currentFishData.FishId}!`, {
             Color = Color3.fromRGB(11, 206, 255),
         })
 
-        plot:Invoke("CreateFish", pedestalId, fishData.UID)
+        plot:Invoke("CreateFish", pedestalId, currentFishData.UID)
     end)
 
     local boostButton = boostFrame:WaitForChild("Button")::GuiButton
@@ -432,6 +447,13 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
     local _originalBillboard = pedestalModel.Billboard
     local originalPivot = originalFishModel:GetPivot()
     
+    -- Get the nameplate and surface GUI for hiding during animation
+    local model = plot:YieldModel()
+    local pedestals = model:WaitForChild("Pedestals")::Model
+    local pedestalModelInstance = pedestals:FindFirstChild(tostring(pedestalId))
+    local nameplate = pedestalModelInstance and pedestalModelInstance:FindFirstChild("Nameplate") :: BasePart?
+    local surfaceGui = nameplate and nameplate:FindFirstChild("SurfaceGui") :: SurfaceGui?
+    
     -- Animation parameters with variable speed (fast to slow)
     local animationDuration = 5 -- seconds total
     
@@ -453,8 +475,16 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
     end
     
     task.spawn(function()
-        -- Hide original model at the start
+        -- Hide original model and nameplate at the start
         originalFishModel.Parent = nil
+        
+        -- Hide nameplate and surface GUI during animation
+        if nameplate then
+            nameplate.Transparency = 1
+        end
+        if surfaceGui then
+            surfaceGui.Enabled = false
+        end
         
         -- Cycle through each visual data item with variable timing
         for i, visual in ipairs(visualData) do
@@ -567,6 +597,14 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
             
             pedestalAnimationStates[plot][pedestalId] = false
             
+            -- Restore nameplate and surface GUI after animation
+            if nameplate then
+                nameplate.Transparency = 0
+            end
+            if surfaceGui then
+                surfaceGui.Enabled = true
+            end
+            
             -- Force update the pedestal to show the final result (will create new fish model)
             local model = plot:YieldModel()
             local pedestals = model:WaitForChild("Pedestals")::Model
@@ -647,38 +685,60 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     if plot:IsLocal() then
         local fishData = fish[tostring(pedestalId)]
         if fishData then
-            upgradeFrame.Visible = true
-            placeFrame.Visible = false
-            boostFrame.Visible = false
+            -- Check if this is a lucky block
+            local dir = Directory.Fish[fishData.FishId]
+            local isLuckyBlock = dir.LuckyBlockId ~= nil
+            
+            if isLuckyBlock then
+                -- Show Place frame with "Open!" text for lucky blocks
+                upgradeFrame.Visible = false
+                placeFrame.Visible = true
+                boostFrame.Visible = false
+                
+                -- Update the place button text to say "Open!"
+                local placeButton = placeFrame:WaitForChild("Button")::GuiButton
+                local placeTextLabel = placeButton:WaitForChild("TextLabel")::TextLabel
+                placeTextLabel.Text = "Open!"
+            else
+                -- Normal fish upgrade display
+                upgradeFrame.Visible = true
+                placeFrame.Visible = false
+                boostFrame.Visible = false
 
-            -- If a place prompt exists from previous state, remove it
+                local textLabel = upgradeFrame:WaitForChild("TextLabel")::TextLabel
+                if fishData.FishData.Level == GameSettings.MaxLevel then
+                    textLabel.Text = `Level {fishData.FishData.Level}`
+                else
+                    textLabel.Text = `Level {fishData.FishData.Level} -> Level {fishData.FishData.Level + 1}`
+                end
+
+                local upgradeButton = upgradeFrame:FindFirstChild("Button")::ImageButton
+                local buttonText = upgradeButton:FindFirstChild("TextLabel")::TextLabel
+
+                local cost = plot:GetUpgradeCost(pedestalId)
+                if not cost then
+                    buttonText.Text = "Max!"
+                else
+                    buttonText.Text = `${Functions.NumberShorten(cost)}`
+                    -- Ensure button image reflects affordability on first render
+                    UpdateUpgradeButtonImage(plot, model)
+                end
+            end
+
+            -- Remove any existing place prompt since we're using GUI buttons
             local existingPlacePrompt = sellAttachment:FindFirstChild("PlacePrompt")
             if existingPlacePrompt and existingPlacePrompt:IsA("ProximityPrompt") then
                 existingPlacePrompt:Destroy()
-            end
-
-            local textLabel = upgradeFrame:WaitForChild("TextLabel")::TextLabel
-            if fishData.FishData.Level == GameSettings.MaxLevel then
-                textLabel.Text = `Level {fishData.FishData.Level}`
-            else
-                textLabel.Text = `Level {fishData.FishData.Level} -> Level {fishData.FishData.Level + 1}`
-            end
-
-            local upgradeButton = upgradeFrame:FindFirstChild("Button")::ImageButton
-            local buttonText = upgradeButton:FindFirstChild("TextLabel")::TextLabel
-
-            local cost = plot:GetUpgradeCost(pedestalId)
-            if not cost then
-                buttonText.Text = "Max!"
-            else
-                buttonText.Text = `${Functions.NumberShorten(cost)}`
-                -- Ensure button image reflects affordability on first render
-                UpdateUpgradeButtonImage(plot, model)
             end
         else
             upgradeFrame.Visible = false
             placeFrame.Visible = true
             boostFrame.Visible = false
+
+            -- Reset place button text for empty pedestals
+            local placeButton = placeFrame:WaitForChild("Button")::GuiButton
+            local placeTextLabel = placeButton:WaitForChild("TextLabel")::TextLabel
+            placeTextLabel.Text = "Place"
 
             -- Ensure a proximity prompt exists to allow placing via prompt too
             local placePromptAny = sellAttachment:FindFirstChild("PlacePrompt")

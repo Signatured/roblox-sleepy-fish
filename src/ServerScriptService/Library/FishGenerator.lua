@@ -521,6 +521,12 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
     local displayName = schema.DisplayName or schema._id
     local rarity = schema.Rarity
 
+    local luckyBlockId = schema.LuckyBlockId
+    if luckyBlockId then
+        local luckyBlockDir = Directory.LuckyBlocks[luckyBlockId]
+        rarity = luckyBlockDir.Rarity
+    end
+
     if owner then
         Notifications.Message(owner, `You spawned a private Mythical {displayName}!`, {
             Rainbow = true,
@@ -814,23 +820,32 @@ function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutat
     -- Broadcast notification to all players about the forced spawn
     local displayName = schema.DisplayName or schema._id
     local rarity = schema.Rarity
+    local luckyBlockId = schema.LuckyBlockId
+
+    if luckyBlockId then
+        local luckyBlockDir = Directory.LuckyBlocks[luckyBlockId]
+        rarity = luckyBlockDir.Rarity
+    end
 
 	-- Include fish type in message if not Normal, and allow admin prefix override
 	local typeText = (selectedFishType ~= "Normal") and (selectedFishType .. " ") or ""
 	local prefix = adminSpawned and "Admin spawned a" or "A"
+    local suffix = adminSpawned and "!" or " has spawned!"
 
 	if rarity._id == "Mythical" then
-		Notifications.MessageAll(`{prefix} Mythical {typeText}{displayName} has spawned!`, {
+        local rarityText = luckyBlockId and "" or "Mythical "
+		Notifications.MessageAll(`{prefix} {rarityText}{typeText}{displayName}{suffix}`, {
 			Rainbow = true,
 			Time = 8,
 		})
 	elseif rarity._id == "Secret" then
-		Notifications.MessageAll(`{prefix} SECRET {typeText}{displayName} has spawned!`, {
+        local rarityText = luckyBlockId and "" or "SECRET "
+		Notifications.MessageAll(`{prefix} {rarityText}{typeText}{displayName}{suffix}`, {
 			Rainbow = true,
 			Time = 8,
 		})
 	else
-		Notifications.MessageAll(`{prefix} {rarity.DisplayName} {typeText}{displayName} has spawned!`, {
+		Notifications.MessageAll(`{prefix} {rarity.DisplayName} {typeText}{displayName}{suffix}`, {
 			Time = 8,
 		})
 	end
