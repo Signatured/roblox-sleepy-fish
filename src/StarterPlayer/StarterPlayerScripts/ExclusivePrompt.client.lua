@@ -36,7 +36,6 @@ local function setupPromptFor(instance: Instance)
 			attachTarget = exclusiveAttachment
 		end
 
-        print("setup")
 		local prompt = Instance.new("ProximityPrompt")
 		prompt.Name = "ExclusivePurchasePrompt"
 		prompt.ActionText = "Buy Imperium Whale!"
