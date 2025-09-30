@@ -19,6 +19,7 @@ local Marketplace = require(game.ReplicatedStorage.Library.Marketplace)
 local ProductCmds = require(game.ReplicatedStorage.Library.Client.ProductCmds)
 local Audio = require(game.ReplicatedStorage.Library.Audio)
 local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
+local LuckyBlockTypes = require(game.ReplicatedStorage.Game.Library.Types.LuckyBlocks)
 local MutationCmds = require(game.ReplicatedStorage.Game.Library.Client.MutationCmds)
 
 -- Upgrade button images
@@ -384,6 +385,199 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, upgradeFrame: F
     end)
 end
 
+-- Track animation states to prevent multiple animations and disable prompts
+local pedestalAnimationStates: {[ClientPlot.Type]: {[number]: boolean}} = {}
+
+local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number, visualData: {LuckyBlockTypes.lucky_block_visual_data})
+    -- Initialize animation tracking
+    if not pedestalAnimationStates[plot] then
+        pedestalAnimationStates[plot] = {}
+    end
+    
+    -- Prevent multiple animations on the same pedestal
+    if pedestalAnimationStates[plot][pedestalId] then
+        return
+    end
+    
+    pedestalAnimationStates[plot][pedestalId] = true
+    
+    -- Get the pedestal model and fish model
+    local pedestalModel = pedestalModels[plot] and pedestalModels[plot][pedestalId]
+    if not pedestalModel then
+        pedestalAnimationStates[plot][pedestalId] = false
+        return
+    end
+    
+    -- Disable all proximity prompts during animation
+    local originalProximityStates = {}
+    if pedestalModel.SellProximity then
+        originalProximityStates.SellProximity = pedestalModel.SellProximity.Enabled
+        pedestalModel.SellProximity.Enabled = false
+    end
+    if pedestalModel.PickupProximity then
+        originalProximityStates.PickupProximity = pedestalModel.PickupProximity.Enabled
+        pedestalModel.PickupProximity.Enabled = false
+    end
+    if pedestalModel.BoostProximity then
+        originalProximityStates.BoostProximity = pedestalModel.BoostProximity.Enabled
+        pedestalModel.BoostProximity.Enabled = false
+    end
+    if pedestalModel.StealProximity then
+        originalProximityStates.StealProximity = pedestalModel.StealProximity.Enabled
+        pedestalModel.StealProximity.Enabled = false
+    end
+    
+    -- Store original fish model and position
+    local originalFishModel = pedestalModel.Model
+    local _originalBillboard = pedestalModel.Billboard
+    local originalPivot = originalFishModel:GetPivot()
+    
+    -- Animation parameters with variable speed (fast to slow)
+    local animationDuration = 5 -- seconds total
+    
+    -- Calculate variable intervals for each item (fast start, slow end)
+    local intervals = {}
+    local totalWeight = 0
+    
+    -- Create exponential curve for timing (starts fast, ends slow)
+    for i = 1, #visualData do
+        local progress = (i - 1) / (#visualData - 1) -- 0 to 1
+        local weight = math.exp(progress * 2) -- Exponential curve: fast -> slow
+        intervals[i] = weight
+        totalWeight = totalWeight + weight
+    end
+    
+    -- Normalize intervals to fit total duration
+    for i = 1, #visualData do
+        intervals[i] = (intervals[i] / totalWeight) * animationDuration
+    end
+    
+    task.spawn(function()
+        -- Hide original model at the start
+        originalFishModel.Parent = nil
+        
+        -- Cycle through each visual data item with variable timing
+        for i, visual in ipairs(visualData) do
+            if not pedestalAnimationStates[plot][pedestalId] then
+                break -- Animation was cancelled
+            end
+            
+            -- Create temporary fish model for this visual
+            local fishDir = Directory.Fish[visual.FishId]
+            if fishDir and fishDir._script then
+                local tempFishModel = fishDir._script:WaitForChild("Model"):Clone()::Model
+                
+                -- Apply fish type styling
+                local plotFishFolder = workspace:WaitForChild("__THINGS"):WaitForChild("PlotFish")
+                local parent = plotFishFolder
+                
+                if visual.Type == "Shiny" then
+                    parent = plotFishFolder:WaitForChild("Shiny")
+                elseif visual.Type == "Rainbow" then
+                    parent = plotFishFolder:WaitForChild("Rainbow")
+                elseif visual.Type == "Gold" then
+                    parent = plotFishFolder:WaitForChild("Gold")
+                end
+                
+                -- Position the temporary model at the original position
+                tempFishModel:PivotTo(originalPivot)
+                tempFishModel:SetAttribute("PedestalFish", true)
+                tempFishModel:SetAttribute("_PlotId", plot:GetId())
+                tempFishModel:SetAttribute("_TempAnimation", true)
+                tempFishModel:AddTag("SwimmingFish")
+                tempFishModel.Parent = parent
+                
+                -- Create temporary billboard for this visual
+                local tempFishData = {
+                    UID = "temp-animation",
+                    FishId = visual.FishId,
+                    FishData = {
+                        UID = "temp-animation",
+                        FishId = visual.FishId,
+                        Type = visual.Type,
+                        Level = 1,
+                        Mutation = nil,
+                        Shiny = false,
+                        CreateTime = workspace:GetServerTimeNow(),
+                        BaseTime = workspace:GetServerTimeNow(),
+                    },
+                    LastClaimTime = 0,
+                    CreateTime = workspace:GetServerTimeNow(),
+                    Earnings = 0,
+                    OfflineEarnings = 0,
+                }
+                local tempBillboard = SetupBillboard(tempFishModel, tempFishData)
+                
+                -- Update the billboard with visual data
+                local frame = tempBillboard:WaitForChild("Frame")::Frame
+                local displayName = frame:WaitForChild("DisplayName")::TextLabel
+                local rarity = frame:WaitForChild("Rarity")::TextLabel
+                local level = frame:WaitForChild("Level")::TextLabel
+                local fishType = frame:WaitForChild("FishType")::TextLabel
+                local mutation = frame:WaitForChild("Mutation")::TextLabel
+                
+                -- Hide money and level info during animation
+                frame:WaitForChild("MoneyPerSecond"):Destroy()
+                frame:WaitForChild("Money"):Destroy()
+                frame:WaitForChild("OfflineEarnings"):Destroy()
+                level.Visible = false
+                
+                displayName.Text = fishDir.DisplayName
+                rarity.Text = fishDir.Rarity.DisplayName
+                rarity.TextColor3 = fishDir.Rarity.Color
+                
+                -- Show fish type
+                local typeName, typeColor = getFishType(visual.Type)
+                if typeName then
+                    fishType.Text = typeName
+                    fishType.TextColor3 = typeColor or Color3.fromRGB(255, 255, 255)
+                    fishType.Visible = true
+                else
+                    fishType.Visible = false
+                end
+                
+                mutation.Visible = false
+                
+                -- Wait for the variable interval (fast at start, slow at end)
+                task.wait(intervals[i])
+                
+                -- Clean up temporary model and billboard
+                pcall(function() tempFishModel:Destroy() end)
+                pcall(function() tempBillboard:Destroy() end)
+            end
+        end
+        
+        -- Animation complete - DON'T restore original model, let the system show the new fish
+        if pedestalAnimationStates[plot][pedestalId] then
+            -- Clean up the old tracked model since it's been replaced
+            if originalFishModel then
+                pcall(function() originalFishModel:Destroy() end)
+            end
+            
+            -- Clear the tracked model so UpdatePedestal will create the new one
+            if pedestalModels[plot] and pedestalModels[plot][pedestalId] then
+                local tracked = pedestalModels[plot][pedestalId]
+                -- Clean up old proximity prompts
+                if tracked.SellProximity then pcall(function() tracked.SellProximity:Destroy() end) end
+                if tracked.PickupProximity then pcall(function() tracked.PickupProximity:Destroy() end) end
+                if tracked.BoostProximity then pcall(function() tracked.BoostProximity:Destroy() end) end
+                if tracked.StealProximity then pcall(function() tracked.StealProximity:Destroy() end) end
+                pedestalModels[plot][pedestalId] = nil
+            end
+            
+            pedestalAnimationStates[plot][pedestalId] = false
+            
+            -- Force update the pedestal to show the final result (will create new fish model)
+            local model = plot:YieldModel()
+            local pedestals = model:WaitForChild("Pedestals")::Model
+            local pedestalModelInstance = pedestals:FindFirstChild(tostring(pedestalId))
+            if pedestalModelInstance then
+                UpdatePedestal(plot, pedestalModelInstance :: Model)
+            end
+        end
+    end)
+end
+
 function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     local pedestalId = tonumber(model.Name)::number
     local fish = plot:Save("Fish")::{[string]: PlotTypes.Fish}
@@ -574,7 +768,8 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
                 sellProximity = SetupProximity("Open", 2, Enum.KeyCode.E, sellAttachment)
                 
                 assert(sellProximity).Triggered:Connect(function(player: Player)
-                    print("attempted to open lucky block!")
+                    -- Simply invoke the lucky block opening - server will handle broadcasting
+                    plot:Invoke("OpenLuckyBlock", pedestalId)
                 end)
             else
                 -- Normal fish sell proximity
@@ -774,6 +969,16 @@ ClientPlot.Destroying:Connect(function(plot: ClientPlot.Type)
         end
         pedestalModels[plot] = nil
     end
+    
+    -- Clean up animation states
+    if pedestalAnimationStates[plot] then
+        for pedestalId, isAnimating in pairs(pedestalAnimationStates[plot]) do
+            if isAnimating then
+                pedestalAnimationStates[plot][pedestalId] = false -- Cancel any ongoing animations
+            end
+        end
+        pedestalAnimationStates[plot] = nil
+    end
 
     -- Additionally, scan PlotFish folders and destroy any fish models that were tied to this plot
     local root = workspace:FindFirstChild("__THINGS")
@@ -791,6 +996,22 @@ ClientPlot.Destroying:Connect(function(plot: ClientPlot.Type)
                 end
             end
         end
+    end
+end)
+
+-- Network listener for lucky block animations
+Network.Fired("LuckyBlockAnimation", function(plotId: string, pedestalId: number, visualData: {LuckyBlockTypes.lucky_block_visual_data})
+    -- Find the plot by ID
+    local targetPlot = nil
+    for plot in pairs(pedestalModels) do
+        if tostring(plot:GetId()) == plotId then
+            targetPlot = plot
+            break
+        end
+    end
+    
+    if targetPlot then
+        playLuckyBlockAnimation(targetPlot, pedestalId, visualData)
     end
 end)
 
