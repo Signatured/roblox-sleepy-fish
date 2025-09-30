@@ -15,7 +15,7 @@ local ExistCountCmds = require(ReplicatedStorage.Game.Library.Client.ExistCountC
 local SELECTED_IMG = "rbxassetid://85004105467436"
 local UNSELECTED_IMG = "rbxassetid://72752195568291"
 
-local currentCategory: FishTypes.fish_type | "BloodMoon" = "Normal"
+local currentCategory: FishTypes.fish_type | "BloodMoon" | "Galaxy" = "Normal"
 
 local resolutionSettings = {
 	{
@@ -143,6 +143,8 @@ local function realRender()
         -- Apply Bloodfish visual effect for BloodMoon category
         if currentCategory == "BloodMoon" and hasSeen then
             FishTypes.MakeBloodfishModel(clone)
+        elseif currentCategory == "Galaxy" and hasSeen then
+            FishTypes.MakeGalaxyModel(clone)
         end
 
         local bboxCF, bboxSize = container:GetBoundingBox()

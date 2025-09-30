@@ -804,6 +804,8 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
 
         if fishData.FishData.Mutation == "Bloodfish" then
             FishTypes.MakeBloodfishModel(fishModel)
+        elseif fishData.FishData.Mutation == "Galaxy" then
+            FishTypes.MakeGalaxyModel(fishModel)
         end
 
         fishModel:PivotTo((base:GetPivot() + Vector3.new(0, base.Size.Y / 2, 0) + Vector3.new(0, fishModel:GetExtentsSize().Y / 2, 0) + Vector3.new(0, 2, 0) + Vector3.new(0, dir.PedestalOffset or 0, 0)) * CFrame.Angles(0, math.rad(180), 0))

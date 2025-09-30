@@ -26,7 +26,7 @@ export type raw_dir = {
 }
 
 export type fish_type = "Normal" | "Shiny" | "Gold" | "Rainbow"
-export type fish_mutation_type = "Bloodfish"
+export type fish_mutation_type = "Bloodfish" | "Galaxy"
 
 export type data_schema = {
     UID: string,
@@ -86,6 +86,34 @@ function module.MakeBloodfishModel(model: Model)
         end
         vfxBox:SetAttribute("Added", true)
     end
+end
+
+function module.MakeGalaxyModel(model: Model)
+    for _, obj in ipairs(model:GetDescendants()) do
+        if obj:IsA("BasePart") then
+            local part = obj :: BasePart
+            local originalColor = part.Color
+            
+            -- Calculate brightness/lightness of original color
+            local brightness = (originalColor.R + originalColor.G + originalColor.B) / 3
+            
+            -- White/light colors become pure purple
+            -- Darker colors become blackish purple, but very dark colors get minimum purple
+            local purpleIntensity = brightness
+            
+            -- If color is very dark (close to black), give it a minimum purple value
+            if brightness < 0.15 then
+                purpleIntensity = 0.15 -- Minimum purple for very dark colors
+            end
+            
+            local newColor = Color3.new(purpleIntensity, 0, purpleIntensity)
+            
+            part.Color = newColor
+        end
+    end
+
+    local vfxBox = model:FindFirstChild("VFX")
+    -- For now, don't do anything with vfxBox as requested
 end
 
 export type dir_schema = raw_dir & DirectoryTypes.dir_schema

@@ -500,6 +500,8 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
     -- Apply Bloodfish visual effect if mutation is present
     if mutation == "Bloodfish" then
         FishTypes.MakeBloodfishModel(fishInstance.Model)
+    elseif mutation == "Galaxy" then
+        FishTypes.MakeGalaxyModel(fishInstance.Model)
     end
     
     attachGui(fishInstance, schema)
@@ -604,6 +606,8 @@ local function spawnOne(into: BasePart, backdate: number?)
     -- Apply Bloodfish visual effect if mutation is present
     if mutation == "Bloodfish" then
         FishTypes.MakeBloodfishModel(fishInstance.Model)
+    elseif mutation == "Galaxy" then
+        FishTypes.MakeGalaxyModel(fishInstance.Model)
     end
     
     attachGui(fishInstance, schema)
@@ -812,6 +816,8 @@ function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutat
     -- Apply Bloodfish visual effect if mutation is present
     if validatedMutation == "Bloodfish" then
         FishTypes.MakeBloodfishModel(fishInstance.Model)
+    elseif validatedMutation == "Galaxy" then
+        FishTypes.MakeGalaxyModel(fishInstance.Model)
     end
     
     attachGui(fishInstance, schema)

@@ -79,6 +79,8 @@ local function onToolAddedToCharacter(tool: Tool)
 
         if toolMutation == "Bloodfish" then
             FishTypes.MakeBloodfishModel(tool)
+        elseif toolMutation == "Galaxy" then
+            FishTypes.MakeGalaxyModel(tool)
         end
     end)
     tool.Unequipped:Connect(function()
