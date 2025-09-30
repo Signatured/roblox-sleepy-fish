@@ -11,6 +11,7 @@ export type schema = {
 	MutationEvents: typeof(require(script.MutationEvents)),
 	Mutations: typeof(require(script.Mutations)),
 	AdminPanel: typeof(require(script.AdminPanel)),
+	LuckyBlocks: typeof(require(script.LuckyBlocks)),
 }
 
 local module: schema = {}::any

@@ -188,20 +188,100 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
     local mutation = frame:WaitForChild("Mutation")::TextLabel
     local offlineFrame = frame:WaitForChild("OfflineEarnings")::TextLabel
 
-    local boosts = plot:Session("PlayerBoosts")::{[string]: number}
-    local boostedTime = boosts[tostring(index)]
-	local isBoosted = boostedTime and workspace:GetServerTimeNow() < boostedTime
-    local multiplier = plot:GetMultiplier()
-    local typeMultiplier = GameSettings.TypeMultipliers[fishData.FishData.Type] or 1
-    local mutationMultiplier = MutationCmds.GetMutationMulti(fishData :: any)
-    local fishMultiplier = (multiplier * typeMultiplier * mutationMultiplier) + (isBoosted and 0.5 or 0)
+    -- Check if this is a lucky block
+    local isLuckyBlock = dir.LuckyBlockId ~= nil
+    local luckyBlockDir = nil
+    if isLuckyBlock and dir.LuckyBlockId then
+        luckyBlockDir = Directory.LuckyBlocks[dir.LuckyBlockId]
+    end
 
-    displayName.Text = dir.DisplayName
-    rarity.Text = dir.Rarity.DisplayName
-    rarity.TextColor3 = dir.Rarity.Color
+    if isLuckyBlock and luckyBlockDir then
+        -- Lucky block display
+        displayName.Text = "Lucky Block"
+        displayName.TextColor3 = Color3.fromRGB(255, 255, 255)
+        
+        -- Hide money-related labels for lucky blocks
+        moneyPerSecond.Visible = false
+        money.Visible = false
+        level.Visible = false
+        
+        -- Set mutation label to show lucky block display name
+        mutation.Text = luckyBlockDir.DisplayName
+        mutation.TextColor3 = Color3.fromRGB(255, 255, 255)
+        mutation.Visible = true
+        
+        -- Use lucky block rarity
+        rarity.Text = luckyBlockDir.Rarity.DisplayName
+        rarity.TextColor3 = luckyBlockDir.Rarity.Color
+        
+        -- Hide fish type for lucky blocks
+        fishType.Visible = false
+        
+        -- Hide offline earnings
+        offlineFrame.Visible = false
+    else
+        -- Normal fish display
+        local boosts = plot:Session("PlayerBoosts")::{[string]: number}
+        local boostedTime = boosts[tostring(index)]
+        local isBoosted = boostedTime and workspace:GetServerTimeNow() < boostedTime
+        local multiplier = plot:GetMultiplier()
+        local typeMultiplier = GameSettings.TypeMultipliers[fishData.FishData.Type] or 1
+        local mutationMultiplier = MutationCmds.GetMutationMulti(fishData :: any)
+        local fishMultiplier = (multiplier * typeMultiplier * mutationMultiplier) + (isBoosted and 0.5 or 0)
+
+        displayName.Text = dir.DisplayName
+        displayName.TextColor3 = Color3.fromRGB(255, 255, 255) -- Reset to default color
+        rarity.Text = dir.Rarity.DisplayName
+        rarity.TextColor3 = dir.Rarity.Color
+
+        -- Show money-related labels for normal fish
+        moneyPerSecond.Visible = true
+        money.Visible = true
+        level.Visible = true
+        
+        level.Text = `Level {fishData.FishData.Level}`
+        moneyPerSecond.Text = `${Functions.NumberShorten(math.ceil((plot:GetMoneyPerSecond(index) or 0) * fishMultiplier))}/s`
+        money.Text = `${Functions.NumberShorten(earnings + offlineEarnings)}`
+
+        if offlineEarnings > 0 then
+            offlineFrame.Visible = true
+            offlineFrame.Text = `<font color="#FFFFFF">${Functions.NumberShorten(offlineEarnings)}</font> <font color="#a2a2a2">Made Offline</font>`
+        else
+            offlineFrame.Visible = false
+        end
+
+        local name, color = getFishType(fishData.FishData.Type)
+        if color then
+            fishType.TextColor3 = color
+        end
+
+        if name then
+            fishType.Text = name
+            fishType.Visible = true
+        else
+            fishType.Visible = false
+        end
+
+        local mutationName, mutationColor = getFishMutation(fishData.FishData.Mutation)
+        if mutationColor then
+            mutation.TextColor3 = mutationColor
+        end
+
+        if mutationName then
+            mutation.Text = mutationName
+            mutation.Visible = true
+        else
+            mutation.Visible = false
+        end
+    end
 
     -- Mythical rarity rainbow gradient effect on rarity label
-    local rarityId = (dir.Rarity and (dir.Rarity :: any)._id) or nil
+    local rarityToCheck = dir.Rarity
+    if isLuckyBlock and luckyBlockDir then
+        rarityToCheck = luckyBlockDir.Rarity
+    end
+    
+    local rarityId = (rarityToCheck and (rarityToCheck :: any)._id) or nil
     if rarityId == "Mythical" or rarityId == "Exclusive" then
         local existing = rarity:FindFirstChild("RainbowGradientWrapped")
         if not existing or not existing:IsA("UIGradient") then
@@ -222,38 +302,6 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
                 Functions.GradientScroll(gradient, 2.5)
             end
         end
-    end
-    level.Text = `Level {fishData.FishData.Level}`
-    moneyPerSecond.Text = `${Functions.NumberShorten(math.ceil((plot:GetMoneyPerSecond(index) or 0) * fishMultiplier))}/s`
-    money.Text = `${Functions.NumberShorten(earnings + offlineEarnings)}`
-
-    if offlineEarnings > 0 then
-        offlineFrame.Visible = true
-        offlineFrame.Text = `<font color="#FFFFFF">${Functions.NumberShorten(offlineEarnings)}</font> <font color="#a2a2a2">Made Offline</font>`
-    else
-        offlineFrame.Visible = false
-    end
-
-    local name, color = getFishType(fishData.FishData.Type)
-    if color then
-        fishType.TextColor3 = color
-    end
-
-    if name then
-        fishType.Text = name
-    else
-        fishType.Visible = false
-    end
-
-    local mutationName, mutationColor = getFishMutation(fishData.FishData.Mutation)
-    if mutationColor then
-        mutation.TextColor3 = mutationColor
-    end
-
-    if mutationName then
-        mutation.Text = mutationName
-    else
-        mutation.Visible = false
     end
 end
 
@@ -517,38 +565,53 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
         local boostProximity: ProximityPrompt?
 
         if plot:IsLocal() then
-            local sellPrice = plot:GetSellPrice(pedestalId)
-            local sellPriceString = sellPrice and `Sell: ${Functions.NumberShorten(sellPrice)}` or "Sell"
-            sellProximity = SetupProximity(sellPriceString, 3, Enum.KeyCode.E, sellAttachment)
-            pickupProximity = SetupProximity("Pickup", 1, Enum.KeyCode.F, pickupAttachment)
-
-            assert(sellProximity).Triggered:Connect(function(player: Player)
+            -- Check if this is a lucky block
+            local fishDir = Directory.Fish[fishData.FishId]
+            local isLuckyBlock = fishDir.LuckyBlockId ~= nil
+            
+            if isLuckyBlock then
+                -- Create "Open" proximity prompt for lucky blocks
+                sellProximity = SetupProximity("Open", 2, Enum.KeyCode.E, sellAttachment)
+                
+                assert(sellProximity).Triggered:Connect(function(player: Player)
+                    print("attempted to open lucky block!")
+                end)
+            else
+                -- Normal fish sell proximity
                 local sellPrice = plot:GetSellPrice(pedestalId)
-                if not sellPrice then
-                    return
-                end
-                local success = plot:Invoke("SellFish", pedestalId)
-                if success then
-                    local schema = Directory.Fish[fishData.FishId]
-                    if not schema then
-                        NotificationCmds.Message("Could not find fish data!", {
-                            Color = Color3.fromRGB(255, 0, 0),
-                        })
+                local sellPriceString = sellPrice and `Sell: ${Functions.NumberShorten(sellPrice)}` or "Sell"
+                sellProximity = SetupProximity(sellPriceString, 3, Enum.KeyCode.E, sellAttachment)
+                
+                assert(sellProximity).Triggered:Connect(function(player: Player)
+                    local sellPrice = plot:GetSellPrice(pedestalId)
+                    if not sellPrice then
                         return
                     end
+                    local success = plot:Invoke("SellFish", pedestalId)
+                    if success then
+                        local schema = Directory.Fish[fishData.FishId]
+                        if not schema then
+                            NotificationCmds.Message("Could not find fish data!", {
+                                Color = Color3.fromRGB(255, 0, 0),
+                            })
+                            return
+                        end
 
-                    local displayName = (schema and schema.DisplayName) or fishData.FishId
-                    Audio.Play("rbxassetid://132697192191142", script, 1, 0.6)
-                    local textAmount = sellPrice and `You sold a {displayName} for ${Functions.NumberShorten(sellPrice)}!` or `You sold a {displayName}!`
-                    NotificationCmds.Message(textAmount, {
-                        Color = Color3.fromRGB(0, 255, 0),
-                    })
-                else
-                    NotificationCmds.Message("Something went wrong!", {
-                        Color = Color3.fromRGB(255, 0, 0),
-                    })
-                end
-            end)
+                        local displayName = (schema and schema.DisplayName) or fishData.FishId
+                        Audio.Play("rbxassetid://132697192191142", script, 1, 0.6)
+                        local textAmount = sellPrice and `You sold a {displayName} for ${Functions.NumberShorten(sellPrice)}!` or `You sold a {displayName}!`
+                        NotificationCmds.Message(textAmount, {
+                            Color = Color3.fromRGB(0, 255, 0),
+                        })
+                    else
+                        NotificationCmds.Message("Something went wrong!", {
+                            Color = Color3.fromRGB(255, 0, 0),
+                        })
+                    end
+                end)
+            end
+            
+            pickupProximity = SetupProximity("Pickup", 1, Enum.KeyCode.F, pickupAttachment)
 
             assert(pickupProximity).Triggered:Connect(function(player: Player)
                 -- Inventory capacity check before attempting pickup
@@ -631,10 +694,24 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
         -- Update the sell proximity prompt's ActionText to reflect the latest price
         local tracked = pedestalModels[plot][pedestalId]
         if plot:IsLocal() and tracked.SellProximity then
-            local latestPrice = plot:GetSellPrice(pedestalId)
-            local latestText = latestPrice and `Sell: ${Functions.NumberShorten(latestPrice)}` or "Sell"
-            if tracked.SellProximity.ActionText ~= latestText then
-                tracked.SellProximity.ActionText = latestText
+            local currentFishData = fish[tostring(pedestalId)]
+            if currentFishData then
+                local currentDir = Directory.Fish[currentFishData.FishId]
+                local isLuckyBlock = currentDir.LuckyBlockId ~= nil
+                
+                if isLuckyBlock then
+                    -- Keep "Open" text for lucky blocks
+                    if tracked.SellProximity.ActionText ~= "Open" then
+                        tracked.SellProximity.ActionText = "Open"
+                    end
+                else
+                    -- Update sell price text for normal fish
+                    local latestPrice = plot:GetSellPrice(pedestalId)
+                    local latestText = latestPrice and `Sell: ${Functions.NumberShorten(latestPrice)}` or "Sell"
+                    if tracked.SellProximity.ActionText ~= latestText then
+                        tracked.SellProximity.ActionText = latestText
+                    end
+                end
             end
         end
         UpdateBillboard(plot, pedestalId, pedestalModels[plot][pedestalId].Billboard)
