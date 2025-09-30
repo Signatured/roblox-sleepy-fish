@@ -9,7 +9,7 @@ local Products = require(ReplicatedStorage.Game.Library.Directory.Products)
 
 local LOCAL_PLAYER = Players.LocalPlayer
 
-local PRODUCT_KEY = "Abyssal Hydra"
+local PRODUCT_KEY = "Imperium Whale"
 local productSchema = Products[PRODUCT_KEY]
 local PRODUCT_ID: number? = productSchema and productSchema.ProductId or nil
 
@@ -39,7 +39,7 @@ local function setupPromptFor(instance: Instance)
         print("setup")
 		local prompt = Instance.new("ProximityPrompt")
 		prompt.Name = "ExclusivePurchasePrompt"
-		prompt.ActionText = "Buy Abyssal Hydra!"
+		prompt.ActionText = "Buy Imperium Whale!"
 		prompt.KeyboardKeyCode = Enum.KeyCode.E
 		prompt.HoldDuration = 0
 		prompt.RequiresLineOfSight = false
