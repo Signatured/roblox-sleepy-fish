@@ -40,7 +40,6 @@ if game:GetService("RunService"):IsServer() and game:GetService("RunService"):Is
 		local success, reason = pcall(function()
 			assert(type(dir.DisplayName) == "string")
 			assert(type(dir.Description) == "string")
-			assert(type(dir.Cost) == "number")
 			assert(type(dir.Rewards) == "table" and #dir.Rewards == 6)
 			assert(type(dir.GiveReward) == "function")
 		end)

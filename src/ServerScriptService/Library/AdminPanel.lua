@@ -262,46 +262,48 @@ end)
 
 -- MessagingService listener for global commands
 local messagingService = game:GetService("MessagingService")
-pcall(function()
-	messagingService:SubscribeAsync("GlobalAdminCommand", function(message)
-		local data = message.Data
-		if not data or not data.commandName then return end
-		
-		-- Get command from directory
-		local command: AdminPanelTypes.AdminCommand? = AdminPanelDirectory[data.commandName]
-		if not command then return end
-		
-		-- Execute the command on all players in this server
-		for _, player in ipairs(game.Players:GetPlayers()) do
-				local success, result = command.OnExecute(nil, player)
-
-				-- If the command specifies a TargetMessage, notify the player (global cross-server)
-				if command.TargetMessage then
-					local startsWithName = string.match(command.TargetMessage, "^%s*<name>") ~= nil
-					local execName = startsWithName and "An Admin" or "an Admin"
-					local msg = string.gsub(command.TargetMessage, "<name>", execName)
-					Notifications.Message(player, msg, { Color = Color3.fromRGB(0, 255, 0), Time = 7 })
-				end
+task.spawn(function()
+	pcall(function()
+		messagingService:SubscribeAsync("GlobalAdminCommand", function(message)
+			local data = message.Data
+			if not data or not data.commandName then return end
 			
-			-- Handle finish function execution based on Duration
-			if success and result and type(result) == "function" then
-				local onFinish = result :: () -> ()
-				local duration = command.Duration
-				if duration and duration > 0 then
-					-- Delay the finish function execution in a separate thread
-					task.spawn(function()
-						task.wait(duration)
+			-- Get command from directory
+			local command: AdminPanelTypes.AdminCommand? = AdminPanelDirectory[data.commandName]
+			if not command then return end
+			
+			-- Execute the command on all players in this server
+			for _, player in ipairs(game.Players:GetPlayers()) do
+					local success, result = command.OnExecute(nil, player)
+	
+					-- If the command specifies a TargetMessage, notify the player (global cross-server)
+					if command.TargetMessage then
+						local startsWithName = string.match(command.TargetMessage, "^%s*<name>") ~= nil
+						local execName = startsWithName and "An Admin" or "an Admin"
+						local msg = string.gsub(command.TargetMessage, "<name>", execName)
+						Notifications.Message(player, msg, { Color = Color3.fromRGB(0, 255, 0), Time = 7 })
+					end
+				
+				-- Handle finish function execution based on Duration
+				if success and result and type(result) == "function" then
+					local onFinish = result :: () -> ()
+					local duration = command.Duration
+					if duration and duration > 0 then
+						-- Delay the finish function execution in a separate thread
+						task.spawn(function()
+							task.wait(duration)
+							onFinish()
+						end)
+					else
+						-- Call immediately if no duration or duration is 0
 						onFinish()
-					end)
-				else
-					-- Call immediately if no duration or duration is 0
-					onFinish()
+					end
 				end
 			end
-		end
-		
-		-- Log global command execution
-		print(`[Global Admin Command] {data.executorName} executed '{data.commandName}' on all players`)
+			
+			-- Log global command execution
+			print(`[Global Admin Command] {data.executorName} executed '{data.commandName}' on all players`)
+		end)
 	end)
 end)
 

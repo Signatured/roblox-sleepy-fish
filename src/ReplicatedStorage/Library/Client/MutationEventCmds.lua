@@ -406,7 +406,6 @@ task.spawn(function()
     
     -- Wait 1.5 seconds then ask server for status
     task.wait(1.5)
-    print("STARTING MUTATION EVENT")
     Network.Fire("MutationEvent_GetStatus")
 end)
 
