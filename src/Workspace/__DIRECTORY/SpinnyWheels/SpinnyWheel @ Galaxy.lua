@@ -11,10 +11,10 @@ return {
 			Index = 1,
 			Weight = 1,
 			DisplayChance = "1%",
-			Icon = "rbxassetid://99131114797726",
-			Title1 = "Bloodfish",
+			Icon = "rbxassetid://126732776258447",
+			Title1 = "Galaxy",
 			Title2 = "Squid",
-			Title3 = "$1.4k/s"
+			Title3 = "$1.6k/s",
 		},
 		{
 			Index = 2,
@@ -27,9 +27,9 @@ return {
 			Index = 3,
 			Weight = 2,
 			DisplayChance = "2%",
-			Icon = "rbxassetid://130334998181902",
-			Title1 = "4x Server",
-			Title2 = "Luck!",
+			Icon = "rbxassetid://132548168145204",
+			Title1 = "God",
+			Title2 = "Lucky Block",
 		},
 		{
 			Index = 4,
@@ -42,9 +42,9 @@ return {
 			Index = 5,
 			Weight = 5,
 			DisplayChance = "5%",
-			Icon = "rbxassetid://132404695616099",
-			Title1 = "Blood Moon",
-			Title2 = "Coil",
+			Icon = "rbxassetid://130334998181902",
+			Title1 = "4x Server",
+			Title2 = "Luck!",
 		},
 		{
 			Index = 6,
@@ -65,33 +65,19 @@ return {
 		
 		if reward.Index == 1 then
 			local Fish = require(game.ServerScriptService.Game.Library.Fish)
-			local ExistCount = require(game.ServerScriptService.Game.Library.ExistCount)
-			local Index = require(game.ServerScriptService.Game.Library.Index)
-			
-			local typeChances = {
-				["Normal"] = 79,
-				["Shiny"] = 15,
-				["Gold"] = 5,
-				["Rainbow"] = 1,
-			}
 	
 			local data = Fish.Give(player, {
-				FishId = "Firefly Squid",
-				Type = Functions.Lottery(typeChances),
-				Mutation = "Bloodfish"
+				FishId = "God Lucky Block",
+				Type = "Normal"
 			})
 	
 			if data then
 				Fish.ForceHoldFish(player, data)
-				ExistCount.IncrementCount(data.FishId, data.Type)
-				if data.Mutation == "Bloodfish" then
-					ExistCount.IncrementBloodfishCount(data.FishId)
-				end
-				Index.Add(player, data.FishId, data.Type, data.Mutation)
 			end
 
-			Notifications.Message(player, `You won a Firefly Squid!`, {
-				Color = Color3.fromRGB(0, 255, 0)
+			Notifications.Message(player, `You won a God Lucky Block!`, {
+				Rainbow = true,
+				Time = 8,
 			})
 		elseif reward.Index == 2 then
 			local ServerPlot = require(game.ServerScriptService.Plot.ServerPlot)
@@ -107,13 +93,20 @@ return {
 				Color = Color3.fromRGB(0, 255, 0)
 			})
 		elseif reward.Index == 3 then
-			local ServerLuck = require(game.ServerScriptService.Game.Library.ServerLuck)
+			local Fish = require(game.ServerScriptService.Game.Library.Fish)
+	
+			local data = Fish.Give(player, {
+				FishId = "God Lucky Block",
+				Type = "Normal"
+			})
+	
+			if data then
+				Fish.ForceHoldFish(player, data)
+			end
 
-			ServerLuck.Activate2xLuck(player)
-			ServerLuck.Activate4xLuck(player)
-
-			Notifications.Message(player, `You won 4x Server Luck for 20 minutes!`, {
-				Color = Color3.fromRGB(0, 255, 0)
+			Notifications.Message(player, `You won a God Lucky Block!`, {
+				Rainbow = true,
+				Time = 8,
 			})
 		elseif reward.Index == 4 then
 			local ServerPlot = require(game.ServerScriptService.Plot.ServerPlot)
@@ -129,13 +122,12 @@ return {
 				Color = Color3.fromRGB(0, 255, 0)
 			})
 		elseif reward.Index == 5 then
-			local Gadgets = require(game.ServerScriptService.Game.Library.Gadgets)
+			local ServerLuck = require(game.ServerScriptService.Game.Library.ServerLuck)
 
-			if not Gadgets.Has(player, "Blood Moon Coil") then
-				Gadgets.GiveAndInventory(player, "Blood Moon Coil")
-			end
+			ServerLuck.Activate2xLuck(player)
+			ServerLuck.Activate4xLuck(player)
 
-			Notifications.Message(player, `You won a Blood Moon Coil!`, {
+			Notifications.Message(player, `You won 4x Server Luck for 20 minutes!`, {
 				Color = Color3.fromRGB(0, 255, 0)
 			})
 		elseif reward.Index == 6 then

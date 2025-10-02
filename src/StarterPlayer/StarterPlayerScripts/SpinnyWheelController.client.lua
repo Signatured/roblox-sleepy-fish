@@ -44,7 +44,7 @@ local function setupMainGui(schema: any)
 			local title1 = prizeFrame:FindFirstChild("Title1")
 			local title2 = prizeFrame:FindFirstChild("Title2")
 			local title3 = prizeFrame:FindFirstChild("Title3")
-			percentLabel.Position = UDim2.new(0.5, 0, 0.9, 0)
+			-- percentLabel.Position = UDim2.new(0.5, 0, 0.9, 0)
 
 			imageLabel.Image = reward.Icon
 			-- percentLabel.Text = reward.DisplayChance
@@ -253,7 +253,7 @@ local function setupPhysicalWheel(physicalWheelPart: Part, schema: any)
 			local title1 = prizeFrame:FindFirstChild("Title1")
 			local title2 = prizeFrame:FindFirstChild("Title2")
 			local title3 = prizeFrame:FindFirstChild("Title3")
-			percentLabel.Position = UDim2.new(0.5, 0, 0.9, 0)
+			-- percentLabel.Position = UDim2.new(0.5, 0, 0.9, 0)
 
 			imageLabel.Image = reward.Icon
 			-- percentLabel.Text = reward.DisplayChance
