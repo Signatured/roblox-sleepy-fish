@@ -95,13 +95,34 @@ local function createItem(fishData: any)
     local r = dir.Rarity
     if background and background:IsA("ImageLabel") and r then
         local rarityId = r._id
-        if rarityId == "Mythical" or rarityId == "Secret" then
+        if rarityId == "Mythical" then
             if uiGrad and uiGrad:IsA("UIGradient") then
                 uiGrad.Enabled = false
             end
             local assets = ReplicatedStorage:FindFirstChild("Assets")
-            local templateName = (rarityId == "Secret") and "SecretGradient" or "RainbowGradientWrapped"
-            local template = assets and assets:FindFirstChild(templateName)
+            local template = assets and assets:FindFirstChild("RainbowGradientWrapped")
+            if template and template:IsA("UIGradient") then
+                local grad = template:Clone()
+                grad.Parent = background
+                Functions.GradientScroll(grad, 2.5)
+            end
+        elseif rarityId == "God" then
+            if uiGrad and uiGrad:IsA("UIGradient") then
+                uiGrad.Enabled = false
+            end
+            local assets = ReplicatedStorage:FindFirstChild("Assets")
+            local template = assets and assets:FindFirstChild("GodGradient")
+            if template and template:IsA("UIGradient") then
+                local grad = template:Clone()
+                grad.Parent = background
+                Functions.GradientScroll(grad, 2.5)
+            end
+        elseif rarityId == "Secret" then
+            if uiGrad and uiGrad:IsA("UIGradient") then
+                uiGrad.Enabled = false
+            end
+            local assets = ReplicatedStorage:FindFirstChild("Assets")
+            local template = assets and assets:FindFirstChild("SecretGradient")
             if template and template:IsA("UIGradient") then
                 local grad = template:Clone()
                 grad.Parent = background
@@ -128,7 +149,7 @@ local function createItem(fishData: any)
         sellButton.Activated:Connect(function()
             -- Confirm if Mythical/Secret
             local rarityId = dir.Rarity and dir.Rarity._id
-            if rarityId == "Mythical" or rarityId == "Secret" then
+            if rarityId == "Mythical" or rarityId == "God" or rarityId == "Secret" then
                 local confirmText = string.format("Are you sure? You're selling a %s fish!", rarityId)
                 local okConfirm = Message.new(confirmText, true)
                 if not okConfirm then return end
@@ -208,20 +229,22 @@ if sellAllButton and sellAllButton:IsA("GuiButton") then
         if not save or type(save.Inventory) ~= "table" then return end
         local uids = {}
         local hasMythical = false
+        local hasGod = false
         local hasSecret = false
         for _, entry in ipairs(save.Inventory) do
             local dir = Directory.Fish[entry.FishId]
             if dir and not (dir.Rarity and dir.Rarity._id == "Exclusive") then
                 local rarityId = dir.Rarity and dir.Rarity._id
                 if rarityId == "Mythical" then hasMythical = true end
+                if rarityId == "God" then hasGod = true end
                 if rarityId == "Secret" then hasSecret = true end
                 table.insert(uids, entry.UID)
             end
         end
         if #uids == 0 then return end
         -- Confirm if selling any Mythical/Secret
-        if hasSecret or hasMythical then
-            local which = hasSecret and "Secret" or "Mythical"
+        if hasSecret or hasMythical or hasGod then
+            local which = hasSecret and "Secret" or hasMythical and "Mythical" or hasGod and "God" or "fish"
             local okConfirm = Message.new(string.format("Are you sure? You're selling a %s fish!", which), true)
             if not okConfirm then return end
         end

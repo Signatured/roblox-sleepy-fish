@@ -60,7 +60,7 @@ ClientPlot.OnAllAndCreated(function(plot: ClientPlot.Type)
                 end
                 
                 -- Check if it's Mythical or Secret - show confirmation
-                if rarityId == "Mythical" or rarityId == "Secret" then
+                if rarityId == "Mythical" or rarityId == "God" or rarityId == "Secret" then
                     local confirmed = Message.new(`Are you sure? You're deleting a {rarityName} fish!`, true)
                     if confirmed then
                         local success = plot:Invoke("DeleteFish", fish.UID)

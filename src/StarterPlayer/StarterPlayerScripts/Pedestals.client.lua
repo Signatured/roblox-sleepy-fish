@@ -293,6 +293,16 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
                 Functions.GradientScroll(gradient, 2.5)
             end
         end
+    elseif rarityId == "God" then
+        local existing = rarity:FindFirstChild("GodGradient")
+        if not existing or not existing:IsA("UIGradient") then
+            local template = Assets:FindFirstChild("GodGradient")
+            if template and template:IsA("UIGradient") then
+                local gradient = template:Clone()
+                gradient.Parent = rarity
+                Functions.GradientScroll(gradient, 2.5)
+            end
+        end
     elseif rarityId == "Secret" then
         local existing = rarity:FindFirstChild("SecretGradient")
         if not existing or not existing:IsA("UIGradient") then

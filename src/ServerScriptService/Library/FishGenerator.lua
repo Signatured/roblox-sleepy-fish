@@ -844,6 +844,12 @@ function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutat
 			Rainbow = true,
 			Time = 8,
 		})
+    elseif rarity._id == "God" then
+        local rarityText = luckyBlockId and "" or "God "
+		Notifications.MessageAll(`{prefix} {rarityText}{typeText}{displayName}{suffix}`, {
+			Rainbow = true,
+			Time = 8,
+		})
 	elseif rarity._id == "Secret" then
         local rarityText = luckyBlockId and "" or "SECRET "
 		Notifications.MessageAll(`{prefix} {rarityText}{typeText}{displayName}{suffix}`, {

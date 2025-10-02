@@ -115,6 +115,11 @@ local function handleGlobalForceGive(message: Message)
 				Rainbow = true,
 				Time = 8,
 			})
+		elseif rarity._id == "God" then
+			Notifications.MessageAll(`An Admin gave you a GOD {typeText}{displayName}!`, {
+				Rainbow = true,
+				Time = 8,
+			})
 		elseif rarity._id == "Secret" then
 			Notifications.MessageAll(`An Admin gave you a SECRET {typeText}{displayName}!`, {
 				Rainbow = true,

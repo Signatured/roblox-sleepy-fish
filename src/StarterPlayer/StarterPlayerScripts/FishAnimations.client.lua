@@ -219,6 +219,16 @@ Functions.TagHook("FishSwimmingGui", function(gui: BillboardGui)
                     Functions.GradientScroll(gradient, 2.5)
                 end
             end
+        elseif text == "God" then
+            local existing = rarity:FindFirstChild("GodGradient")
+            if not existing or not existing:IsA("UIGradient") then
+                local template = ReplicatedStorage.Assets:FindFirstChild("GodGradient")
+                if template and template:IsA("UIGradient") then
+                    local gradient = template:Clone()
+                    gradient.Parent = rarity
+                    Functions.GradientScroll(gradient, 2.5)
+                end
+            end
         elseif text == "Secret" then
             local existing = rarity:FindFirstChild("SecretGradient")
             if not existing or not existing:IsA("UIGradient") then
