@@ -182,6 +182,10 @@ local function animate(model: Model, opts: Options?)
         end
     end)
 
+    if model:HasTag("Lucky Block") then
+        Functions.Animation(124330154146390, model, nil, true)
+    end
+
     ensureStep()
 
     -- Return a cleanup function to unregister this model

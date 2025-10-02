@@ -35,7 +35,7 @@ end
 
 -- Event effect instances
 local bloodMoonWhirlpool: BasePart? = nil
-local redNightSky: Instance? = nil
+local sky: Instance? = nil
 local colorCorrection: ColorCorrectionEffect? = nil
 local bloodMoonParticles1: BasePart? = nil
 local bloodMoonParticles2: BasePart? = nil
@@ -133,12 +133,12 @@ local function startBloodMoonEvent()
     task.wait(3)
     
     -- Clone RedNight sky
-    local bloodMoonFolder2 = Assets:FindFirstChild("BloodMoon")
-    local skyTemplate = bloodMoonFolder2 and bloodMoonFolder2:FindFirstChild("RedNight")
+    local galaxyFolder2 = Assets:FindFirstChild("Galaxy")
+    local skyTemplate = galaxyFolder2 and galaxyFolder2:FindFirstChild("GalaxySky")
     if skyTemplate then
-        redNightSky = skyTemplate:Clone()
-        if redNightSky then
-            redNightSky.Parent = Lighting
+        sky = skyTemplate:Clone()
+        if sky then
+            sky.Parent = Lighting
         end
     end
     
@@ -242,10 +242,10 @@ local function endBloodMoonEvent()
         setParticlesEnabled(bloodMoonParticles2, false)
     end
     
-    -- Remove RedNight sky
-    if redNightSky then
-        redNightSky:Destroy()
-        redNightSky = nil
+    -- Remove sky
+    if sky then
+        sky:Destroy()
+        sky = nil
     end
     
     -- Restore original colors of parts with BloodMoonColor attribute

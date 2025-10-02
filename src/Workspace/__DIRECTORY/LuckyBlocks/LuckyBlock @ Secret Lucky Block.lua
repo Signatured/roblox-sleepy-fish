@@ -4,12 +4,12 @@ local LuckyBlockTypes = require(game.ReplicatedStorage.Game.Library.Types.LuckyB
 local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
-    DisplayName = "Mythical",
-    Rarity = Rarity.Mythical,
+    DisplayName = "Secret",
+    Rarity = Rarity.Secret,
     Loot = {
-        ["Crystalite Fish"] = 40,
-        ["Firevulcan Serpent"] = 30,
-        ["Narwhal"] = 20,
-        ["Diamond Serpent"] = 10,
+        ["Ancient Sea Dragon"] = 75,
+        ["Luminite Shark"] = 21,
+        ["Skeleton Shark"] = 3,
+        ["Oblivion Sea Dragon"] = 1,
     },
 }::LuckyBlockTypes.raw_dir
