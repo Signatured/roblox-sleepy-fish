@@ -5,10 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Mythical Lucky Block",
-    Icon = "rbxassetid://99968950359680",
-    MutationIcons = {
-        Bloodfish = "rbxassetid://124483285860707",
-    },
+    Icon = "rbxassetid://113173438319438",
     Rarity = Rarity.Exclusive,
     MoneyPerSecond = 0,
     BaseUpgradeCost = 0,

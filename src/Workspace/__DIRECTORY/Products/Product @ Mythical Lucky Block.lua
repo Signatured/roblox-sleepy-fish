@@ -3,7 +3,7 @@
 return {
 	ProductId = 3420307228,
 	DisplayName = "[OP] Mythical Lucky Block",
-	Icon = "rbxassetid://111872157833540",
+	Icon = "rbxassetid://113173438319438",
 	Description = "Open for a Mythical fish!",
 	OneTimePurchase = false,
 	ClientTest = function(player: Player)
