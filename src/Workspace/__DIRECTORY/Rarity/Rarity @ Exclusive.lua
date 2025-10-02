@@ -6,6 +6,6 @@ return {
     Priority = 1,
     RarityWeight = 0,
     SpeedModifier = 0.3,
-    AlertRange = 0,
+    AlertRange = 500,
     PreventSpawning = true,
 }

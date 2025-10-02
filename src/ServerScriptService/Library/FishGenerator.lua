@@ -360,26 +360,47 @@ local function attachGui(fish: Swimming, schema: FishTypes.dir_schema)
     gui.Parent = primary
     fish.Gui = gui
 
+    -- Check if this is a lucky block
+    local isLuckyBlock = schema.LuckyBlockId ~= nil
+    local luckyBlockDir = nil
+    if isLuckyBlock and schema.LuckyBlockId then
+        luckyBlockDir = Directory.LuckyBlocks[schema.LuckyBlockId]
+    end
+
     local frame = gui:FindFirstChild("Frame")
     if frame and frame:IsA("Frame") then
         local displayName = frame:FindFirstChild("DisplayName")
         if displayName and displayName:IsA("TextLabel") then
-            displayName.Text = schema.DisplayName or schema._id
+            if isLuckyBlock and luckyBlockDir then
+                displayName.Text = "Lucky Block"
+                displayName.TextColor3 = Color3.fromRGB(255, 255, 255)
+            else
+                displayName.Text = schema.DisplayName or schema._id
+            end
         end
         local rarity = frame:FindFirstChild("Rarity")
         if rarity and rarity:IsA("TextLabel") then
-            local r = schema.Rarity
-            local rarityName = r and ((r :: any).DisplayName or r._id) or "Rarity"
-            rarity.Text = rarityName
-            if r and (r :: any).Color then
-                rarity.TextColor3 = (r :: any).Color
+            if isLuckyBlock and luckyBlockDir then
+                rarity.Text = luckyBlockDir.Rarity.DisplayName
+                rarity.TextColor3 = luckyBlockDir.Rarity.Color
+            else
+                local r = schema.Rarity
+                local rarityName = r and ((r :: any).DisplayName or r._id) or "Rarity"
+                rarity.Text = rarityName
+                if r and (r :: any).Color then
+                    rarity.TextColor3 = (r :: any).Color
+                end
             end
         end
         local mps = frame:FindFirstChild("MoneyPerSecond")
         if mps and mps:IsA("TextLabel") then
-            local typeMultiplier = SharedGameSettings.TypeMultipliers[fish.FishData.Type] or 1
-            local mutationMultiplier = Mutations.GetMutationMulti(fish)
-            mps.Text = `${Functions.NumberShorten(math.ceil(schema.MoneyPerSecond * typeMultiplier * mutationMultiplier))}/s`
+            if isLuckyBlock and luckyBlockDir then
+                mps.Visible = false
+            else
+                local typeMultiplier = SharedGameSettings.TypeMultipliers[fish.FishData.Type] or 1
+                local mutationMultiplier = Mutations.GetMutationMulti(fish)
+                mps.Text = `${Functions.NumberShorten(math.ceil(schema.MoneyPerSecond * typeMultiplier * mutationMultiplier))}/s`
+            end
         end
         local timer = frame:FindFirstChild("Timer")
         if timer and timer:IsA("TextLabel") then
@@ -401,16 +422,22 @@ local function attachGui(fish: Swimming, schema: FishTypes.dir_schema)
         end
         local mutation = frame:FindFirstChild("Mutation")
         if mutation and mutation:IsA("TextLabel") then
-            local name, color = getFishMutation(fish.FishData.Mutation)
-            if color then
-                mutation.TextColor3 = color
-            end
-
-            if name then
-                mutation.Text = name
+            if isLuckyBlock and luckyBlockDir then
+                mutation.Text = luckyBlockDir.DisplayName
+                mutation.TextColor3 = Color3.fromRGB(255, 255, 255)
                 mutation.Visible = true
             else
-                mutation.Visible = false
+                local name, color = getFishMutation(fish.FishData.Mutation)
+                if color then
+                    mutation.TextColor3 = color
+                end
+
+                if name then
+                    mutation.Text = name
+                    mutation.Visible = true
+                else
+                    mutation.Visible = false
+                end
             end
         end
         local private = frame:FindFirstChild("Private")
@@ -453,11 +480,18 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
         end
     end
 
+    -- Lucky Block fish always have Normal type and no mutation
+    if schema.LuckyBlockId then
+        fishType = "Normal"
+    end
+
     -- Check if Blood Moon event is active and apply Bloodfish mutation
     local mutation: FishTypes.fish_mutation_type? = nil
-    local isBloodMoonActive, eventId = MutationEvent.GetCurrentStatus()
-    if isBloodMoonActive and eventId == "Blood Moon" then
-        mutation = "Bloodfish"
+    if not schema.LuckyBlockId then -- Lucky Block fish never have mutations
+        local isBloodMoonActive, eventId = MutationEvent.GetCurrentStatus()
+        if isBloodMoonActive and eventId == "Blood Moon" then
+            mutation = "Bloodfish"
+        end
     end
 
     local fishData: FishTypes.data_schema = {
@@ -563,11 +597,18 @@ local function spawnOne(into: BasePart, backdate: number?)
     local uid = Functions.GenerateUID()
     local fishType = Functions.Lottery(typeChances)
 
+    -- Lucky Block fish always have Normal type and no mutation
+    if schema.LuckyBlockId then
+        fishType = "Normal"
+    end
+
     -- Check if Blood Moon event is active and apply Bloodfish mutation
     local mutation: FishTypes.fish_mutation_type? = nil
-    local isBloodMoonActive, eventId = MutationEvent.GetCurrentStatus()
-    if isBloodMoonActive and eventId == "Blood Moon" then
-        mutation = "Bloodfish"
+    if not schema.LuckyBlockId then -- Lucky Block fish never have mutations
+        local isBloodMoonActive, eventId = MutationEvent.GetCurrentStatus()
+        if isBloodMoonActive and eventId == "Blood Moon" then
+            mutation = "Bloodfish"
+        end
     end
 
     local fishData: FishTypes.data_schema = {
@@ -767,15 +808,22 @@ function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutat
     local uid = Functions.GenerateUID()
     local selectedFishType: FishTypes.fish_type = "Normal"
     
-    -- Validate fish type
-    if fishType == "Normal" or fishType == "Shiny" or fishType == "Gold" or fishType == "Rainbow" then
-        selectedFishType = fishType :: FishTypes.fish_type
+    -- Lucky Block fish always have Normal type and no mutation
+    if schema.LuckyBlockId then
+        selectedFishType = "Normal"
+    else
+        -- Validate fish type
+        if fishType == "Normal" or fishType == "Shiny" or fishType == "Gold" or fishType == "Rainbow" then
+            selectedFishType = fishType :: FishTypes.fish_type
+        end
     end
 
     -- Validate mutation
     local validatedMutation: FishTypes.fish_mutation_type? = nil
-    if mutation == "Bloodfish" then
-        validatedMutation = "Bloodfish"
+    if not schema.LuckyBlockId then -- Lucky Block fish never have mutations
+        if mutation == "Bloodfish" then
+            validatedMutation = "Bloodfish"
+        end
     end
 
     local fishData: FishTypes.data_schema = {
