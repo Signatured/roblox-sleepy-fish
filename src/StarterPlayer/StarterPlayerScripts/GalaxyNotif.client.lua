@@ -1,6 +1,6 @@
 --!strict
 
--- Displays a Blood Moon notification image under Main GUI when the Blood Moon event is active.
+-- Displays a Galaxy notification image under Main GUI when the Galaxy event is active.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
@@ -22,7 +22,7 @@ local currentTween: Tween? = nil
 
 -- Get GUI references
 local mainGui = GUI.Main()
-local notif = mainGui:WaitForChild("BloodMoonNotif") :: ImageLabel
+local notif = mainGui:WaitForChild("GalaxyNotif") :: ImageLabel
 
 -- Helper to cancel any active tweens on the notif
 local function cancelTweens()

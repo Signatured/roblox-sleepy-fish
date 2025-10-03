@@ -47,7 +47,7 @@ local preChaseState = {
     timePosition = 0,
 }
 
--- Blood Moon event music state
+-- Galaxy event music state
 local isEventMusicActive = false
 local eventMusicIndex = 1
 local preEventState = {
@@ -219,7 +219,7 @@ local function PlayEventMusic(active: boolean)
         musicSound.Volume = defaultVolume
         musicSound:Play()
         
-        print("[MusicManager] Started Blood Moon event music")
+        print("[MusicManager] Started Galaxy event music")
     else
         -- If event music isn't active and no stop is scheduled, nothing to do
         if not isEventMusicActive and not eventStopping then return end
@@ -272,7 +272,7 @@ local function PlayEventMusic(active: boolean)
                 musicSound:Play()
             end
 
-            print("[MusicManager] Stopped Blood Moon event music")
+            print("[MusicManager] Stopped Galaxy event music")
         end)
     end
 end

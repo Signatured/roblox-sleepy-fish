@@ -485,12 +485,12 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
         fishType = "Normal"
     end
 
-    -- Check if Blood Moon event is active and apply Bloodfish mutation
+    -- Check if Galaxy event is active and apply Galaxy mutation
     local mutation: FishTypes.fish_mutation_type? = nil
     if not schema.LuckyBlockId then -- Lucky Block fish never have mutations
         local isBloodMoonActive, eventId = MutationEvent.GetCurrentStatus()
-        if isBloodMoonActive and eventId == "Blood Moon" then
-            mutation = "Bloodfish"
+        if isBloodMoonActive and eventId == "Galaxy" then
+            mutation = "Galaxy"
         end
     end
 
@@ -602,12 +602,12 @@ local function spawnOne(into: BasePart, backdate: number?)
         fishType = "Normal"
     end
 
-    -- Check if Blood Moon event is active and apply Bloodfish mutation
+    -- Check if Galaxy event is active and apply Bloodfish mutation
     local mutation: FishTypes.fish_mutation_type? = nil
     if not schema.LuckyBlockId then -- Lucky Block fish never have mutations
         local isBloodMoonActive, eventId = MutationEvent.GetCurrentStatus()
-        if isBloodMoonActive and eventId == "Blood Moon" then
-            mutation = "Bloodfish"
+        if isBloodMoonActive and eventId == "Galaxy" then
+            mutation = "Galaxy"
         end
     end
 
