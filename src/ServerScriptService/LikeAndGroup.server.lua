@@ -43,6 +43,9 @@ Network.Fired("LikeAndGroup_Claim", function(player: Player)
         if data.Mutation == "Bloodfish" then
             ExistCount.IncrementBloodfishCount(data.FishId)
         end
+        if data.Mutation == "Galaxy" then
+            ExistCount.IncrementGalaxyCount(data.FishId)
+        end
         Index.Add(player, data.FishId, data.Type, data.Mutation)
     end
 

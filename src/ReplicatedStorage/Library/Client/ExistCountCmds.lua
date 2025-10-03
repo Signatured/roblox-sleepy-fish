@@ -33,6 +33,7 @@ function ExistCountCmds.GetByIdAndType(fishId: string, fishType: string): number
     elseif fishType == "Gold" then return localVal.Gold
     elseif fishType == "Rainbow" then return localVal.Rainbow
     elseif fishType == "Bloodfish" then return localVal.Bloodfish
+    elseif fishType == "Galaxy" then return localVal.Galaxy
     end
     return 0
 end
