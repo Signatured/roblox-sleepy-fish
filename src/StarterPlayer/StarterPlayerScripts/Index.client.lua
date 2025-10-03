@@ -57,14 +57,14 @@ end
 local function setCategoryButtons(root: Instance, onCategoryChanged: () -> ())
     local side = root:FindFirstChild("SideFrame")
     if not side or not side:IsA("Frame") then return end
-    local function wire(buttonName: string, cat: FishTypes.fish_type | "BloodMoon")
+    local function wire(buttonName: string, cat: FishTypes.fish_type | "BloodMoon" | "Galaxy")
         local btn = side:FindFirstChild(buttonName)
         if btn and btn:IsA("ImageButton") then
             ButtonFX(btn)
             btn.Activated:Connect(function()
                 currentCategory = cat
                 btn.Image = SELECTED_IMG
-                for _, other in ipairs({"Normal","Gold","Rainbow","Shiny","BloodMoon"}) do
+                for _, other in ipairs({"Normal","Gold","Rainbow","Shiny","BloodMoon","Galaxy"}) do
                     if other ~= buttonName then
                         local ob = side:FindFirstChild(other)
                         if ob and ob:IsA("ImageButton") then
@@ -83,6 +83,7 @@ local function setCategoryButtons(root: Instance, onCategoryChanged: () -> ())
     wire("Rainbow","Rainbow")
     wire("Shiny","Shiny")
     wire("BloodMoon","BloodMoon")
+    wire("Galaxy","Galaxy")
 end
 
 local function realRender()
@@ -109,7 +110,7 @@ local function realRender()
     -- default selection visuals
     local side = frame:FindFirstChild("SideFrame")
     if side and side:IsA("Frame") then
-        for _, n in ipairs({"Normal","Gold","Rainbow","Shiny","BloodMoon"}) do
+        for _, n in ipairs({"Normal","Gold","Rainbow","Shiny","BloodMoon","Galaxy"}) do
             local b = side:FindFirstChild(n)
             if b and b:IsA("ImageButton") then
                 b.Image = (n == currentCategory) and SELECTED_IMG or UNSELECTED_IMG
@@ -186,13 +187,17 @@ local function realRender()
             elseif currentCategory == "Gold" then hasSeen = entry.Gold == true
             elseif currentCategory == "Shiny" then hasSeen = entry.Shiny == true
             elseif currentCategory == "Rainbow" then hasSeen = entry.Rainbow == true
-            elseif currentCategory == "BloodMoon" then hasSeen = entry.BloodMoon == true end
+            elseif currentCategory == "BloodMoon" then hasSeen = entry.BloodMoon == true
+            elseif currentCategory == "Galaxy" then hasSeen = entry.Galaxy == true end
         end
         local countVal = 0
         if hasSeen then
             if currentCategory == "BloodMoon" then
                 -- BloodMoon counts are not tracked in ExistCount system yet
                 countVal = ExistCountCmds.GetBloodfishCount(fishId)
+            elseif currentCategory == "Galaxy" then
+                -- Galaxy counts
+                countVal = ExistCountCmds.GetGalaxyCount(fishId)
             else
                 countVal = ExistCountCmds.GetByIdAndType(fishId, currentCategory)
             end
@@ -210,11 +215,14 @@ local function realRender()
         end
         if existLabel and existLabel:IsA("TextLabel") then
             if hasSeen then
-                if currentCategory == "BloodMoon" then
-                    existLabel.Text = `{countString} Exist`
-                else
-                    existLabel.Text = `{countString} Exist`
-                end
+                -- if currentCategory == "BloodMoon" then
+                --     existLabel.Text = `{countString} Exist`
+                -- elseif currentCategory == "Galaxy" then
+                --     existLabel.Text = `{countString} Exist`
+                -- else
+                --     existLabel.Text = `{countString} Exist`
+                -- end
+                existLabel.Text = `Discovered!`
             else
                 existLabel.Text = "???"
                 existLabel.TextColor3 = Color3.new(1, 1, 1)

@@ -12,7 +12,8 @@ export type IndexData = {
 	Shiny: boolean?,
 	Gold: boolean?,
 	Rainbow: boolean?,
-	BloodMoon: boolean?, -- Tracks if caught with Bloodfish mutation
+	BloodMoon: boolean?,
+	Galaxy: boolean?,
 }
 
 local Index = {}
@@ -20,12 +21,16 @@ local Index = {}
 local function ensureEntry(map: {[string]: IndexData}, fishId: string): IndexData
 	local entry = map[fishId]
 	if not entry then
-		entry = { Normal = false, Shiny = false, Gold = false, Rainbow = false, BloodMoon = false }
+		entry = { Normal = false, Shiny = false, Gold = false, Rainbow = false, BloodMoon = false, Galaxy = false }
 		map[fishId] = entry
 	else
 		-- Ensure backward compatibility - add BloodMoon field if it doesn't exist
 		if entry.BloodMoon == nil then
 			entry.BloodMoon = false
+		end
+		-- Ensure backward compatibility - add Galaxy field if it doesn't exist
+		if entry.Galaxy == nil then
+			entry.Galaxy = false
 		end
 	end
 	return entry
@@ -55,11 +60,16 @@ function Index.Add(player: Player, fishId: string, fishType: FishTypes.fish_type
 	if mutation == "Bloodfish" then
 		entry.BloodMoon = true
 	end
+	
+	-- Mark Galaxy if fish has Galaxy mutation
+	if mutation == "Galaxy" then
+		entry.Galaxy = true
+	end
 end
 
 local function entryComplete(entry: IndexData?): boolean
 	if not entry then return false end
-	return entry.Normal == true and entry.Shiny == true and entry.Gold == true and entry.Rainbow == true and entry.BloodMoon == true
+	return entry.Normal == true and entry.Shiny == true and entry.Gold == true and entry.Rainbow == true and entry.BloodMoon == true and entry.Galaxy == true
 end
 
 function Index.IsCompleted(player: Player): boolean
@@ -99,6 +109,24 @@ function Index.HasBloodMoon(player: Player, fishId: string): boolean
 end
 
 --[[
+	Checks if a player has caught a specific fish with the Bloodfish mutation during Blood Moon events.
+	
+	@param player - The player to check
+	@param fishId - The fish ID to check for BloodMoon variant
+	@return boolean - Whether the player has the BloodMoon variant of this fish
+]]
+function Index.HasGalaxy(player: Player, fishId: string): boolean
+	local save = Saving.Get(player)
+	if not save then return false end
+
+	local map = save.Index :: any
+	if type(map) ~= "table" then return false end
+	
+	local entry = map[fishId]
+	return entry and entry.Galaxy == true or false
+end
+
+--[[
 	Gets the total count of fish species that have been caught with BloodMoon mutation.
 	
 	@param player - The player to check
@@ -114,6 +142,28 @@ function Index.GetBloodMoonCount(player: Player): number
 	local count = 0
 	for fishId, entry in pairs(map) do
 		if entry and entry.BloodMoon == true then
+			count += 1
+		end
+	end
+	return count
+end
+
+--[[
+	Gets the total count of fish species that have been caught with Galaxy mutation.
+	
+	@param player - The player to check
+	@return number - Count of fish species with Galaxy variant caught
+]]
+function Index.GetGalaxyCount(player: Player): number
+	local save = Saving.Get(player)
+	if not save then return 0 end
+
+	local map = save.Index :: any
+	if type(map) ~= "table" then return 0 end
+	
+	local count = 0
+	for fishId, entry in pairs(map) do
+		if entry and entry.Galaxy == true then
 			count += 1
 		end
 	end

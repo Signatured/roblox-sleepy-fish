@@ -10,6 +10,7 @@ export type CountsByType = {
     Gold: number,
     Rainbow: number,
     Bloodfish: number,
+    Galaxy: number,
 }
 
 local ExistCountCmds = {}
@@ -40,6 +41,12 @@ function ExistCountCmds.GetBloodfishCount(fishId: string): number
     local localVal = cache[fishId]
     if not localVal then return 0 end
     return localVal.Bloodfish or 0
+end
+
+function ExistCountCmds.GetGalaxyCount(fishId: string): number
+    local localVal = cache[fishId]
+    if not localVal then return 0 end
+    return localVal.Galaxy or 0
 end
 
 -- initial fetch

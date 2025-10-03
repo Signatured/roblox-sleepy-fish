@@ -107,8 +107,10 @@ local function startGalaxyEvent()
     NotificationCmds.Message("The Galaxy Portal is opening...", {
         Color = eventData.Color,
         Time = 10,
-        Sound = "rbxassetid://91817413999532"
+        Sound = "rbxassetid://131321022475059"
     })
+
+    task.wait(8.5)
     
     -- Clone and setup Black Hole
     local eventFolder = Assets:FindFirstChild("Galaxy")
@@ -118,12 +120,12 @@ local function startGalaxyEvent()
         if galaxyBlackHole then
             galaxyBlackHole.Parent = DEBRIS
 
-            Audio.Play("rbxassetid://126237239639574", galaxyBlackHole, 1, 1.5, 450)
+            Audio.Play("rbxassetid://111689316568748", galaxyBlackHole, 1, 1.5, 450)
             -- Keep particles on initially - they'll be turned off when other particles spawn
         end
     end
     
-    task.wait(3)
+    -- task.wait(3)
     
     -- Clone sky
     local galaxyFolder2 = Assets:FindFirstChild("Galaxy")
@@ -194,7 +196,7 @@ local function endGalaxyEvent()
     
     -- Turn on whirlpool particles for 3 seconds
     if galaxyBlackHole then
-        Audio.Play("rbxassetid://126237239639574", galaxyBlackHole, 1, 1.5, 450)
+        Audio.Play("rbxassetid://111689316568748", galaxyBlackHole, 1, 1.5, 450)
         
         task.wait(6)
         setParticlesEnabled(galaxyBlackHole, false)
