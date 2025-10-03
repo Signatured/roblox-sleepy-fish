@@ -7,8 +7,8 @@ return {
     DisplayName = "Void Whale",
     Icon = "rbxassetid://131196286718082",
     MutationIcons = {
-        Bloodfish = "rbxassetid://131196286718082",
-        Galaxy = "",
+        Bloodfish = "rbxassetid://111956604842913",
+        Galaxy = "rbxassetid://80574189877839",
     },
     Rarity = Rarity.Secret,
     MoneyPerSecond = 975,

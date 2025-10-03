@@ -7,8 +7,8 @@ return {
     DisplayName = "Loch Ness Monster",
     Icon = "rbxassetid://87490966672620",
     MutationIcons = {
-        Bloodfish = "rbxassetid://87490966672620",
-        Galaxy = "",
+        Bloodfish = "rbxassetid://116052337277111",
+        Galaxy = "rbxassetid://91677753341218",
     },
     Rarity = Rarity.God,
     MoneyPerSecond = 650,

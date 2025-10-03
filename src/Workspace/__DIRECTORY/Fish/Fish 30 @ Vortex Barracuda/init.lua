@@ -7,8 +7,8 @@ return {
     DisplayName = "Vortex Barracuda",
     Icon = "rbxassetid://74379222733109",
     MutationIcons = {
-        Bloodfish = "rbxassetid://74379222733109",
-        Galaxy = "",
+        Bloodfish = "rbxassetid://129758208612200",
+        Galaxy = "rbxassetid://80752607042430",
     },
     Rarity = Rarity.God,
     MoneyPerSecond = 625,

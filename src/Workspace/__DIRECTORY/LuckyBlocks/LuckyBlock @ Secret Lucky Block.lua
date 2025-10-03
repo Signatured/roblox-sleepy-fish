@@ -7,9 +7,9 @@ return {
     DisplayName = "Secret",
     Rarity = Rarity.Secret,
     Loot = {
-        ["Ancient Sea Dragon"] = 60,
-        ["Luminite Shark"] = 25,
-        ["Skeleton Shark"] = 10,
-        ["Oblivion Sea Dragon"] = 5,
+        ["Luminite Shark"] = 60,
+        ["Skeleton Shark"] = 25,
+        ["Oblivion Sea Dragon"] = 10,
+        ["Void Whale"] = 5,
     },
 }::LuckyBlockTypes.raw_dir

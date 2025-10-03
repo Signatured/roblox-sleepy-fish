@@ -7,8 +7,8 @@ return {
     DisplayName = "Crowned Anglerfish",
     Icon = "rbxassetid://95559005677854",
     MutationIcons = {
-        Bloodfish = "rbxassetid://95559005677854",
-        Galaxy = "",
+        Bloodfish = "rbxassetid://95546461857691",
+        Galaxy = "rbxassetid://85373590369130",
     },
     Rarity = Rarity.God,
     MoneyPerSecond = 600,
