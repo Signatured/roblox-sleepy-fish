@@ -10,6 +10,6 @@ return {
         ["Ancient Sea Dragon"] = 75,
         ["Luminite Shark"] = 21,
         ["Skeleton Shark"] = 3,
-        ["Oblivion Sea Dragon"] = 1,
+        ["Oblivion Sea Dragon"] = 5,
     },
 }::LuckyBlockTypes.raw_dir

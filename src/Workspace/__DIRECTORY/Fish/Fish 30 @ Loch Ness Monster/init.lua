@@ -5,16 +5,16 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Loch Ness Monster",
-    Icon = "rbxassetid://86840527641213",
+    Icon = "rbxassetid://87490966672620",
     MutationIcons = {
-        Bloodfish = "rbxassetid://104833757213119",
+        Bloodfish = "rbxassetid://87490966672620",
     },
     Rarity = Rarity.God,
-    MoneyPerSecond = 625,
-    BaseUpgradeCost = 14000,
+    MoneyPerSecond = 650,
+    BaseUpgradeCost = 15000,
     BillboardOffset = 9,
     PedestalOffset = -3,
-    RarityWeight = 35,
+    RarityWeight = 5,
     IndexOffset = -1,
     IndexPositionOffset = Vector3.new(-0.5, 0, 0),
 }::FishTypes.raw_dir

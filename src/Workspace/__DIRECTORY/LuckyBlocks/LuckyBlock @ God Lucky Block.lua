@@ -7,9 +7,8 @@ return {
     DisplayName = "God",
     Rarity = Rarity.God,
     Loot = {
-        ["Crystalite Fish"] = 55,
-        ["Firevulcan Serpent"] = 30,
-        ["Narwhal"] = 10,
-        ["Diamond Serpent"] = 5,
+        ["Crowned Anglerfish"] = 60,
+        ["Loch Ness Monster"] = 30,
+        ["Vortex Barracuda"] = 10,
     },
 }::LuckyBlockTypes.raw_dir

@@ -5,15 +5,16 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Vortex Barracuda",
-    Icon = "rbxassetid://86840527641213",
+    Icon = "rbxassetid://74379222733109",
     MutationIcons = {
-        Bloodfish = "rbxassetid://104833757213119",
+        Bloodfish = "rbxassetid://74379222733109",
     },
     Rarity = Rarity.God,
-    MoneyPerSecond = 650,
-    BaseUpgradeCost = 15000,
-    BillboardOffset = 7,
-    RarityWeight = 5,
+    MoneyPerSecond = 625,
+    BaseUpgradeCost = 14000,
+    BillboardOffset = 9,
+    PedestalOffset = -1,
+    RarityWeight = 35,
     IndexOffset = -1,
     IndexPositionOffset = Vector3.new(-0.5, 0, 0),
 }::FishTypes.raw_dir

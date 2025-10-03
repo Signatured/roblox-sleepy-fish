@@ -5,14 +5,15 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Crowned Anglerfish",
-    Icon = "rbxassetid://86840527641213",
+    Icon = "rbxassetid://95559005677854",
     MutationIcons = {
-        Bloodfish = "rbxassetid://104833757213119",
+        Bloodfish = "rbxassetid://95559005677854",
     },
     Rarity = Rarity.God,
     MoneyPerSecond = 600,
     BaseUpgradeCost = 13000,
-    BillboardOffset = 7,
+    BillboardOffset = 11,
+    PedestalOffset = -2,
     RarityWeight = 60,
     IndexOffset = -1,
     IndexPositionOffset = Vector3.new(-0.5, 0, 0),
