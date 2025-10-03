@@ -507,7 +507,7 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
             local initialScale = originalFishModel:GetScale()
             
             -- Attach shrink particles to the lucky block primary part
-            local particleTemplate = game.ReplicatedStorage.Assets.Particles:FindFirstChild("LuckyBlockShrinkParticles")
+            local particleTemplate = game.ReplicatedStorage.Assets.Particles.LuckyBlocks:FindFirstChild("LuckyBlockShrinkParticles")
             local attachedParticles = {}
             local particleAttachment = nil
             if particleTemplate and originalFishModel.PrimaryPart then
@@ -779,6 +779,45 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
             local pedestalModelInstance = pedestals:FindFirstChild(tostring(pedestalId))
             if pedestalModelInstance then
                 UpdatePedestal(plot, pedestalModelInstance :: Model)
+                
+                -- Add reveal particle effect to the final fish model
+                task.wait(0.1) -- Small wait to ensure model is created
+                if pedestalModels[plot] and pedestalModels[plot][pedestalId] then
+                    local baseVector = Vector3.new(3.32, 3.32, 1.66)
+                    local finalFishModel = pedestalModels[plot][pedestalId].Model
+                    local revealAttachment = game.ReplicatedStorage.Assets.Particles.LuckyBlocks:FindFirstChild("Reveal")
+                    if revealAttachment and finalFishModel and finalFishModel.PrimaryPart then
+                        local revealClone = revealAttachment:Clone()
+                        local mainFishVFX = finalFishModel:FindFirstChild("VFX")::BasePart?
+                        local revealCloneVectory = mainFishVFX and mainFishVFX.Size or finalFishModel.PrimaryPart.Size
+                        local mult = revealCloneVectory.Magnitude / baseVector.Magnitude
+                        
+                        -- Scale the attachment using a temporary model and part
+                        local tempModel = Instance.new("Model")
+                        local tempPart = Instance.new("Part")
+                        tempPart.Parent = tempModel
+                        tempModel.PrimaryPart = tempPart
+                        revealClone.Parent = tempPart
+                        print(mult)
+                        tempModel:ScaleTo(mult)
+                        
+                        -- Move the scaled attachment to the fish
+                        revealClone.Parent = finalFishModel.PrimaryPart
+                        tempModel:Destroy()
+                        
+                        -- Emit particles from all ParticleEmitters in the attachment
+                        for _, child in ipairs(revealClone:GetChildren()) do
+                            if child:IsA("ParticleEmitter") then
+                                Functions.Emit(child)
+                            end
+                        end
+                        
+                        -- Destroy after 4 seconds
+                        task.delay(4, function()
+                            pcall(function() revealClone:Destroy() end)
+                        end)
+                    end
+                end
             end
         end
     end)
