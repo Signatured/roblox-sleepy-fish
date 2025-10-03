@@ -501,6 +501,11 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
             surfaceGui.Enabled = false
         end
         
+        -- Attach pedestal particles to the Base part
+        local basePart = pedestalModelInstance and pedestalModelInstance:FindFirstChild("Base") :: BasePart?
+        local pedestalParticlesFolder = game.ReplicatedStorage.Assets.Particles.LuckyBlocks:FindFirstChild("Pedestal")
+        local pedestalParticles = {}
+        
         -- Pre-animation: Shrink and grow the lucky block before showing visual data
         if originalFishModel and originalFishModel.Parent then
             -- Get initial scale
@@ -656,6 +661,16 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
             if growTween and growTween.Completed then
                 growTween.Completed:Wait()
             end
+
+            if basePart and pedestalParticlesFolder then
+                for _, child in ipairs(pedestalParticlesFolder:GetChildren()) do
+                    if child:IsA("ParticleEmitter") then
+                        local particleClone = child:Clone()
+                        particleClone.Parent = basePart
+                        table.insert(pedestalParticles, particleClone)
+                    end
+                end
+            end
         end
         
         -- Hide original model after animation
@@ -757,6 +772,20 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
 
                     Audio.Play("rbxassetid://78632974820364", originalPivot.Position, 1, 1, 150)
                     Audio.Play("rbxassetid://81968496022483", originalPivot.Position, 1, 1, 150)
+                    
+                    -- Disable pedestal particles on final reveal
+                    for _, particle in ipairs(pedestalParticles) do
+                        if particle and particle:IsA("ParticleEmitter") then
+                            particle.Enabled = false
+                        end
+                    end
+                    
+                    -- Delete pedestal particles after 3 seconds
+                    task.delay(3, function()
+                        for _, particle in ipairs(pedestalParticles) do
+                            pcall(function() particle:Destroy() end)
+                        end
+                    end)
                 end
                 
                 -- Clean up temporary model and billboard
