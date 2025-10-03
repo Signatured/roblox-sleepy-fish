@@ -8,6 +8,7 @@ return {
     Icon = "rbxassetid://90100794789269",
     MutationIcons = {
         Bloodfish = "rbxassetid://137872727279052",
+        Galaxy = "",
     },
     Rarity = Rarity.Mythical,
     MoneyPerSecond = 400,
