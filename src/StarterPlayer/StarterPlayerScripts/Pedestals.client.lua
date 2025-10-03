@@ -592,6 +592,26 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
             -- Play grow sound when lucky block starts growing
             Audio.Play("rbxassetid://130401084353873", originalPivot.Position, 1, 1, 150)
             
+            -- Attach grow particles to the lucky block
+            local growParticlesFolder = game.ReplicatedStorage.Assets.Particles.LuckyBlocks:FindFirstChild("Grow")
+            local growAttachments = {}
+            if growParticlesFolder and originalFishModel.PrimaryPart then
+                for _, child in ipairs(growParticlesFolder:GetChildren()) do
+                    if child:IsA("Attachment") then
+                        local attachClone = child:Clone()
+                        attachClone.Parent = originalFishModel.PrimaryPart
+                        table.insert(growAttachments, attachClone)
+                        
+                        -- Emit all particles in this attachment
+                        for _, particle in ipairs(attachClone:GetChildren()) do
+                            if particle:IsA("ParticleEmitter") then
+                                Functions.Emit(particle)
+                            end
+                        end
+                    end
+                end
+            end
+            
             -- Start the grow tween
             local growTween = Functions.Tween(originalFishModel, {
                 Scale = initialScale * LUCKY_BLOCK_GROW_SCALE
@@ -798,7 +818,6 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
                         tempPart.Parent = tempModel
                         tempModel.PrimaryPart = tempPart
                         revealClone.Parent = tempPart
-                        print(mult)
                         tempModel:ScaleTo(mult)
                         
                         -- Move the scaled attachment to the fish
