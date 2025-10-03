@@ -30,6 +30,13 @@ local UPGRADE_IMAGE_GREY = "rbxassetid://95787790482910"
 local CLAIM_TWEEN_TOTAL_TIME = 0.3 -- seconds for full down-and-up cycle
 local CLAIM_TWEEN_DEPTH = 0.2 -- studs to move down
 
+-- Configurable lucky block pre-animation settings
+local LUCKY_BLOCK_SHRINK_DURATION = 0.75 -- seconds to shrink
+local LUCKY_BLOCK_SHRINK_SCALE = 0.6 -- scale to shrink to (60%)
+local LUCKY_BLOCK_GROW_DURATION = 0.25 -- seconds to grow and fade
+local LUCKY_BLOCK_GROW_SCALE = 1.45 -- scale to grow to (120%)
+local LUCKY_BLOCK_DECAL_TEXTURE = "rbxassetid://72606679736558" -- texture for decals during animation
+
 -- Configurable audio pitch ramp when claiming repeatedly (local-only)
 local CLAIM_PITCH_MAX_STREAK = 8 -- max consecutive steps to raise pitch
 local CLAIM_PITCH_WINDOW_S = 1.5 -- time window to consider claims consecutive
@@ -86,6 +93,7 @@ local function playClaimBounce(claimPart: BasePart)
         end
         claimPart:SetAttribute("_ClaimTweenActive", false)
     end)
+
 end
 
 -- Update the upgrade button image based on whether the player can afford the next level
@@ -485,9 +493,6 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
     end
     
     task.spawn(function()
-        -- Hide original model and nameplate at the start
-        originalFishModel.Parent = nil
-        
         -- Hide nameplate and surface GUI during animation
         if nameplate then
             nameplate.Transparency = 1
@@ -495,6 +500,117 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
         if surfaceGui then
             surfaceGui.Enabled = false
         end
+        
+        -- Pre-animation: Shrink and grow the lucky block before showing visual data
+        if originalFishModel and originalFishModel.Parent then
+            -- Get initial scale
+            local initialScale = originalFishModel:GetScale()
+            
+            -- Create decals on all sides of every BasePart
+            local createdDecals = {}
+            for _, descendant in ipairs(originalFishModel:GetDescendants()) do
+                if descendant:IsA("BasePart") then
+                    local faces = {
+                        Enum.NormalId.Front,
+                        Enum.NormalId.Back,
+                        Enum.NormalId.Left,
+                        Enum.NormalId.Right,
+                        Enum.NormalId.Top,
+                        Enum.NormalId.Bottom
+                    }
+                    
+                    for _, face in ipairs(faces) do
+                        local decal = Instance.new("Decal")
+                        decal.Texture = LUCKY_BLOCK_DECAL_TEXTURE
+                        decal.Face = face
+                        decal.Transparency = 1 -- Start invisible
+                        decal.Parent = descendant
+                        table.insert(createdDecals, decal)
+                    end
+                end
+            end
+            
+            -- Phase 1: Shrink to configured scale while fading in decals
+            local shrinkTweenInfo = TweenInfo.new(
+                LUCKY_BLOCK_SHRINK_DURATION,
+                Enum.EasingStyle.Quad,
+                Enum.EasingDirection.InOut
+            )
+            local shrinkTween = Functions.Tween(originalFishModel, {
+                Scale = initialScale * LUCKY_BLOCK_SHRINK_SCALE
+            }, shrinkTweenInfo)
+            
+            -- Fade in all decals during shrink
+            for _, decal in ipairs(createdDecals) do
+                Functions.Tween(decal, {
+                    Transparency = 0
+                }, shrinkTweenInfo)
+            end
+            
+            if shrinkTween and shrinkTween.Completed then
+                shrinkTween.Completed:Wait()
+            end
+            
+            -- After shrink completes: clean up textures and set to white
+            for _, descendant in ipairs(originalFishModel:GetDescendants()) do
+                if descendant:IsA("SurfaceAppearance") then
+                    descendant:Destroy()
+                elseif descendant:IsA("MeshPart") then
+                    (descendant :: MeshPart).TextureID = ""
+                    (descendant :: MeshPart).Color = Color3.fromRGB(255, 255, 255)
+                elseif descendant:IsA("BasePart") then
+                    (descendant :: BasePart).Color = Color3.fromRGB(255, 255, 255)
+                end
+            end
+            
+            -- Phase 2: Grow to larger scale and fade all parts to transparent
+            local growTweenInfo = TweenInfo.new(
+                LUCKY_BLOCK_GROW_DURATION,
+                Enum.EasingStyle.Quad,
+                Enum.EasingDirection.Out
+            )
+            
+            -- Start the grow tween
+            local growTween = Functions.Tween(originalFishModel, {
+                Scale = initialScale * LUCKY_BLOCK_GROW_SCALE
+            }, growTweenInfo)
+            
+            -- Simultaneously fade all parts and decals to transparency 1
+            local fadeTweens = {}
+            
+            -- Fade out the created decals
+            for _, decal in ipairs(createdDecals) do
+                local fadeTween = Functions.Tween(decal, {
+                    Transparency = 1
+                }, growTweenInfo)
+                table.insert(fadeTweens, fadeTween)
+            end
+            
+            -- Fade out all parts
+            for _, descendant in ipairs(originalFishModel:GetDescendants()) do
+                if descendant:IsA("BasePart") then
+                    local fadeTween = Functions.Tween(descendant, {
+                        Transparency = 1
+                    }, growTweenInfo)
+                    table.insert(fadeTweens, fadeTween)
+                elseif descendant:IsA("ParticleEmitter") then
+                    -- Fade particle effects if present
+                    (descendant :: ParticleEmitter).Enabled = false
+                elseif descendant:IsA("Beam") then
+                    (descendant :: Beam).Enabled = false
+                elseif descendant:IsA("Trail") then
+                    (descendant :: Trail).Enabled = false
+                end
+            end
+            
+            -- Wait for grow animation to complete
+            if growTween and growTween.Completed then
+                growTween.Completed:Wait()
+            end
+        end
+        
+        -- Hide original model after animation
+        originalFishModel.Parent = nil
         
         -- Cycle through each visual data item with variable timing
         for i, visual in ipairs(visualData) do
@@ -640,7 +756,8 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
     if plot:IsLocal() then
         if not model:GetAttribute("_ClaimHooked") then
             local claim = model:FindFirstChild("Claim", true)
-            if claim and claim:IsA("BasePart") then
+            local claimBase = model:FindFirstChild("ClaimBase", true)
+            if claim and claim:IsA("BasePart") and claimBase and claimBase:IsA("BasePart") then
                 model:SetAttribute("_ClaimHooked", true)
                 local touchingParts: {[BasePart]: boolean} = {}
                 claim.Touched:Connect(function(other: BasePart)
@@ -659,6 +776,7 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
                         if success and (amount or 0) > 0 then
                             local playbackSpeed = nextClaimPlaybackSpeed()
                             Audio.Play("rbxassetid://132697192191142", script, playbackSpeed, 0.6)
+                            Functions.Emit(claimBase)
                         end
                     end
                 end)

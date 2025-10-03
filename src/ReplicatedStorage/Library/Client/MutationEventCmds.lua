@@ -34,15 +34,14 @@ local function getESTTime(): number
 end
 
 -- Event effect instances
-local bloodMoonWhirlpool: BasePart? = nil
+local galaxyBlackHole: BasePart? = nil
 local sky: Instance? = nil
 local colorCorrection: ColorCorrectionEffect? = nil
-local bloodMoonParticles1: BasePart? = nil
-local bloodMoonParticles2: BasePart? = nil
+local galaxyParticles: BasePart? = nil
 
 -- Event state tracking
-local isBloodMoonRunning = false
-local isBloodMoonStarting = false
+local isGalaxyRunning = false
+local isGalaxyStarting = false
 
 -- Event color storage for parts
 local originalColors: {[BasePart]: Color3} = {}
@@ -91,9 +90,9 @@ local function setParticlesEnabled(parent: Instance, enabled: boolean)
 end
 
 
-local function startBloodMoonEvent()
+local function startGalaxyEvent()
     -- Prevent multiple starts
-    if isBloodMoonRunning or isBloodMoonStarting then 
+    if isGalaxyRunning or isGalaxyStarting then 
         warn("[MutationEvent] Galaxy event already running or starting, ignoring duplicate start")
         return 
     end
@@ -101,38 +100,32 @@ local function startBloodMoonEvent()
     local eventData = Directory.MutationEvents["Galaxy"]
     if not eventData then return end
     
-    isBloodMoonStarting = true
-    isBloodMoonRunning = true
+    isGalaxyStarting = true
+    isGalaxyRunning = true
     
     -- Send notification
-    NotificationCmds.Message("The Blood Moon is rising...", {
+    NotificationCmds.Message("The Galaxy Portal is opening...", {
         Color = eventData.Color,
         Time = 10,
         Sound = "rbxassetid://91817413999532"
     })
     
-    -- Clone and setup BloodMoonWhirlpool
-    local bloodMoonFolder = Assets:FindFirstChild("BloodMoon")
-    local whirlpoolTemplate = bloodMoonFolder and bloodMoonFolder:FindFirstChild("BloodMoonWhirlpool")
-    if whirlpoolTemplate and whirlpoolTemplate:IsA("BasePart") then
-        bloodMoonWhirlpool = whirlpoolTemplate:Clone() :: BasePart
-        if bloodMoonWhirlpool then
-            bloodMoonWhirlpool.Parent = DEBRIS
+    -- Clone and setup Black Hole
+    local eventFolder = Assets:FindFirstChild("Galaxy")
+    local blackHoleTemplate = eventFolder and eventFolder:FindFirstChild("BlackHole")
+    if blackHoleTemplate and blackHoleTemplate:IsA("BasePart") then
+        galaxyBlackHole = blackHoleTemplate:Clone() :: BasePart
+        if galaxyBlackHole then
+            galaxyBlackHole.Parent = DEBRIS
 
-            for _, child in ipairs(bloodMoonWhirlpool:GetDescendants()) do
-                if child:IsA("ParticleEmitter") then
-                    child:Emit(3)
-                end
-            end
-
-            Audio.Play("rbxassetid://126237239639574", bloodMoonWhirlpool, 1, 1.5, 450)
+            Audio.Play("rbxassetid://126237239639574", galaxyBlackHole, 1, 1.5, 450)
             -- Keep particles on initially - they'll be turned off when other particles spawn
         end
     end
     
     task.wait(3)
     
-    -- Clone RedNight sky
+    -- Clone sky
     local galaxyFolder2 = Assets:FindFirstChild("Galaxy")
     local skyTemplate = galaxyFolder2 and galaxyFolder2:FindFirstChild("GalaxySky")
     if skyTemplate then
@@ -142,20 +135,20 @@ local function startBloodMoonEvent()
         end
     end
     
-    -- Change colors of parts with BloodMoonColor attribute
-    local bloodMoonData = Directory.MutationEvents["Galaxy"]
-    if bloodMoonData then
+    -- Change colors of parts with EventColor attribute
+    local galaxyData = Directory.MutationEvents["Galaxy"]
+    if galaxyData then
         local THINGS = workspace:FindFirstChild("__THINGS")
         if THINGS then
             for _, obj in ipairs(THINGS:GetDescendants()) do
-                if (obj:IsA("Part") or obj:IsA("MeshPart")) and obj:GetAttribute("BloodMoonColor") then
+                if (obj:IsA("Part") or obj:IsA("MeshPart")) and obj:GetAttribute("EventColor") then
                     local part = obj :: BasePart
                     -- Store original color
                     originalColors[part] = part.Color
                     -- Tween to galaxy color
                     local tween = TweenService:Create(part,
                         TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                        {Color = bloodMoonData.Color}
+                        {Color = galaxyData.Color}
                     )
                     tween:Play()
                 end
@@ -168,78 +161,48 @@ local function startBloodMoonEvent()
     if colorCorrection and colorCorrection:IsA("ColorCorrectionEffect") then
         local tween = TweenService:Create(colorCorrection, 
             TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {TintColor = Color3.fromRGB(255, 171, 172)}
+            {TintColor = Color3.fromRGB(209, 178, 255)}
         )
         tween:Play()
     end
     
-    -- Clone BloodmoonParticles1 and BloodmoonParticles2
-    local bloodMoonFolder3 = Assets:FindFirstChild("BloodMoon")
-    local particles1Template = bloodMoonFolder3 and bloodMoonFolder3:FindFirstChild("BloodmoonParticles1")
-    local particles2Template = bloodMoonFolder3 and bloodMoonFolder3:FindFirstChild("BloodmoonParticles2")
+    -- Clone GalaxyParticles
+    local galaxyParticlesTemplate = galaxyFolder2 and galaxyFolder2:FindFirstChild("GalaxyParticles")
     
-    if particles1Template and particles1Template:IsA("BasePart") then
-        bloodMoonParticles1 = particles1Template:Clone() :: BasePart
-        if bloodMoonParticles1 then
-            bloodMoonParticles1.Parent = DEBRIS
+    if galaxyParticlesTemplate and galaxyParticlesTemplate:IsA("BasePart") then
+        galaxyParticles = galaxyParticlesTemplate:Clone() :: BasePart
+        if galaxyParticles then
+            galaxyParticles.Parent = DEBRIS
         end
-    end
-    
-    if particles2Template and particles2Template:IsA("BasePart") then
-        bloodMoonParticles2 = particles2Template:Clone() :: BasePart
-        if bloodMoonParticles2 then
-            bloodMoonParticles2.Parent = DEBRIS
-        end
-    end
-    
-    -- Now turn off whirlpool particles since the other particles are active
-    -- if bloodMoonWhirlpool then
-    --     setParticlesEnabled(bloodMoonWhirlpool, false)
-    -- end
-    
-    -- Wait 3 more seconds then ensure whirlpool particles are still off
-    task.wait(6)
-    if bloodMoonWhirlpool then
-        setParticlesEnabled(bloodMoonWhirlpool, false)
     end
     
     -- Mark startup as complete
-    isBloodMoonStarting = false
+    isGalaxyStarting = false
 end
 
-local function endBloodMoonEvent()
+local function endGalaxyEvent()
     -- Prevent ending if not running
-    if not isBloodMoonRunning then 
+    if not isGalaxyRunning then 
         warn("[MutationEvent] Galaxy event not running, ignoring end request")
         return 
     end
     
     -- Wait for startup process to complete if it's still running
-    while isBloodMoonStarting do
+    while isGalaxyStarting do
         task.wait(0.1)
     end
     
     -- Turn on whirlpool particles for 3 seconds
-    if bloodMoonWhirlpool then
-        setParticlesEnabled(bloodMoonWhirlpool, true)
-        for _, child in ipairs(bloodMoonWhirlpool:GetDescendants()) do
-            if child:IsA("ParticleEmitter") then
-                child:Emit(3)
-            end
-        end
-
-        Audio.Play("rbxassetid://126237239639574", bloodMoonWhirlpool, 1, 1.5, 450)
+    if galaxyBlackHole then
+        Audio.Play("rbxassetid://126237239639574", galaxyBlackHole, 1, 1.5, 450)
         
         task.wait(6)
-        setParticlesEnabled(bloodMoonWhirlpool, false)
+        setParticlesEnabled(galaxyBlackHole, false)
     end
     
-    -- Turn off particles for BloodmoonParticles1 and BloodmoonParticles2
-    if bloodMoonParticles1 then
-        setParticlesEnabled(bloodMoonParticles1, false)
-    end
-    if bloodMoonParticles2 then
-        setParticlesEnabled(bloodMoonParticles2, false)
+    -- Turn off particles for GalaxyParticles
+    if galaxyParticles then
+        setParticlesEnabled(galaxyParticles, false)
     end
     
     -- Remove sky
@@ -248,7 +211,7 @@ local function endBloodMoonEvent()
         sky = nil
     end
     
-    -- Restore original colors of parts with BloodMoonColor attribute
+    -- Restore original colors of parts with EventColor attribute
     for part, originalColor in pairs(originalColors) do
         if part and part.Parent then
             local tween = TweenService:Create(part,
@@ -272,29 +235,25 @@ local function endBloodMoonEvent()
     end
     
     -- Turn off whirlpool particles again
-    if bloodMoonWhirlpool then
-        setParticlesEnabled(bloodMoonWhirlpool, false)
+    if galaxyBlackHole then
+        setParticlesEnabled(galaxyBlackHole, false)
     end
     
     task.wait(3)
     
     -- Destroy all cloned parts
-    if bloodMoonWhirlpool then
-        bloodMoonWhirlpool:Destroy()
-        bloodMoonWhirlpool = nil
+    if galaxyBlackHole then
+        galaxyBlackHole:Destroy()
+        galaxyBlackHole = nil
     end
-    if bloodMoonParticles1 then
-        bloodMoonParticles1:Destroy()
-        bloodMoonParticles1 = nil
-    end
-    if bloodMoonParticles2 then
-        bloodMoonParticles2:Destroy()
-        bloodMoonParticles2 = nil
+    if galaxyParticles then
+        galaxyParticles:Destroy()
+        galaxyParticles = nil
     end
     
     -- Reset event state
-    isBloodMoonRunning = false
-    isBloodMoonStarting = false
+    isGalaxyRunning = false
+    isGalaxyStarting = false
 end
 
 -- Network event handlers
@@ -305,7 +264,7 @@ Network.Fired("MutationEvent_Start", function(eventId: string, startTime: number
     eventEndTime = endTime
     
     if eventId == "Galaxy" then
-        task.spawn(startBloodMoonEvent)
+        task.spawn(startGalaxyEvent)
     end
     
     updateEventGuis()
@@ -313,7 +272,7 @@ end)
 
 Network.Fired("MutationEvent_End", function(eventId: string)
     if eventId == "Galaxy" then
-        task.spawn(endBloodMoonEvent)
+        task.spawn(endGalaxyEvent)
     end
     
     isEventActive = false
@@ -340,7 +299,7 @@ Network.Fired("MutationEvent_Status", function(active: boolean, eventId: string?
     
     -- If event is currently active, start it immediately
     if active and eventId == "Galaxy" then
-        task.spawn(startBloodMoonEvent)
+        task.spawn(startGalaxyEvent)
     end
     
     updateEventGuis()
