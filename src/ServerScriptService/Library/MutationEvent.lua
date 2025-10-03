@@ -16,7 +16,7 @@ local CURRENT_EVENT_ID = "Galaxy" -- Directory ID of the current mutation event
 local EST_OFFSET = -5 * 3600 -- EST is UTC-5 (in seconds)
 
 -- Debug Configuration
-local DEBUG_MODE = true -- Set to true to enable debug timing
+local DEBUG_MODE = false -- Set to true to enable debug timing
 local DEBUG_START_DELAY = -5 -- Seconds after server boot to start first event in debug mode
 
 -- State

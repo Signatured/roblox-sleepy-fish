@@ -31,7 +31,7 @@ local CLAIM_TWEEN_TOTAL_TIME = 0.3 -- seconds for full down-and-up cycle
 local CLAIM_TWEEN_DEPTH = 0.2 -- studs to move down
 
 -- Configurable lucky block pre-animation settings
-local LUCKY_BLOCK_SHRINK_DURATION = 0.75 -- seconds to shrink
+local LUCKY_BLOCK_SHRINK_DURATION = 0.85 -- seconds to shrink
 local LUCKY_BLOCK_SHRINK_SCALE = 0.6 -- scale to shrink to (60%)
 local LUCKY_BLOCK_GROW_DURATION = 0.25 -- seconds to grow and fade
 local LUCKY_BLOCK_GROW_SCALE = 1.45 -- scale to grow to (120%)
@@ -506,6 +506,22 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
             -- Get initial scale
             local initialScale = originalFishModel:GetScale()
             
+            -- Attach shrink particles to the lucky block primary part
+            local particleTemplate = game.ReplicatedStorage.Assets.Particles:FindFirstChild("LuckyBlockShrinkParticles")
+            local attachedParticles = {}
+            local particleAttachment = nil
+            if particleTemplate and originalFishModel.PrimaryPart then
+                -- Create attachment at center of primary part
+                particleAttachment = Instance.new("Attachment")
+                particleAttachment.Position = Vector3.new(0, 0, 0)
+                particleAttachment.Parent = originalFishModel.PrimaryPart
+                
+                -- Attach particle to the attachment
+                local particleClone = particleTemplate:Clone()
+                particleClone.Parent = particleAttachment
+                table.insert(attachedParticles, particleClone)
+            end
+            
             -- Create decals on all sides of every BasePart
             local createdDecals = {}
             for _, descendant in ipairs(originalFishModel:GetDescendants()) do
@@ -546,6 +562,9 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
                     Transparency = 0
                 }, shrinkTweenInfo)
             end
+
+            -- Play grow sound when lucky block starts shrinking
+            Audio.Play("rbxassetid://70646733921269", originalPivot.Position, 1, 0.5, 150)
             
             if shrinkTween and shrinkTween.Completed then
                 shrinkTween.Completed:Wait()
@@ -570,6 +589,9 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
                 Enum.EasingDirection.Out
             )
             
+            -- Play grow sound when lucky block starts growing
+            Audio.Play("rbxassetid://130401084353873", originalPivot.Position, 1, 1, 150)
+            
             -- Start the grow tween
             local growTween = Functions.Tween(originalFishModel, {
                 Scale = initialScale * LUCKY_BLOCK_GROW_SCALE
@@ -584,6 +606,13 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
                     Transparency = 1
                 }, growTweenInfo)
                 table.insert(fadeTweens, fadeTween)
+            end
+            
+            -- Disable attached particles before fading
+            for _, particle in ipairs(attachedParticles) do
+                if particle and particle:IsA("ParticleEmitter") then
+                    particle:Destroy()
+                end
             end
             
             -- Fade out all parts
@@ -643,6 +672,11 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
                 tempFishModel:AddTag("SwimmingFish")
                 tempFishModel.Parent = parent
                 
+                -- Play reveal sound for each fish (except the last one)
+                if i <= #visualData then
+                    Audio.Play("rbxassetid://73644741132942", originalPivot.Position, 1, 0.5, 150)
+                end
+                
                 -- Create temporary billboard for this visual
                 local tempFishData = {
                     UID = "temp-animation",
@@ -696,6 +730,12 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
                 
                 -- Wait for the variable interval (fast at start, slow at end)
                 task.wait(intervals[i])
+                
+                -- Play final reveal sound on the last fish
+                if i == #visualData then
+                    Audio.Play("rbxassetid://78632974820364", originalPivot.Position, 1, 1, 150)
+                    Audio.Play("rbxassetid://81968496022483", originalPivot.Position, 1, 1, 150)
+                end
                 
                 -- Clean up temporary model and billboard
                 pcall(function() tempFishModel:Destroy() end)

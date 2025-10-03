@@ -25,6 +25,11 @@ local preloadSounds = {
     "rbxassetid://100618183828369", -- Galaxy black hole loop
     "rbxassetid://131321022475059", -- Galaxy event start
     "rbxassetid://111689316568748", -- Galaxy vortex open/close
+    "rbxassetid://73644741132942",
+    "rbxassetid://78632974820364",
+    "rbxassetid://130401084353873",
+    "rbxassetid://81968496022483",
+    "rbxassetid://70646733921269"
 }
 
 Audio.PreloadSounds(preloadSounds)

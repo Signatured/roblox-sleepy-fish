@@ -121,7 +121,11 @@ local function startGalaxyEvent()
             galaxyBlackHole.Parent = DEBRIS
 
             Audio.Play("rbxassetid://111689316568748", galaxyBlackHole, 1, 1.5, 450)
-            -- Keep particles on initially - they'll be turned off when other particles spawn
+
+            local sound = galaxyBlackHole:FindFirstChild("Sound")::Sound?
+            if sound then
+                sound.Playing = true
+            end
         end
     end
     
