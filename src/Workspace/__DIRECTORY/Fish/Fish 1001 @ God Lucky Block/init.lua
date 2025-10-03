@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "God Lucky Block",
-    Icon = "rbxassetid://99968950359680",
+    Icon = "rbxassetid://129876610751300",
     Rarity = Rarity.Exclusive,
     MoneyPerSecond = 0,
     BaseUpgradeCost = 0,

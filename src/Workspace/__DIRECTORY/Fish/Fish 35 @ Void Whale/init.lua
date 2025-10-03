@@ -5,14 +5,14 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Void Whale",
-    Icon = "rbxassetid://105441199491812",
+    Icon = "rbxassetid://131196286718082",
     MutationIcons = {
-        Bloodfish = "rbxassetid://109557521648928",
+        Bloodfish = "rbxassetid://131196286718082",
     },
     Rarity = Rarity.Secret,
     MoneyPerSecond = 975,
     BaseUpgradeCost = 32000,
-    BillboardOffset = 12,
+    BillboardOffset = 13,
     PedestalOffset = -2,
     RarityWeight = 1,
     IndexOffset = -17,

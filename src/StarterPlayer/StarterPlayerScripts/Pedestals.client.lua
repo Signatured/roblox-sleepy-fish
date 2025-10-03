@@ -482,7 +482,7 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
     -- Create exponential curve for timing (starts fast, ends slow)
     for i = 1, #visualData do
         local progress = (i - 1) / (#visualData - 1) -- 0 to 1
-        local weight = math.exp(progress * 2) -- Exponential curve: fast -> slow
+        local weight = math.exp(progress * 3.5) -- Exponential curve: fast -> slow (more dramatic)
         intervals[i] = weight
         totalWeight = totalWeight + weight
     end
@@ -732,7 +732,9 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
                 task.wait(intervals[i])
                 
                 -- Play final reveal sound on the last fish
-                if i == #visualData then
+                if i == #visualData then-- Extra wait to let the final fish be visible longer
+                    task.wait(0.25)
+
                     Audio.Play("rbxassetid://78632974820364", originalPivot.Position, 1, 1, 150)
                     Audio.Play("rbxassetid://81968496022483", originalPivot.Position, 1, 1, 150)
                 end
