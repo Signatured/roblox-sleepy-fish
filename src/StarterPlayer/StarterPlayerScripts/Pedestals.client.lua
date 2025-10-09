@@ -889,12 +889,22 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             if claim and claim:IsA("BasePart") and claimBase and claimBase:IsA("BasePart") then
                 model:SetAttribute("_ClaimHooked", true)
                 local touchingParts: {[BasePart]: boolean} = {}
+                
                 claim.Touched:Connect(function(other: BasePart)
                     local character = LocalPlayer and LocalPlayer.Character
                     if not character or not other or not other:IsDescendantOf(character) then return end
+                    
+                    -- Don't allow parts from tools to trigger claims (check if descendant of Tool)
+                    local parent = other.Parent
+                    while parent do
+                        if parent:IsA("Tool") then return end
+                        parent = parent.Parent
+                    end
+                    
                     if not touchingParts[other] then
                         touchingParts[other] = true
                     end
+
                     if model:GetAttribute("_ClaimActive") ~= true then
                         -- Set active immediately to debounce before any yields
                         model:SetAttribute("_ClaimActive", true)
@@ -912,6 +922,14 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
                 claim.TouchEnded:Connect(function(other: BasePart)
                     local character = LocalPlayer and LocalPlayer.Character
                     if not character or not other or not other:IsDescendantOf(character) then return end
+                    
+                    -- Don't allow parts from tools to trigger claims (check if descendant of Tool)
+                    local parent = other.Parent
+                    while parent do
+                        if parent:IsA("Tool") then return end
+                        parent = parent.Parent
+                    end
+                    
                     touchingParts[other] = nil
                     -- If no more local parts are touching, reset active state
                     local any = false

@@ -40,4 +40,8 @@ export type Fish = {
 	OfflineEarnings: number,
 }
 
+module.FloorPrices = {
+    [1] = 500_000_000,
+}
+
 return module

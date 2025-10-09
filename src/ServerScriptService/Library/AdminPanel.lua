@@ -257,6 +257,7 @@ end
 
 -- Network event handler for admin commands
 Network.Fired("AdminPanel_ExecuteCommand", function(player: Player, commandName: string, targetPlayer: Player?, isGlobal: boolean?)
+	print(`[AdminPanel] Received command from {player.Name}: {commandName}, target: {targetPlayer and targetPlayer.Name or "nil"}, global: {isGlobal or false}`)
 	AdminPanel.ExecuteCommand(player, commandName, targetPlayer, isGlobal)
 end)
 

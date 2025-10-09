@@ -65,17 +65,25 @@ return {
 		
 		if reward.Index == 1 then
 			local Fish = require(game.ServerScriptService.Game.Library.Fish)
+			local ExistCount = require(game.ServerScriptService.Game.Library.ExistCount)
+			local Index = require(game.ServerScriptService.Game.Library.Index)
 	
 			local data = Fish.Give(player, {
-				FishId = "God Lucky Block",
-				Type = "Normal"
+				FishId = "Firefly Squid",
+				Type = "Normal",
+				Mutation = "Galaxy"
 			})
 	
 			if data then
 				Fish.ForceHoldFish(player, data)
+				ExistCount.IncrementCount(data.FishId, data.Type)
+				if data.Mutation == "Galaxy" then
+					ExistCount.IncrementGalaxyCount(data.FishId)
+				end
+				Index.Add(player, data.FishId, data.Type, data.Mutation)
 			end
 
-			Notifications.Message(player, `You won a God Lucky Block!`, {
+			Notifications.Message(player, `You won a Galaxy Firefly Squid!`, {
 				Rainbow = true,
 				Time = 8,
 			})

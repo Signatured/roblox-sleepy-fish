@@ -105,6 +105,14 @@ local function setupLockButton(plot: ClientPlot.Type)
 	button.Touched:Connect(function(other: BasePart)
 		local character = LocalPlayer and LocalPlayer.Character
 		if not character or not other or not other:IsDescendantOf(character) then return end
+		
+		-- Don't allow parts from tools to trigger lock button (check if descendant of Tool)
+		local parent = other.Parent
+		while parent do
+			if parent:IsA("Tool") then return end
+			parent = parent.Parent
+		end
+		
 		if not touchingParts[other] then
 			touchingParts[other] = true
 		end
@@ -136,6 +144,14 @@ local function setupLockButton(plot: ClientPlot.Type)
 	button.TouchEnded:Connect(function(other: BasePart)
 		local character = LocalPlayer and LocalPlayer.Character
 		if not character or not other or not other:IsDescendantOf(character) then return end
+		
+		-- Don't allow parts from tools to trigger lock button (check if descendant of Tool)
+		local parent = other.Parent
+		while parent do
+			if parent:IsA("Tool") then return end
+			parent = parent.Parent
+		end
+		
 		touchingParts[other] = nil
 		-- If no more local parts are touching, reset active state
 		local any = false

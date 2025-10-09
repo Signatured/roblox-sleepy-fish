@@ -11,6 +11,10 @@ local module = {}
 -- Define or override flags here. Matches the schema used by the shared FFlags raw table.
 module.Raw = {
     FreeAdminPanel = { Default = false, Type = "boolean", Important = true },
+    EventBoardVisible = { Default = false, Type = "boolean" },
+    EventBoardEventId = { Default = "", Type = "string" },
+    EventBoardImage = { Default = "rbxassetid://85949862684940", Type = "string" },
+    EventBoardStartTime = { Default = 0, Type = "number" },
 }
 
 -- Optionally extend per-game admin access for the FFlags UI.

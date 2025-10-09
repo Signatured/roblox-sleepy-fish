@@ -17,6 +17,7 @@ export type PlotSave = {
 	PaidIndex: number,
 	InventorySize: number,
 	LockTime: number?,
+	ExtraFloors: number?,
 }
 
 export type IndexData = {
@@ -62,6 +63,7 @@ local DefaultStats = {
 			Fish = {},
 			PaidIndex = 0,
 			InventorySize = GameSettings.MaxInventory,
+			ExtraFloors = 0,
 		},
 	},
 	Settings = {

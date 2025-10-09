@@ -66,7 +66,7 @@ local function updateEventGuis()
             math.floor(eventData.Color.R * 255),
             math.floor(eventData.Color.G * 255),
             math.floor(eventData.Color.B * 255))
-        text = `<font color="{hexColor}">{eventData.DisplayName}</font> in {Functions.FormatTime(timeUntilNext)}`
+        text = `<font color="{hexColor}">{eventData.DisplayName} Event</font> in {Functions.FormatTime(timeUntilNext)}`
     end
     
     for _, gui in ipairs(eventGuis) do

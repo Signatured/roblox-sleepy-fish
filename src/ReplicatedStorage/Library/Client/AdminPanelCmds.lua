@@ -1,19 +1,16 @@
 --!strict
 
 local Players = game:GetService("Players")
-local MarketplaceService = game:GetService("MarketplaceService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Library = ReplicatedStorage:WaitForChild("Library")
 local Network = require(Library.Client.Network)
 local FFlags = require(game.ReplicatedStorage.Library.Client.FFlags)
+local ProductCmds = require(ReplicatedStorage.Library.Client.ProductCmds)
 
 local AdminPanelCmds = {}
 
 local LocalPlayer = Players.LocalPlayer
-
--- Developer product ID for admin permissions (should match server-side)
-local ADMIN_PRODUCT_ID = 0 -- Replace with your actual developer product ID
 
 -- Valid admin ranks
 local ADMIN_RANKS = {
@@ -42,14 +39,8 @@ local function HasAdminPermission(): boolean
 	end
 	
 	-- Check developer product ownership (if product ID is set)
-	if ADMIN_PRODUCT_ID > 0 then
-		local success, hasProduct = pcall(function()
-			return MarketplaceService:UserOwnsGamePassAsync(LocalPlayer.UserId, ADMIN_PRODUCT_ID)
-		end)
-		
-		if success and hasProduct then
-			return true
-		end
+	if ProductCmds.Owns("Admin Panel") then
+		return true
 	end
 	
 	return false
