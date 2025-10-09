@@ -339,7 +339,7 @@ local function tutorialMain(initialState: string?)
             if not plot then return end
             local fishMap = plot:Save("Fish") :: {[string]: any}
             pedestalTargetId = nil
-            for i = 1, GameSettings.PedestalCount do
+            for i = 1, GameSettings.DefaultPedestalCount do
                 local key = tostring(i)
                 if not fishMap[key] then
                     pedestalTargetId = i
@@ -376,7 +376,7 @@ local function tutorialMain(initialState: string?)
             -- Ensure we have a target pedestal: pick the first pedestal that has fish
             if pedestalTargetId == nil then
                 local fishNow = plot:Save("Fish") :: {[string]: any}
-                for i = 1, GameSettings.PedestalCount do
+                for i = 1, GameSettings.DefaultPedestalCount do
                     if fishNow[tostring(i)] ~= nil then
                         pedestalTargetId = i
                         break
@@ -554,7 +554,7 @@ ClientPlot.OnLocalAndCreated(function(plot: ClientPlot.Type)
     local inventory = save.Inventory or {}
     local fishMap = plot:Save("Fish") :: {[string]: any}
     local allPedestalsEmpty = true
-    for i = 1, GameSettings.PedestalCount do
+    for i = 1, GameSettings.DefaultPedestalCount do
         if fishMap[tostring(i)] ~= nil then
             allPedestalsEmpty = false
             break

@@ -132,6 +132,54 @@ type PedestalModel = {
 
 local pedestalModels: {[ClientPlot.Type]: {[number]: PedestalModel}} = {}
 
+-- Get the number of accessible pedestals based on ExtraFloors
+local function GetAccessiblePedestalCount(plot: ClientPlot.Type): number
+	local extraFloors = plot:Save("ExtraFloors")
+	print(`[Pedestals] ExtraFloors value: {extraFloors}`)
+	if not extraFloors or extraFloors == 0 then
+		print(`[Pedestals] Using default: {GameSettings.DefaultPedestalCount}`)
+		return GameSettings.DefaultPedestalCount
+	end
+	local count = GameSettings.ExtraFloorPedestalCounts[extraFloors] or GameSettings.DefaultPedestalCount
+	print(`[Pedestals] Using floor count: {count}`)
+	return count
+end
+
+-- Store original parents for pedestals so we can restore them
+local pedestalOriginalParents: {[ClientPlot.Type]: {[number]: Instance?}} = {}
+
+-- Store references to all pedestal instances so we can access them even when parented to nil
+local pedestalInstances: {[ClientPlot.Type]: {[number]: Model}} = {}
+
+-- Update visibility of pedestals based on accessible count
+local function UpdatePedestalVisibility(plot: ClientPlot.Type)
+	local accessibleCount = GetAccessiblePedestalCount(plot)
+	
+	-- Initialize storage for this plot if needed
+	if not pedestalOriginalParents[plot] then
+		pedestalOriginalParents[plot] = {}
+	end
+	
+	if not pedestalInstances[plot] then
+		return -- No pedestals initialized yet
+	end
+	
+	for pedestalId, child in pairs(pedestalInstances[plot]) do
+		if pedestalId <= accessibleCount then
+			-- Show this pedestal
+			if child.Parent == nil and pedestalOriginalParents[plot][pedestalId] then
+				child.Parent = pedestalOriginalParents[plot][pedestalId]
+			end
+		else
+			-- Hide this pedestal
+			if child.Parent ~= nil then
+				pedestalOriginalParents[plot][pedestalId] = child.Parent
+				child.Parent = nil
+			end
+		end
+	end
+end
+
 local function getFishType(type: string): (string?, Color3?)
     if type == "Shiny" then
         return "Shiny", Color3.fromRGB(255, 255, 255)
@@ -1256,32 +1304,64 @@ function plotCreated(plot: ClientPlot.Type)
     local model = plot:YieldModel()
     local pedestals = model:WaitForChild("Pedestals")::Model
 
+    -- Store references to all pedestal instances
+    pedestalInstances[plot] = {}
+    for _, child in pedestals:GetChildren() do
+        local pedestalId = tonumber(child.Name)
+        if pedestalId then
+            pedestalInstances[plot][pedestalId] = child::Model
+        end
+    end
+
+    -- Initialize pedestal visibility based on ExtraFloors
+    UpdatePedestalVisibility(plot)
+
     for _, child in pedestals:GetChildren() do
         UpdatePedestal(plot, child::Model)
     end
 
     plot:SaveUpdated("Fish"):Connect(function(newFish: {[string]: PlotTypes.Fish})
-        for _, child in pedestals:GetChildren() do
-            UpdatePedestal(plot, child::Model)
+        if pedestalInstances[plot] then
+            for _, child in pairs(pedestalInstances[plot]) do
+                UpdatePedestal(plot, child)
+            end
         end
     end)
 
     plot:SaveUpdated("PaidIndex"):Connect(function(newIndex: number)
-        for _, child in pedestals:GetChildren() do
-            UpdatePedestal(plot, child::Model)
+        if pedestalInstances[plot] then
+            for _, child in pairs(pedestalInstances[plot]) do
+                UpdatePedestal(plot, child)
+            end
         end
     end)
 
     -- Money changes: flip the upgrade button image when affordability changes
     plot:SaveUpdated("Money"):Connect(function(_value: number)
-        for _, child in pedestals:GetChildren() do
-            UpdateUpgradeButtonImage(plot, child::Model)
+        if pedestalInstances[plot] then
+            for _, child in pairs(pedestalInstances[plot]) do
+                UpdateUpgradeButtonImage(plot, child)
+            end
         end
     end)
 
     plot:SessionUpdated("PlayerBoosts"):Connect(function(newBoosts: {[string]: number})
-        for _, child in pedestals:GetChildren() do
-            UpdatePedestal(plot, child::Model)
+        if pedestalInstances[plot] then
+            for _, child in pairs(pedestalInstances[plot]) do
+                UpdatePedestal(plot, child)
+            end
+        end
+    end)
+
+    -- Listen for ExtraFloors changes and update pedestal visibility
+    plot:SaveUpdated("ExtraFloors"):Connect(function(_value: number?)
+        print("FIRED")
+        UpdatePedestalVisibility(plot)
+        -- Update all pedestals after visibility changes
+        if pedestalInstances[plot] then
+            for _, child in pairs(pedestalInstances[plot]) do
+                UpdatePedestal(plot, child)
+            end
         end
     end)
 end
@@ -1315,6 +1395,16 @@ ClientPlot.Destroying:Connect(function(plot: ClientPlot.Type)
             end
         end
         pedestalAnimationStates[plot] = nil
+    end
+
+    -- Clean up pedestal original parents
+    if pedestalOriginalParents[plot] then
+        pedestalOriginalParents[plot] = nil
+    end
+
+    -- Clean up pedestal instances
+    if pedestalInstances[plot] then
+        pedestalInstances[plot] = nil
     end
 
     -- Additionally, scan PlotFish folders and destroy any fish models that were tied to this plot

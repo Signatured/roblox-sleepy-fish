@@ -188,33 +188,39 @@ end
 
 -- Public API
 function ExistCount.IncrementCount(fishId: string, fishType: FishTypes.fish_type)
-    local counts = cache[fishId]
-    if not counts then counts = emptyCounts(); cache[fishId] = counts end
-    
-    -- Increment and ensure non-negative values
-    if fishType == "Normal" then 
-        counts.Normal = math.max(0, counts.Normal + 1)
-    elseif fishType == "Shiny" then 
-        counts.Shiny = math.max(0, counts.Shiny + 1)
-    elseif fishType == "Gold" then 
-        counts.Gold = math.max(0, counts.Gold + 1)
-    elseif fishType == "Rainbow" then 
-        counts.Rainbow = math.max(0, counts.Rainbow + 1)
-    end
+    task.spawn(function()
+        local counts = cache[fishId]
+        if not counts then counts = emptyCounts(); cache[fishId] = counts end
+        
+        -- Increment and ensure non-negative values
+        if fishType == "Normal" then 
+            counts.Normal = math.max(0, counts.Normal + 1)
+        elseif fishType == "Shiny" then 
+            counts.Shiny = math.max(0, counts.Shiny + 1)
+        elseif fishType == "Gold" then 
+            counts.Gold = math.max(0, counts.Gold + 1)
+        elseif fishType == "Rainbow" then 
+            counts.Rainbow = math.max(0, counts.Rainbow + 1)
+        end
+    end)
 end
 
 function ExistCount.IncrementBloodfishCount(fishId: string)
-    local counts = cache[fishId]
-    if not counts then counts = emptyCounts(); cache[fishId] = counts end
-    
-    counts.Bloodfish = math.max(0, counts.Bloodfish + 1)
+    task.spawn(function()
+        local counts = cache[fishId]
+        if not counts then counts = emptyCounts(); cache[fishId] = counts end
+        
+        counts.Bloodfish = math.max(0, counts.Bloodfish + 1)
+    end)
 end
 
 function ExistCount.IncrementGalaxyCount(fishId: string)
-    local counts = cache[fishId]
-    if not counts then counts = emptyCounts(); cache[fishId] = counts end
-    
-    counts.Galaxy = math.max(0, counts.Galaxy + 1)
+    task.spawn(function()
+        local counts = cache[fishId]
+        if not counts then counts = emptyCounts(); cache[fishId] = counts end
+        
+        counts.Galaxy = math.max(0, counts.Galaxy + 1)
+    end)
 end
 
 function ExistCount.GetAll(): {[string]: CountsByType}

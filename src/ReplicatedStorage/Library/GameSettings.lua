@@ -1,7 +1,11 @@
 --!strict
 
 local Settings = {
-	PedestalCount = 12,
+	DefaultPedestalCount = 12,
+    ExtraFloors = 1,
+    ExtraFloorPedestalCounts = {
+        [1] = 26,
+    },
     MaxLevel = 50,
     MaxInventory = 9,
     MaxInventoryUpgraded1 = 20,
