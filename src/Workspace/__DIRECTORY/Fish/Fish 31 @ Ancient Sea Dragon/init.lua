@@ -15,7 +15,7 @@ return {
     BaseUpgradeCost = 22000,
     BillboardOffset = 9,
     PedestalOffset = -2.5,
-    RarityWeight = 30,
+    RarityWeight = 25,
     -- IndexOffset = 8,
     IndexPositionOffset = Vector3.new(-7, 2, 0),
 }::FishTypes.raw_dir
