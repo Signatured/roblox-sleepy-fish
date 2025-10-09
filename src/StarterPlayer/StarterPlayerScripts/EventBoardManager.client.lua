@@ -3,11 +3,14 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SocialService = game:GetService("SocialService")
 local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
 
 local TagHook = require(ReplicatedStorage.Library.Functions.TagHook)
 local FFlags = require(ReplicatedStorage.Library.Client.FFlags)
 local Network = require(ReplicatedStorage.Library.Client.Network)
 local FormatTime = require(ReplicatedStorage.Library.Functions.FormatTime)
+local NotificationCmds = require(ReplicatedStorage.Library.Client.NotificationCmds)
+local WorldFX = require(ReplicatedStorage.Library.Client.WorldFX)
 
 local TAG = "RobloxEventBoard"
 
@@ -125,6 +128,11 @@ local function setupProximityPrompt(data: BoardData)
 				if data.proximityPrompt == prompt then
 					data.proximityPrompt = nil
 				end
+
+                -- Effects
+                NotificationCmds.Message("You're now following the event! 🔥")
+
+                WorldFX.Fireworks.FireworkShow(Players.LocalPlayer, 10, 12, 4)
 			end
 		end
 	end)

@@ -135,14 +135,10 @@ local pedestalModels: {[ClientPlot.Type]: {[number]: PedestalModel}} = {}
 -- Get the number of accessible pedestals based on ExtraFloors
 local function GetAccessiblePedestalCount(plot: ClientPlot.Type): number
 	local extraFloors = plot:Save("ExtraFloors")
-	print(`[Pedestals] ExtraFloors value: {extraFloors}`)
 	if not extraFloors or extraFloors == 0 then
-		print(`[Pedestals] Using default: {GameSettings.DefaultPedestalCount}`)
 		return GameSettings.DefaultPedestalCount
 	end
-	local count = GameSettings.ExtraFloorPedestalCounts[extraFloors] or GameSettings.DefaultPedestalCount
-	print(`[Pedestals] Using floor count: {count}`)
-	return count
+	return GameSettings.ExtraFloorPedestalCounts[extraFloors] or GameSettings.DefaultPedestalCount
 end
 
 -- Store original parents for pedestals so we can restore them
@@ -1355,7 +1351,6 @@ function plotCreated(plot: ClientPlot.Type)
 
     -- Listen for ExtraFloors changes and update pedestal visibility
     plot:SaveUpdated("ExtraFloors"):Connect(function(_value: number?)
-        print("FIRED")
         UpdatePedestalVisibility(plot)
         -- Update all pedestals after visibility changes
         if pedestalInstances[plot] then
