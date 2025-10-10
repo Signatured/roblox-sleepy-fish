@@ -7,8 +7,8 @@ return {
     DisplayName = "Spineblade",
     Icon = "rbxassetid://102466648574486",
     MutationIcons = {
-        Bloodfish = "rbxassetid://102466648574486",
-        Galaxy = "rbxassetid://102466648574486",
+        Bloodfish = "rbxassetid://134560255470912",
+        Galaxy = "rbxassetid://99255448903907",
     },
     Rarity = Rarity.Secret,
     MoneyPerSecond = 1000,

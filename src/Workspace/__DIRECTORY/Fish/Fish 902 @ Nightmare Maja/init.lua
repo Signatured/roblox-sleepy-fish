@@ -7,8 +7,8 @@ return {
     DisplayName = "Nightmare Maja",
     Icon = "rbxassetid://82803321939240",
     MutationIcons = {
-        Bloodfish = "rbxassetid://82803321939240",
-        Galaxy = "rbxassetid://82803321939240",
+        Bloodfish = "rbxassetid://93368172717234",
+        Galaxy = "rbxassetid://126624016705908",
     },
     Rarity = Rarity.Exclusive,
     MoneyPerSecond = 150,

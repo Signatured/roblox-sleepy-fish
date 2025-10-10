@@ -7,8 +7,8 @@ return {
     DisplayName = "Squalana",
     Icon = "rbxassetid://121363521821478",
     MutationIcons = {
-        Bloodfish = "rbxassetid://121363521821478",
-        Galaxy = "rbxassetid://121363521821478",
+        Bloodfish = "rbxassetid://105175484754660",
+        Galaxy = "rbxassetid://107011493534643",
     },
     Rarity = Rarity.God,
     MoneyPerSecond = 675,
