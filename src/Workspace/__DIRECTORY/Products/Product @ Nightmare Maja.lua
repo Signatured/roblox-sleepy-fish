@@ -49,7 +49,7 @@ return {
 		end
 
 		local data = Fish.Give(player, {
-			FishId = "Imperium Whale",
+			FishId = "Nightmare Maja",
 			Type = Functions.Lottery(typeChances),
 			Mutation = mutation
 		})
