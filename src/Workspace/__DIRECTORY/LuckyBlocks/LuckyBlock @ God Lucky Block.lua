@@ -7,8 +7,9 @@ return {
     DisplayName = "God",
     Rarity = Rarity.God,
     Loot = {
-        ["Crowned Anglerfish"] = 60,
-        ["Loch Ness Monster"] = 30,
-        ["Vortex Barracuda"] = 10,
+        ["Crowned Anglerfish"] = 40,
+        ["Vortex Barracuda"] = 30,
+        ["Squalana"] = 20,
+        ["Loch Ness Monster"] = 10,
     },
 }::LuckyBlockTypes.raw_dir
