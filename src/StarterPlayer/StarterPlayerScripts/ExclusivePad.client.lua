@@ -16,7 +16,8 @@ TagHook(TAG, function(instance: Instance)
     end
     local pad = Pad.new(instance)
     local conn = pad:AddEnterListener(function(_player)
-        local productId = Directory.Products["Imperium Whale"].ProductId
+        local PRODUCT_KEY = instance:GetAttribute("Id")::string
+        local productId = Directory.Products[PRODUCT_KEY].ProductId
         Marketplace.Prompt(Players.LocalPlayer, productId, true)
     end)
     return function()

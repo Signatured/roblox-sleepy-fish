@@ -9,15 +9,15 @@ local Products = require(ReplicatedStorage.Game.Library.Directory.Products)
 
 local LOCAL_PLAYER = Players.LocalPlayer
 
-local PRODUCT_KEY = "Imperium Whale"
-local productSchema = Products[PRODUCT_KEY]
-local PRODUCT_ID: number? = productSchema and productSchema.ProductId or nil
-
 local TAG_NAME = "ExclusivePrompt"
 
 local function setupPromptFor(instance: Instance)
-	if not PRODUCT_ID then return end
 	if instance:IsA("BasePart") or instance:IsA("Model") then
+		local PRODUCT_KEY = instance:GetAttribute("Id")::string
+		local TEXT = instance:GetAttribute("Text")::string
+		local productSchema = Products[PRODUCT_KEY]
+		local PRODUCT_ID: number? = productSchema and productSchema.ProductId or nil
+
 		local attachParent: Instance = instance
 		if instance:IsA("Model") then
 			local primary = instance.PrimaryPart or instance:FindFirstChildWhichIsA("BasePart")
@@ -38,7 +38,7 @@ local function setupPromptFor(instance: Instance)
 
 		local prompt = Instance.new("ProximityPrompt")
 		prompt.Name = "ExclusivePurchasePrompt"
-		prompt.ActionText = "Buy Imperium Whale!"
+		prompt.ActionText = TEXT
 		prompt.KeyboardKeyCode = Enum.KeyCode.E
 		prompt.HoldDuration = 0
 		prompt.RequiresLineOfSight = false
