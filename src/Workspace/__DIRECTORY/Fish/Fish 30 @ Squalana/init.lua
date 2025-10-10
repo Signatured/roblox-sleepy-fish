@@ -5,10 +5,10 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Squalana",
-    Icon = "rbxassetid://87490966672620",
+    Icon = "rbxassetid://121363521821478",
     MutationIcons = {
-        Bloodfish = "rbxassetid://116052337277111",
-        Galaxy = "rbxassetid://91677753341218",
+        Bloodfish = "rbxassetid://121363521821478",
+        Galaxy = "rbxassetid://121363521821478",
     },
     Rarity = Rarity.God,
     MoneyPerSecond = 675,

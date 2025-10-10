@@ -5,7 +5,7 @@ local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
 return {
 	ProductId = 3426286312,
 	DisplayName = "[OP] Exclusive Nightmare Maja",
-	Icon = "rbxassetid://99968950359680",
+	Icon = "rbxassetid://82803321939240",
 	Description = "Fish is 200% as strong as your best fish!",
 	OneTimePurchase = false,
 	ClientTest = function(player: Player)

@@ -5,10 +5,10 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Nightmare Maja",
-    Icon = "rbxassetid://99968950359680",
+    Icon = "rbxassetid://82803321939240",
     MutationIcons = {
-        Bloodfish = "rbxassetid://124483285860707",
-        Galaxy = "rbxassetid://79709413745812",
+        Bloodfish = "rbxassetid://82803321939240",
+        Galaxy = "rbxassetid://82803321939240",
     },
     Rarity = Rarity.Exclusive,
     MoneyPerSecond = 150,
