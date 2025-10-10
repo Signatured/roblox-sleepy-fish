@@ -13,11 +13,12 @@ return {
     Rarity = Rarity.God,
     MoneyPerSecond = 675,
     BaseUpgradeCost = 15500,
-    BillboardOffset = 9,
-    PedestalOffset = -3,
+    BillboardOffset = 8,
+    PedestalOffset = -1,
     RarityWeight = 2,
-    IndexOffset = -1,
-    IndexPositionOffset = Vector3.new(-0.5, 0, 0),
+    IndexOffset = 2,
+    IndexPositionOffset = Vector3.new(-4, 0, 0),
+    IndexRotationOffset = Vector3.new(0, math.rad(180), 0),
 }::FishTypes.raw_dir
 
 
