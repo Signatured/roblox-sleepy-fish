@@ -98,6 +98,13 @@ local function packRainbow(shopGui: ScreenGui)
 	if title and title:IsA("TextLabel") then
 		Functions.GradientScroll(title:WaitForChild("RainbowGradientWrapped")::UIGradient, 3)
 	end
+
+    -- Exclusive fish gradient scroll
+    local exclusiveFish = scrollingFrame:WaitForChild("ExclusiveFish")
+    local background = exclusiveFish:WaitForChild("Background")
+    if background and background:IsA("ImageLabel") then
+        Functions.GradientScroll(background:WaitForChild("RainbowGradientWrapped")::UIGradient, 2)
+    end
 end
 
 local function doesOwnGamepass(gamepassId: number): boolean

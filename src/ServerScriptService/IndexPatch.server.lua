@@ -99,8 +99,6 @@ end
 task.spawn(function()
 	while true do
 		task.wait(PATCH_INTERVAL)
-
-        print("looped")
 		
 		for _, player in ipairs(Players:GetPlayers()) do
 			task.spawn(function()

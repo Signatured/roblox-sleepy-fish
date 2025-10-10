@@ -70,22 +70,7 @@ Network.Invoked("Grapple_HitFish", function(player: Player, uid: string)
 		end
 	end
 
-	-- Clean up any existing LinearVelocity from previous grapples
-	for _, child in ipairs(primary:GetChildren()) do
-		if child:IsA("LinearVelocity") or child:IsA("Attachment") and child.Name == "GrappleAttachment" then
-			child:Destroy()
-		end
-	end
-
-	local att = Instance.new("Attachment")
-	att.Name = "GrappleAttachment"
-	att.Parent = primary
-
-	local lv = Instance.new("LinearVelocity")
-	lv.Attachment0 = att
-	lv.MaxForce = math.huge
-	lv.Parent = primary
-
+	-- Use AssemblyLinearVelocity for multi-part models (affects entire welded assembly)
 	local connection
 	connection = game:GetService("RunService").Heartbeat:Connect(function(dt)
 		-- Get fresh references to avoid stale position data
@@ -100,8 +85,9 @@ Network.Invoked("Grapple_HitFish", function(player: Player, uid: string)
 			end
 
 			if connection then connection:Disconnect() end
-			if lv then lv:Destroy() end
-			if att then att:Destroy() end
+			if primary and primary.Parent then
+				primary.AssemblyLinearVelocity = Vector3.zero
+			end
 			if hitModel then hitModel:SetAttribute("Grappling", nil) end
 			-- End the visual on all clients
 			Network.FireAll("Grapple_End", player.UserId)
@@ -111,8 +97,9 @@ Network.Invoked("Grapple_HitFish", function(player: Player, uid: string)
 		-- Verify we still own this grapple (prevent race conditions)
 		if hitModel:GetAttribute("Grappling") ~= player.UserId then
 			if connection then connection:Disconnect() end
-			if lv then lv:Destroy() end
-			if att then att:Destroy() end
+			if primary and primary.Parent then
+				primary.AssemblyLinearVelocity = Vector3.zero
+			end
 			-- End the visual on all clients
 			Network.FireAll("Grapple_End", player.UserId)
 			return
@@ -123,8 +110,7 @@ Network.Invoked("Grapple_HitFish", function(player: Player, uid: string)
 		if dist < 6 then
 			-- close enough: make the player carry the fish
 			if connection then connection:Disconnect() end
-			if lv then lv:Destroy() end
-			if att then att:Destroy() end
+			primary.AssemblyLinearVelocity = Vector3.zero
 
 			hitModel:SetAttribute("Grappling", nil)
 
@@ -141,7 +127,7 @@ Network.Invoked("Grapple_HitFish", function(player: Player, uid: string)
 			return
 		end
 		local dir = toPlayer.Unit
-		lv.VectorVelocity = dir * 25
+		primary.AssemblyLinearVelocity = dir * 25
 	end)
 	return true
 end)
@@ -166,12 +152,8 @@ Signal.Fired("Death"):Connect(function(player: Player)
 	for _, m in ipairs(swimmingRoot:GetDescendants()) do
 		if m:IsA("Model") and m:GetAttribute("Grappling") == player.UserId then
 			local primary = m.PrimaryPart or m:FindFirstChildWhichIsA("BasePart")
-			if primary then
-				for _, child in ipairs(primary:GetChildren()) do
-					if child:IsA("LinearVelocity") or (child:IsA("Attachment") and child.Name == "GrappleAttachment") then
-						child:Destroy()
-					end
-				end
+			if primary and primary.Parent then
+				primary.AssemblyLinearVelocity = Vector3.zero
 			end
 			for _, inst in ipairs(m:GetDescendants()) do
 				if inst:IsA("BasePart") then
