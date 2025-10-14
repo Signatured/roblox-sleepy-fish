@@ -9,18 +9,21 @@ local Marketplace = require(ReplicatedStorage.Library.Marketplace)
 local Products = require(ReplicatedStorage.Game.Library.Directory.Products)
 local ButtonFX = require(ReplicatedStorage.Library.Client.GUIFX.ButtonFX)
 local Network = require(ReplicatedStorage.Library.Client.Network)
+local Directory = require(ReplicatedStorage.Game.Library.Directory)
 
--- Mythical fish icons to rotate through (no repeats back-to-back)
-local MYTHICAL_ICONS = {
-	"rbxassetid://90100794789269", -- Firevulcan Serpent
-	"rbxassetid://115727958930970", -- Narwhal
-	"rbxassetid://129164143486030", -- Crystalite Fish
-	"rbxassetid://88710987072085", -- Megalodon Shark
-	"rbxassetid://138082211172333", -- Blobfish
-	"rbxassetid://95772149220135", -- Diamond Serpent
-	"rbxassetid://93541654161971", -- Graipuss Medussi
-	"rbxassetid://74298369722425", -- Giant Jellyfish
-}
+-- Mythical brainrot icons to rotate through (no repeats back-to-back)
+-- Dynamically populated from Brainrot directory
+local MYTHICAL_ICONS: {string} = {}
+do
+	for brainrotId, brainrot in pairs(Directory.Fish) do
+		if brainrot.Rarity and brainrot.Rarity._id == "Mythical" then
+			-- Only add icons that are not empty strings
+			if brainrot.Icon and brainrot.Icon ~= "" then
+				table.insert(MYTHICAL_ICONS, brainrot.Icon)
+			end
+		end
+	end
+end
 
 local function preloadIcons()
 	local instances = {}
