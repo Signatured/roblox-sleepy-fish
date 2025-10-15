@@ -1167,6 +1167,18 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
         elseif fishData.FishData.Mutation == "Galaxy" then
             FishTypes.MakeGalaxyModel(fishModel)
         end
+        
+        -- Apply trait visual effects to the model
+        if fishData.FishData.Traits then
+            for traitId, hasTrait in pairs(fishData.FishData.Traits) do
+                if hasTrait then
+                    local traitData = Directory.Traits[traitId]
+                    if traitData and traitData.ApplyToModel then
+                        traitData.ApplyToModel(fishModel)
+                    end
+                end
+            end
+        end
 
         fishModel:PivotTo((base:GetPivot() + Vector3.new(0, base.Size.Y / 2, 0) + Vector3.new(0, fishModel:GetExtentsSize().Y / 2, 0) + Vector3.new(0, 2, 0) + Vector3.new(0, dir.PedestalOffset or 0, 0)) * CFrame.Angles(0, math.rad(180), 0))
         fishModel:SetAttribute("PedestalFish", true)

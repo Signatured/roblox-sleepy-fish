@@ -774,6 +774,12 @@ local function spawnOne(into: BasePart, backdate: number?)
     
     attachGui(fishInstance, schema)
     makePrompt(fishInstance)
+
+    task.delay(10, function()
+        if math.random() < 0.25 then
+            FishGen.AddTrait(uid, "Lightning")
+        end
+    end)
 end
 
 local function respawnReplacement()
