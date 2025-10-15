@@ -33,6 +33,7 @@ export type data_schema = {
     FishId: string,
     Type: fish_type,
     Mutation: fish_mutation_type?,
+    Traits: {[string]: boolean}?,
     Shiny: boolean?,
     Level: number,
     CreateTime: number,

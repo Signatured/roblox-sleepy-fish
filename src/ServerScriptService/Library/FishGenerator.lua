@@ -27,6 +27,7 @@ local ServerLuck = require(ServerScriptService.Game.Library.ServerLuck)
 local Invisibility = require(ServerScriptService.Game.Library.Invisibility)
 local MutationEvent = require(ServerScriptService.Game.Library.MutationEvent)
 local Mutations = require(ServerScriptService.Game.Library.Mutations)
+local Traits = require(ServerScriptService.Game.Library.Traits)
 
 local THINGS = workspace:WaitForChild("__THINGS")
 local ROOT = THINGS:WaitForChild("SwimmingFish")
@@ -348,6 +349,122 @@ local function getFishMutation(mutationId: string?): (string?, Color3?)
     return nil
 end
 
+local function updateTraitsDisplay(gui: BillboardGui?, fish: Swimming)
+    if not gui then return end
+    
+    local frame = gui:FindFirstChild("Frame")
+    if not frame or not frame:IsA("Frame") then return end
+    
+    local traitsFrame = frame:FindFirstChild("Traits")
+    if not traitsFrame or not traitsFrame:IsA("Frame") then return end
+    
+    local template = traitsFrame:FindFirstChild("Template")
+    if not template or not template:IsA("ImageLabel") then return end
+    
+    -- Clear existing trait icons (except template)
+    for _, child in ipairs(traitsFrame:GetChildren()) do
+        if child:IsA("ImageLabel") and child ~= template then
+            child:Destroy()
+        end
+    end
+    
+    -- Get all traits for this fish
+    local traitDataList = Traits.GetTraitData(fish)
+    
+    if #traitDataList == 0 then
+        traitsFrame.Visible = false
+        return -- No traits to display
+    end
+    
+    -- Show traits frame when there are traits
+    traitsFrame.Visible = true
+    
+    -- Sort traits alphabetically by ID
+    table.sort(traitDataList, function(a, b)
+        return a._id < b._id
+    end)
+    
+    -- Create trait icons
+    for index, traitData in ipairs(traitDataList) do
+        local icon = template:Clone()
+        icon.Name = traitData._id
+        icon.Image = traitData.Icon
+        icon.Visible = true
+        icon.LayoutOrder = index
+        icon.Parent = traitsFrame
+    end
+end
+
+--[[
+    Adds a trait to a swimming fish by UID.
+    Updates the billboard display and money per second calculation.
+    
+    @param uid - The unique ID of the swimming fish
+    @param traitId - The trait ID to add (must exist in Directory.Traits)
+    @return boolean - Whether the trait was successfully added
+]]
+function FishGen.AddTrait(uid: string, traitId: string): boolean
+    if type(uid) ~= "string" or uid == "" then return false end
+    if type(traitId) ~= "string" or traitId == "" then return false end
+    
+    -- Validate trait exists
+    local traitData = Directory.Traits[traitId]
+    if not traitData then 
+        warn("AddTrait: Trait not found:", traitId)
+        return false 
+    end
+    
+    -- Get the fish
+    local fish = uidToFish[uid]
+    if not fish then
+        warn("AddTrait: Fish not found:", uid)
+        return false
+    end
+    
+    -- Initialize Traits table if it doesn't exist
+    if not fish.FishData.Traits then
+        fish.FishData.Traits = {}
+    end
+
+    assert(fish.FishData.Traits)
+    
+    -- Check if fish already has this trait
+    if fish.FishData.Traits[traitId] then
+        return false -- Already has this trait
+    end
+    
+    -- Add the trait
+    fish.FishData.Traits[traitId] = true
+    
+    -- Apply visual effects to the model if the trait has ApplyToModel
+    if traitData.ApplyToModel then
+        traitData.ApplyToModel(fish.Model)
+    end
+    
+    -- Update the billboard display
+    if fish.Gui then
+        -- Update traits icons
+        updateTraitsDisplay(fish.Gui, fish)
+        
+        -- Update money per second display with new trait multiplier
+        local frame = fish.Gui:FindFirstChild("Frame")
+        if frame and frame:IsA("Frame") then
+            local mps = frame:FindFirstChild("MoneyPerSecond")
+            if mps and mps:IsA("TextLabel") then
+                local schema = Directory.Fish[fish.FishData.FishId]
+                if schema then
+                    local typeMultiplier = SharedGameSettings.TypeMultipliers[fish.FishData.Type] or 1
+                    local mutationMultiplier = Mutations.GetMutationMulti(fish)
+                    local traitMultiplier = Traits.GetTraitMulti(fish)
+                    mps.Text = `${Functions.NumberShorten(math.ceil(schema.MoneyPerSecond * typeMultiplier * mutationMultiplier * traitMultiplier))}/s`
+                end
+            end
+        end
+    end
+    
+    return true
+end
+
 local function attachGui(fish: Swimming, schema: FishTypes.dir_schema)
     local primary = fish.Model.PrimaryPart or fish.Model:FindFirstChildWhichIsA("BasePart")
     if not primary or not primary:IsA("BasePart") then return end
@@ -399,7 +516,8 @@ local function attachGui(fish: Swimming, schema: FishTypes.dir_schema)
             else
                 local typeMultiplier = SharedGameSettings.TypeMultipliers[fish.FishData.Type] or 1
                 local mutationMultiplier = Mutations.GetMutationMulti(fish)
-                mps.Text = `${Functions.NumberShorten(math.ceil(schema.MoneyPerSecond * typeMultiplier * mutationMultiplier))}/s`
+                local traitMultiplier = Traits.GetTraitMulti(fish)
+                mps.Text = `${Functions.NumberShorten(math.ceil(schema.MoneyPerSecond * typeMultiplier * mutationMultiplier * traitMultiplier))}/s`
             end
         end
         local timer = frame:FindFirstChild("Timer")
@@ -444,6 +562,9 @@ local function attachGui(fish: Swimming, schema: FishTypes.dir_schema)
         if private and private:IsA("TextLabel") then
             private.Visible = false
         end
+        
+        -- Update traits display
+        updateTraitsDisplay(gui, fish)
     end
 end
 

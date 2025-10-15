@@ -21,6 +21,7 @@ local Audio = require(game.ReplicatedStorage.Library.Audio)
 local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
 local LuckyBlockTypes = require(game.ReplicatedStorage.Game.Library.Types.LuckyBlocks)
 local MutationCmds = require(game.ReplicatedStorage.Game.Library.Client.MutationCmds)
+local TraitCmds = require(game.ReplicatedStorage.Game.Library.Client.TraitCmds)
 
 -- Upgrade button images
 local UPGRADE_IMAGE_GREEN = "rbxassetid://85004105467436"
@@ -240,6 +241,7 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
     local fishType = frame:WaitForChild("FishType")::TextLabel
     local mutation = frame:WaitForChild("Mutation")::TextLabel
     local offlineFrame = frame:WaitForChild("OfflineEarnings")::TextLabel
+    local traitsFrame = frame:WaitForChild("Traits")::Frame
 
     -- Check if this is a lucky block
     local isLuckyBlock = dir.LuckyBlockId ~= nil
@@ -272,6 +274,9 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
         
         -- Hide offline earnings
         offlineFrame.Visible = false
+        
+        -- Hide traits for lucky blocks
+        traitsFrame.Visible = false
     else
         -- Normal fish display
         local boosts = plot:Session("PlayerBoosts")::{[string]: number}
@@ -280,7 +285,8 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
         local multiplier = plot:GetMultiplier()
         local typeMultiplier = GameSettings.TypeMultipliers[fishData.FishData.Type] or 1
         local mutationMultiplier = MutationCmds.GetMutationMulti(fishData :: any)
-        local fishMultiplier = (multiplier * typeMultiplier * mutationMultiplier) + (isBoosted and 0.5 or 0)
+        local traitMultiplier = TraitCmds.GetTraitMulti(fishData :: any)
+        local fishMultiplier = (multiplier * typeMultiplier * mutationMultiplier * traitMultiplier) + (isBoosted and 0.5 or 0)
 
         displayName.Text = dir.DisplayName
         displayName.TextColor3 = Color3.fromRGB(255, 255, 255) -- Reset to default color
@@ -325,6 +331,41 @@ function UpdateBillboard(plot: ClientPlot.Type, index: number, billboard: Billbo
             mutation.Visible = true
         else
             mutation.Visible = false
+        end
+        
+        -- Update traits display
+        local template = traitsFrame:FindFirstChild("Template")
+        if template and template:IsA("ImageLabel") then
+            -- Clear existing trait icons (except template)
+            for _, child in ipairs(traitsFrame:GetChildren()) do
+                if child:IsA("ImageLabel") and child ~= template then
+                    child:Destroy()
+                end
+            end
+            
+            -- Get all traits for this fish
+            local traitDataList = TraitCmds.GetTraitData(fishData.FishData)
+            
+            if #traitDataList > 0 then
+                traitsFrame.Visible = true
+                
+                -- Sort traits alphabetically by ID
+                table.sort(traitDataList, function(a, b)
+                    return a._id < b._id
+                end)
+                
+                -- Create trait icons
+                for index, traitData in ipairs(traitDataList) do
+                    local icon = template:Clone()
+                    icon.Name = traitData._id
+                    icon.Image = traitData.Icon
+                    icon.Visible = true
+                    icon.LayoutOrder = index
+                    icon.Parent = traitsFrame
+                end
+            else
+                traitsFrame.Visible = false
+            end
         end
     end
 

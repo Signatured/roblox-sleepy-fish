@@ -8,6 +8,9 @@ local Fish = require(ServerScriptService.Game.Library.Fish)
 local Saving = require(ServerScriptService.Library.Saving)
 local Gamepasses = require(ServerScriptService.Library.Gamepasses)
 local GamepassDirectory = require(ReplicatedStorage.Game.Library.Directory.Gamepasses)
+local GameSettings = require(ReplicatedStorage.Game.Library.GameSettings)
+local Mutations = require(ServerScriptService.Game.Library.Mutations)
+local Traits = require(ServerScriptService.Game.Library.Traits)
 
 -- Resolve Double Money gamepass from directory rather than hardcoding ID
 local DOUBLE_MONEY_SCHEMA = GamepassDirectory["Double Money"]
@@ -17,12 +20,18 @@ local function computeSellPrice(plot: any, fishData: any): number?
 	if not plot then return nil end
 	-- Temporarily inject fishData into a faux index reader by FishId and Level
 	-- We mirror the GetSellPrice math: ceil(GetMoneyPerSecond(index) * 20)
-	-- Here we compute MPS from directory only (Exclusive filtered earlier)
+	-- Here we compute MPS from directory and apply type/mutation/trait multipliers
 	local dir = Directory.Fish[fishData.FishId]
 	if not dir then return nil end
 	local level = fishData.Level or 1
 	local base = dir.MoneyPerSecond * level
-	return math.ceil(base * 20)
+	
+	-- Apply type, mutation, and trait multipliers
+	local typeMultiplier = GameSettings.TypeMultipliers[fishData.Type] or 1
+	local mutationMultiplier = Mutations.GetMutationMulti(fishData)
+	local traitMultiplier = Traits.GetTraitMulti(fishData)
+	
+	return math.ceil(base * typeMultiplier * mutationMultiplier * traitMultiplier * 60 * 5)
 end
 
 -- Sell a list of inventory UIDs; returns total money added and list of sold UIDs
