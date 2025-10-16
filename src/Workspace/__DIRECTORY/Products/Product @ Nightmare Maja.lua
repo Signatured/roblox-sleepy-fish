@@ -45,7 +45,7 @@ return {
 
 		local mutation: string? = nil
 		if math.random() <= 0.1 then
-			mutation = "Galaxy"
+			mutation = "Spooky"
 		end
 
 		local data = Fish.Give(player, {
@@ -57,9 +57,7 @@ return {
 		if data then
 			Fish.ForceHoldFish(player, data)
 			ExistCount.IncrementCount(data.FishId, data.Type)
-			if data.Mutation == "Galaxy" then
-				ExistCount.IncrementGalaxyCount(data.FishId)
-			end
+			ExistCount.IncrementMutationCount(data.FishId, data.Mutation)
 			Index.Add(player, data.FishId, data.Type, data.Mutation)
 		end
 

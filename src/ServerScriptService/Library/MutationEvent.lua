@@ -12,12 +12,12 @@ local MutationEventDirectory = require(ReplicatedStorage.Game.Library.Directory.
 local MutationEvent = {}
 
 -- Configuration
-local CURRENT_EVENT_ID = "Galaxy" -- Directory ID of the current mutation event
+local CURRENT_EVENT_ID = "Spooky" -- Directory ID of the current mutation event
 local EST_OFFSET = -5 * 3600 -- EST is UTC-5 (in seconds)
 
 -- Debug Configuration
 local DEBUG_MODE = false -- Set to true to enable debug timing
-local DEBUG_START_DELAY = 999 -- Seconds after server boot to start first event in debug mode
+local DEBUG_START_DELAY = -10 -- Seconds after server boot to start first event in debug mode
 
 -- State
 local currentEvent: any = nil

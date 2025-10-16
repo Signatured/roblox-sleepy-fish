@@ -132,8 +132,8 @@ end
     Handles button activation (click)
 ]]
 local function onActivated()
-    -- Fire signal to tell SpinnyWheelController to open the "Galaxy" wheel
-    Signal.Fire("OpenSpinnyWheel", "Galaxy")
+    -- Fire signal to tell SpinnyWheelController to open the "Spooky" wheel
+    Signal.Fire("OpenSpinnyWheel", "Spooky")
 end
 
 --[[

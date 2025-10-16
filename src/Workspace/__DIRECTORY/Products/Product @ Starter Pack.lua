@@ -44,9 +44,7 @@ return {
 		if data then
 			Fish.ForceHoldFish(player, data)
 			ExistCount.IncrementCount(data.FishId, data.Type)
-			if data.Mutation == "Galaxy" then
-				ExistCount.IncrementGalaxyCount(data.FishId)
-			end
+			ExistCount.IncrementMutationCount(data.FishId, data.Mutation)
 			Index.Add(player, data.FishId, data.Type, data.Mutation)
 		end
 

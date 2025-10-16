@@ -11,6 +11,7 @@ export type CountsByType = {
     Rainbow: number,
     Bloodfish: number,
     Galaxy: number,
+    Spooky: number,
 }
 
 local ExistCountCmds = {}
@@ -34,6 +35,7 @@ function ExistCountCmds.GetByIdAndType(fishId: string, fishType: string): number
     elseif fishType == "Rainbow" then return localVal.Rainbow
     elseif fishType == "Bloodfish" then return localVal.Bloodfish
     elseif fishType == "Galaxy" then return localVal.Galaxy
+    elseif fishType == "Spooky" then return localVal.Spooky
     end
     return 0
 end
@@ -48,6 +50,12 @@ function ExistCountCmds.GetGalaxyCount(fishId: string): number
     local localVal = cache[fishId]
     if not localVal then return 0 end
     return localVal.Galaxy or 0
+end
+
+function ExistCountCmds.GetMutationCount(fishId: string, mutation: string): number
+    local localVal = cache[fishId]
+    if not localVal then return 0 end
+    return localVal[mutation] or 0
 end
 
 -- initial fetch

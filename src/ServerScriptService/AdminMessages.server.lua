@@ -96,11 +96,8 @@ local function handleGlobalForceGive(message: Message)
 			
 			if fishData then
 				ExistCount.IncrementCount(fishData.FishId, fishData.Type)
-				if fishData.Mutation == "Bloodfish" then
-					ExistCount.IncrementBloodfishCount(fishData.FishId)
-				end
-				if fishData.Mutation == "Galaxy" then
-					ExistCount.IncrementGalaxyCount(fishData.FishId)
+				if fishData.Mutation then
+					ExistCount.IncrementMutationCount(fishData.FishId, fishData.Mutation)
 				end
 				Index.Add(player, fishData.FishId, fishData.Type, fishData.Mutation)
 			end

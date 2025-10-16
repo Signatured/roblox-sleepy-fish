@@ -15,9 +15,9 @@ local ExistCountCmds = require(ReplicatedStorage.Game.Library.Client.ExistCountC
 local SELECTED_IMG = "rbxassetid://85004105467436"
 local UNSELECTED_IMG = "rbxassetid://72752195568291"
 
-local currentCategory: FishTypes.fish_type | "BloodMoon" | "Galaxy" = "Normal"
+local currentCategory: FishTypes.fish_type | "BloodMoon" | "Galaxy" | "Spooky" = "Normal"
 
-local categories = {"Normal","Gold","Rainbow","Shiny","BloodMoon","Galaxy"}
+local categories = {"Normal","Gold","Rainbow","Shiny","BloodMoon","Galaxy","Spooky"}
 
 local resolutionSettings = {
 	{
@@ -79,7 +79,7 @@ end
 local function setCategoryButtons(root: Instance, onCategoryChanged: () -> ())
     local side = root:FindFirstChild("SideFrame")
     if not side or not side:IsA("Frame") then return end
-    local function wire(buttonName: string, cat: FishTypes.fish_type | "BloodMoon" | "Galaxy")
+    local function wire(buttonName: string, cat: FishTypes.fish_type | "BloodMoon" | "Galaxy" | "Spooky")
         local btn = side:FindFirstChild(buttonName)
         if btn and btn:IsA("ImageButton") then
             ButtonFX(btn)
@@ -106,6 +106,7 @@ local function setCategoryButtons(root: Instance, onCategoryChanged: () -> ())
     wire("Shiny","Shiny")
     wire("BloodMoon","BloodMoon")
     wire("Galaxy","Galaxy")
+    wire("Spooky","Spooky")
 end
 
 local function realRender()
@@ -213,15 +214,14 @@ local function realRender()
             elseif currentCategory == "Rainbow" then hasSeen = entry.Rainbow == true
             elseif currentCategory == "BloodMoon" then hasSeen = entry.BloodMoon == true
             elseif currentCategory == "Galaxy" then hasSeen = entry.Galaxy == true end
+            elseif currentCategory == "Spooky" then hasSeen = entry.Spooky == true
         end
         local countVal = 0
         if hasSeen then
-            if currentCategory == "BloodMoon" then
-                -- BloodMoon counts are not tracked in ExistCount system yet
-                countVal = ExistCountCmds.GetBloodfishCount(fishId)
-            elseif currentCategory == "Galaxy" then
-                -- Galaxy counts
-                countVal = ExistCountCmds.GetGalaxyCount(fishId)
+            local mutationId = GetMutationId(currentCategory)
+
+            if mutationId then
+                countVal = ExistCountCmds.GetMutationCount(fishId, mutationId)
             else
                 countVal = ExistCountCmds.GetByIdAndType(fishId, currentCategory)
             end

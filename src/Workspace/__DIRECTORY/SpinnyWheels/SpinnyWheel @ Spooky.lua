@@ -4,7 +4,7 @@ local SpinnyWheelTypes = require(game.ReplicatedStorage.Game.Library.Types.Spinn
 local Functions = require(game.ReplicatedStorage.Library.Functions)
 
 return {
-	DisplayName = "Galaxy Wheel",
+	DisplayName = "Spooky Wheel",
 	Description = "",
 	Rewards = {
 		{
@@ -12,7 +12,7 @@ return {
 			Weight = 1,
 			DisplayChance = "1%",
 			Icon = "rbxassetid://99825068045387",
-			Title1 = "Galaxy",
+			Title1 = "Spooky",
 			Title2 = "Squid",
 			Title3 = "$1.6k/s",
 		},
@@ -71,19 +71,19 @@ return {
 			local data = Fish.Give(player, {
 				FishId = "Firefly Squid",
 				Type = "Normal",
-				Mutation = "Galaxy"
+				Mutation = "Spooky"
 			})
 	
 			if data then
 				Fish.ForceHoldFish(player, data)
 				ExistCount.IncrementCount(data.FishId, data.Type)
-				if data.Mutation == "Galaxy" then
-					ExistCount.IncrementGalaxyCount(data.FishId)
+				if data.Mutation == "Spooky" then
+					ExistCount.IncrementMutationCount(data.FishId, data.Mutation)
 				end
 				Index.Add(player, data.FishId, data.Type, data.Mutation)
 			end
 
-			Notifications.Message(player, `You won a Galaxy Firefly Squid!`, {
+			Notifications.Message(player, `You won a Spooky Firefly Squid!`, {
 				Rainbow = true,
 				Time = 8,
 			})

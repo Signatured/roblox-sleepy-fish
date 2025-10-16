@@ -606,12 +606,12 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
         fishType = "Normal"
     end
 
-    -- Check if Galaxy event is active and apply Galaxy mutation
+    -- Check if Spooky event is active and apply Spooky mutation
     local mutation: string? = nil
     if not schema.LuckyBlockId then -- Lucky Block fish never have mutations
         local isEventActive, eventId = MutationEvent.GetCurrentStatus()
-        if isEventActive and eventId == "Galaxy" then
-            mutation = "Galaxy"
+        if isEventActive and eventId == "Spooky" then
+            mutation = "Spooky"
         end
     end
 
@@ -724,12 +724,12 @@ local function spawnOne(into: BasePart, backdate: number?)
         fishType = "Normal"
     end
 
-    -- Check if Galaxy event is active and apply Bloodfish mutation
+    -- Check if Spooky event is active and apply Bloodfish mutation
     local mutation: string? = nil
     if not schema.LuckyBlockId then -- Lucky Block fish never have mutations
-        local isBloodMoonActive, eventId = MutationEvent.GetCurrentStatus()
-        if isBloodMoonActive and eventId == "Galaxy" then
-            mutation = "Galaxy"
+        local isEventActive, eventId = MutationEvent.GetCurrentStatus()
+        if isEventActive and eventId == "Spooky" then
+            mutation = "Spooky"
         end
     end
 
@@ -1073,12 +1073,7 @@ RunService.Heartbeat:Connect(function()
 						despawn(uid)
 						task.spawn(function()
                             ExistCount.IncrementCount(fish.FishData.FishId, fish.FishData.Type)
-                            if fish.FishData.Mutation == "Bloodfish" then
-                                ExistCount.IncrementBloodfishCount(fish.FishData.FishId)
-                            end
-                            if fish.FishData.Mutation == "Galaxy" then
-                                ExistCount.IncrementGalaxyCount(fish.FishData.FishId)
-                            end
+                            ExistCount.IncrementMutationCount(fish.FishData.FishId, fish.FishData.Mutation)
                             Index.Add(player, fish.FishData.FishId, fish.FishData.Type, fish.FishData.Mutation)
 							BadgeManager.GiveBadgeByName(player, "FirstCatch")
 						end)

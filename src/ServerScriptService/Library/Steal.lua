@@ -115,15 +115,19 @@ function module.ExecuteSteal(player: Player): boolean
         Index.Add(player, data.FishId, data.Type, data.Mutation)
     end
 
+    local owner = plot:GetOwner()
+
     task.spawn(function()
         local dir = FishDirectory[currentFish.FishData.FishId]
         Notifications.Message(player, `You stole a {dir.DisplayName} from {plot:GetOwner().DisplayName}!`, {
             Color = Color3.fromRGB(0, 255, 0),
         })
 
-        Notifications.Message(player, `{player.DisplayName} stole your {dir.DisplayName}!`, {
-            Color = Color3.fromRGB(255, 0, 0),
-        })
+        if owner then
+            Notifications.Message(owner, `{owner.DisplayName} stole your {dir.DisplayName}!`, {
+                Color = Color3.fromRGB(255, 0, 0),
+            })
+        end
     end)
 
     waitingPurchase[player] = nil

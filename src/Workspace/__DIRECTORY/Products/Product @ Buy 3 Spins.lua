@@ -40,14 +40,14 @@ return {
 		end
 
 		-- Grant 1 paid spin for the wheel (id derived from module name)
-		local wheelId = "Galaxy"
+		local wheelId = "Spooky"
 		save.Wheels = save.Wheels or {}
 		save.Wheels[wheelId] = save.Wheels[wheelId] or { Free = 0, Paid = 0, FreeNextAt = nil }
 		save.Wheels[wheelId].Paid += 3
 
-		Notifications.Message(player, `You purchased 3 Galaxy Wheel Spins!`, {
+		Notifications.Message(player, `You purchased 3 Spooky Wheel Spins!`, {
 			Time = 6,
-			Color = Color3.fromRGB(114, 58, 255)
+			Color = Color3.fromRGB(255, 128, 43)
 		})
 
 		return true

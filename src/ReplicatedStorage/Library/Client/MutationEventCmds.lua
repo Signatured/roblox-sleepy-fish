@@ -40,8 +40,8 @@ local colorCorrection: ColorCorrectionEffect? = nil
 local galaxyParticles: BasePart? = nil
 
 -- Event state tracking
-local isGalaxyRunning = false
-local isGalaxyStarting = false
+local isSpookyRunning = false
+local isSpookyStarting = false
 
 -- Event color storage for parts
 local originalColors: {[BasePart]: Color3} = {}
@@ -50,14 +50,14 @@ local originalColors: {[BasePart]: Color3} = {}
 local eventGuis: {SurfaceGui} = {}
 
 local function updateEventGuis()
-    -- Always show Galaxy event status
-    local eventData = Directory.MutationEvents["Galaxy"]
+    -- Always show Spooky event status
+    local eventData = Directory.MutationEvents["Spooky"]
     if not eventData then return end
     
     local now = getESTTime()
     local text = ""
     
-    if isEventActive and currentEventId == "Galaxy" and eventEndTime then
+    if isEventActive and currentEventId == "Spooky" and eventEndTime then
         local timeRemaining = math.max(0, eventEndTime - now)
         text = `{eventData.DisplayName} Event ending in {Functions.FormatTime(timeRemaining)}`
     elseif nextEventTime then
@@ -90,21 +90,21 @@ local function setParticlesEnabled(parent: Instance, enabled: boolean)
 end
 
 
-local function startGalaxyEvent()
+local function startSpookyEvent()
     -- Prevent multiple starts
-    if isGalaxyRunning or isGalaxyStarting then 
-        warn("[MutationEvent] Galaxy event already running or starting, ignoring duplicate start")
+    if isSpookyRunning or isSpookyStarting then 
+        warn("[MutationEvent] Spooky event already running or starting, ignoring duplicate start")
         return 
     end
     
-    local eventData = Directory.MutationEvents["Galaxy"]
+    local eventData = Directory.MutationEvents["Spooky"]
     if not eventData then return end
     
-    isGalaxyStarting = true
-    isGalaxyRunning = true
+    isSpookyStarting = true
+    isSpookyRunning = true
     
     -- Send notification
-    NotificationCmds.Message("The Galaxy Portal is opening...", {
+    NotificationCmds.Message("The Spooky Portal is opening...", {
         Color = eventData.Color,
         Time = 10,
         Sound = "rbxassetid://131321022475059"
@@ -113,7 +113,7 @@ local function startGalaxyEvent()
     task.wait(8.5)
     
     -- Clone and setup Black Hole
-    local eventFolder = Assets:FindFirstChild("Galaxy")
+    local eventFolder = Assets:FindFirstChild("Spooky")
     local blackHoleTemplate = eventFolder and eventFolder:FindFirstChild("BlackHole")
     if blackHoleTemplate and blackHoleTemplate:IsA("BasePart") then
         galaxyBlackHole = blackHoleTemplate:Clone() :: BasePart
@@ -183,18 +183,18 @@ local function startGalaxyEvent()
     end
     
     -- Mark startup as complete
-    isGalaxyStarting = false
+    isSpookyStarting = false
 end
 
-local function endGalaxyEvent()
+local function endSpookyEvent()
     -- Prevent ending if not running
-    if not isGalaxyRunning then 
+    if not isSpookyRunning then 
         warn("[MutationEvent] Galaxy event not running, ignoring end request")
         return 
     end
     
     -- Wait for startup process to complete if it's still running
-    while isGalaxyStarting do
+    while isSpookyStarting do
         task.wait(0.1)
     end
     
@@ -258,8 +258,8 @@ local function endGalaxyEvent()
     end
     
     -- Reset event state
-    isGalaxyRunning = false
-    isGalaxyStarting = false
+    isSpookyRunning = false
+    isSpookyStarting = false
 end
 
 -- Network event handlers
@@ -269,16 +269,16 @@ Network.Fired("MutationEvent_Start", function(eventId: string, startTime: number
     _eventStartTime = startTime
     eventEndTime = endTime
     
-    if eventId == "Galaxy" then
-        task.spawn(startGalaxyEvent)
+    if eventId == "Spooky" then
+        task.spawn(startSpookyEvent)
     end
     
     updateEventGuis()
 end)
 
 Network.Fired("MutationEvent_End", function(eventId: string)
-    if eventId == "Galaxy" then
-        task.spawn(endGalaxyEvent)
+    if eventId == "Spooky" then
+        task.spawn(endSpookyEvent)
     end
     
     isEventActive = false
@@ -304,8 +304,8 @@ Network.Fired("MutationEvent_Status", function(active: boolean, eventId: string?
     nextEventTime = nextTime
     
     -- If event is currently active, start it immediately
-    if active and eventId == "Galaxy" then
-        task.spawn(startGalaxyEvent)
+    if active and eventId == "Spooky" then
+        task.spawn(startSpookyEvent)
     end
     
     updateEventGuis()
@@ -319,8 +319,8 @@ TagHook("EventGui", function(gui: SurfaceGui)
     
     table.insert(eventGuis, gui)
     
-    -- Initialize with default Galaxy display
-    local eventData = Directory.MutationEvents["Galaxy"]
+    -- Initialize with default Spooky display
+    local eventData = Directory.MutationEvents["Spooky"]
     if eventData then
         local frame = gui:FindFirstChild("Frame")
         local event = frame and frame:FindFirstChild("Event")
@@ -345,12 +345,12 @@ TagHook("EventGui", function(gui: SurfaceGui)
 end)
 
 --[[
-    Public API to check if Galaxy event is currently active.
+    Public API to check if Spooky event is currently active.
     
-    @return boolean - Whether Galaxy event is active
+    @return boolean - Whether Spooky event is active
 ]]
-function MutationEventCmds.IsGalaxyActive(): boolean
-    return isEventActive and currentEventId == "Galaxy"
+function MutationEventCmds.IsSpookyActive(): boolean
+    return isEventActive and currentEventId == "Spooky"
 end
 
 --[[
