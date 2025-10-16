@@ -13,6 +13,7 @@ export type schema = {
 	AdminPanel: typeof(require(script.AdminPanel)),
 	LuckyBlocks: typeof(require(script.LuckyBlocks)),
 	Traits: typeof(require(script.Traits)),
+	AdminAbuseEvents: typeof(require(script.AdminAbuseEvents)),
 }
 
 local module: schema = {}::any

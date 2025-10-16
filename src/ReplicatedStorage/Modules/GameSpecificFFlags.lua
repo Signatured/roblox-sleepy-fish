@@ -15,6 +15,9 @@ module.Raw = {
     EventBoardEventId = { Default = "", Type = "string" },
     EventBoardImage = { Default = "rbxassetid://85949862684940", Type = "string" },
     EventBoardStartTime = { Default = 0, Type = "number" },
+
+    -- Admin Abuse Events
+    AdminAbuseEvent_Lightning = { Default = false, Type = "boolean" },
 }
 
 -- Optionally extend per-game admin access for the FFlags UI.
