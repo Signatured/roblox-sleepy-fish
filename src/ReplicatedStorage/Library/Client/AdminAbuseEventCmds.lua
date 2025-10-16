@@ -1,9 +1,11 @@
 --!strict
 
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Network = require(game.ReplicatedStorage.Library.Client.Network)
-local AdminAbuseEventsDirectory = require(game.ReplicatedStorage.Game.Library.Directory.AdminAbuseEvents)
+local Network = require(ReplicatedStorage.Library.Client.Network)
+local AdminAbuseEventsDirectory = require(ReplicatedStorage.Game.Library.Directory.AdminAbuseEvents)
+local AdminAbuseEventsTypes = require(ReplicatedStorage.Game.Library.Types.AdminAbuseEvents)
 
 local module = {}
 
@@ -11,9 +13,37 @@ type ActiveEvent = {
 	Id: string,
 	StartTime: number,
 	RenderSteppedConnection: RBXScriptConnection?,
+	ClientModule: AdminAbuseEventsTypes.EventModule?,
 }
 
 local activeEvents: { [string]: ActiveEvent } = {}
+
+-- Get client module for an event
+local function getClientModule(eventId: string, eventData: AdminAbuseEventsTypes.dir_schema): AdminAbuseEventsTypes.EventModule?
+	local success, clientModule = pcall(function()
+		local modulesFolder = ReplicatedStorage:FindFirstChild("Game")
+		if modulesFolder then
+			modulesFolder = modulesFolder:FindFirstChild("Modules")
+		end
+		if modulesFolder then
+			modulesFolder = modulesFolder:FindFirstChild("AdminAbuseEvents")
+		end
+		if modulesFolder then
+			local moduleScript = modulesFolder:FindFirstChild(eventData.ClientModule)
+			if moduleScript and moduleScript:IsA("ModuleScript") then
+				return require(moduleScript)::any
+			end
+		end
+		return nil
+	end)
+	
+	if success and clientModule then
+		return clientModule
+	else
+		warn("[AdminAbuseEventCmds] Failed to load client module:", eventData.ClientModule)
+		return nil
+	end
+end
 
 -- Start an admin abuse event on client
 local function startEvent(eventId: string, startTime: number)
@@ -30,17 +60,25 @@ local function startEvent(eventId: string, startTime: number)
 		return
 	end
 
+	-- Load client module
+	local clientModule = getClientModule(eventId, eventData)
+	if not clientModule then
+		warn("[AdminAbuseEventCmds] No client module or functions found for:", eventId)
+		return
+	end
+
 	-- Create active event entry
 	local activeEvent: ActiveEvent = {
 		Id = eventId,
 		StartTime = startTime,
 		RenderSteppedConnection = nil,
+		ClientModule = clientModule,
 	}
 	activeEvents[eventId] = activeEvent
 
 	-- Call client OnStart
 	local success, err = pcall(function()
-		eventData.ClientFunctions.OnStart()
+		clientModule.OnStart()
 	end)
 	if not success then
 		warn("[AdminAbuseEventCmds] Client OnStart failed for", eventId, ":", err)
@@ -55,11 +93,13 @@ local function startEvent(eventId: string, startTime: number)
 		lastFrameTime = currentTime
 
 		-- Call client RenderStepped
-		local renderSuccess, renderErr = pcall(function()
-			eventData.ClientFunctions.RenderStepped(delta, elapsedTime)
-		end)
-		if not renderSuccess then
-			warn("[AdminAbuseEventCmds] Client RenderStepped failed for", eventId, ":", renderErr)
+		if clientModule.RenderStepped then
+			local renderSuccess, renderErr = pcall(function()
+				clientModule.RenderStepped(delta, elapsedTime)
+			end)
+			if not renderSuccess then
+				warn("[AdminAbuseEventCmds] Client RenderStepped failed for", eventId, ":", renderErr)
+			end
 		end
 	end)
 
@@ -81,10 +121,9 @@ local function stopEvent(eventId: string)
 	end
 
 	-- Call client OnStop
-	local eventData = AdminAbuseEventsDirectory[eventId]
-	if eventData then
+	if activeEvent.ClientModule then
 		local success, err = pcall(function()
-			eventData.ClientFunctions.OnStop()
+			activeEvent.ClientModule.OnStop()
 		end)
 		if not success then
 			warn("[AdminAbuseEventCmds] Client OnStop failed for", eventId, ":", err)

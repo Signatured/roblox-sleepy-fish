@@ -1,11 +1,13 @@
 --!strict
 
 local RunService = game:GetService("RunService")
+local ServerScriptService = game:GetService("ServerScriptService")
 
-local FFlags = require(game.ServerScriptService.Library.FFlags)
-local Network = require(game.ServerScriptService.Library.Network)
+local FFlags = require(ServerScriptService.Library.FFlags)
+local Network = require(ServerScriptService.Library.Network)
 local Signal = require(game.ReplicatedStorage.Library.Signal)
 local AdminAbuseEventsDirectory = require(game.ReplicatedStorage.Game.Library.Directory.AdminAbuseEvents)
+local AdminAbuseEventsTypes = require(game.ReplicatedStorage.Game.Library.Types.AdminAbuseEvents)
 
 local module = {}
 
@@ -15,9 +17,37 @@ type ActiveEvent = {
 	LastHeartbeat: number,
 	HeartbeatConnection: RBXScriptConnection?,
 	LocalOverride: boolean, -- true if started via command, ignores FFlag
+	ServerModule: AdminAbuseEventsTypes.EventModule?,
 }
 
 local activeEvents: { [string]: ActiveEvent } = {}
+
+-- Get server module for an event
+local function getServerModule(eventId: string, eventData: AdminAbuseEventsTypes.dir_schema): AdminAbuseEventsTypes.EventModule?
+	local success, serverModule = pcall(function()
+		local modulesFolder = ServerScriptService:FindFirstChild("Game")
+		if modulesFolder then
+			modulesFolder = modulesFolder:FindFirstChild("Modules")
+		end
+		if modulesFolder then
+			modulesFolder = modulesFolder:FindFirstChild("AdminAbuseEvents")
+		end
+		if modulesFolder then
+			local moduleScript = modulesFolder:FindFirstChild(eventData.ServerModule)
+			if moduleScript and moduleScript:IsA("ModuleScript") then
+				return require(moduleScript)::any
+			end
+		end
+		return nil
+	end)
+	
+	if success and serverModule then
+		return serverModule
+	else
+		warn("[AdminAbuseEvents] Failed to load server module:", eventData.ServerModule)
+		return nil
+	end
+end
 
 -- Start an admin abuse event
 function module.Start(eventId: string, localOverride: boolean?): boolean
@@ -34,6 +64,13 @@ function module.Start(eventId: string, localOverride: boolean?): boolean
 		return false
 	end
 
+	-- Load server module
+	local serverModule = getServerModule(eventId, eventData)
+	if not serverModule then
+		warn("[AdminAbuseEvents] No server module or functions found for:", eventId)
+		return false
+	end
+
 	local startTime = workspace:GetServerTimeNow()
 
 	-- Create active event entry
@@ -43,12 +80,13 @@ function module.Start(eventId: string, localOverride: boolean?): boolean
 		LastHeartbeat = startTime,
 		HeartbeatConnection = nil,
 		LocalOverride = localOverride == true,
+		ServerModule = serverModule,
 	}
 	activeEvents[eventId] = activeEvent
 
 	-- Call server OnStart
 	local success, err = pcall(function()
-		eventData.ServerFunctions.OnStart()
+		serverModule.OnStart()
 	end)
 	if not success then
 		warn("[AdminAbuseEvents] Server OnStart failed for", eventId, ":", err)
@@ -62,11 +100,13 @@ function module.Start(eventId: string, localOverride: boolean?): boolean
 		activeEvent.LastHeartbeat = currentTime
 
 		-- Call server Heartbeat
-		local heartbeatSuccess, heartbeatErr = pcall(function()
-			eventData.ServerFunctions.Heartbeat(delta, elapsedTime)
-		end)
-		if not heartbeatSuccess then
-			warn("[AdminAbuseEvents] Server Heartbeat failed for", eventId, ":", heartbeatErr)
+		if serverModule.Heartbeat then
+			local heartbeatSuccess, heartbeatErr = pcall(function()
+				serverModule.Heartbeat(delta, elapsedTime)
+			end)
+			if not heartbeatSuccess then
+				warn("[AdminAbuseEvents] Server Heartbeat failed for", eventId, ":", heartbeatErr)
+			end
 		end
 	end)
 
@@ -92,10 +132,9 @@ function module.Stop(eventId: string): boolean
 	end
 
 	-- Call server OnStop
-	local eventData = AdminAbuseEventsDirectory[eventId]
-	if eventData then
+	if activeEvent.ServerModule then
 		local success, err = pcall(function()
-			eventData.ServerFunctions.OnStop()
+			activeEvent.ServerModule.OnStop()
 		end)
 		if not success then
 			warn("[AdminAbuseEvents] Server OnStop failed for", eventId, ":", err)
