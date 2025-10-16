@@ -10,10 +10,28 @@ local Index = require(game.ServerScriptService.Game.Library.Index)
 local Saving = require(game.ServerScriptService.Library.Saving)
 local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
 local PlotTypes = require(game.ReplicatedStorage.Game.Library.Types.Plots)
+local Directory = require(game.ReplicatedStorage.Game.Library.Directory)
 
 local PATCH_INTERVAL = 5 -- seconds
 
-local function IsFishIndexed(indexMap: any, fishId: string, fishType: FishTypes.fish_type, mutation: FishTypes.fish_mutation_type?): boolean
+local function GetMutationId(mutation: string?): string?
+	if not mutation then
+		return nil
+	end
+	
+	local mutationDir = Directory.Mutations[mutation]
+	if mutationDir then
+		if mutationDir._id == "Bloodfish" then -- Bloodfish was done weird originally, so we need to convert it to the new format
+			return "BloodMoon"
+		else
+			return mutationDir._id
+		end
+	end
+
+	return nil
+end
+
+local function IsFishIndexed(indexMap: any, fishId: string, fishType: FishTypes.fish_type, mutation: string?): boolean
 	if type(indexMap) ~= "table" then
 		return false
 	end
@@ -37,10 +55,12 @@ local function IsFishIndexed(indexMap: any, fishId: string, fishType: FishTypes.
 	
 	-- Check if the mutation is indexed (if applicable)
 	local mutationIndexed = true
-	if mutation == "Bloodfish" then
-		mutationIndexed = entry.BloodMoon == true
-	elseif mutation == "Galaxy" then
-		mutationIndexed = entry.Galaxy == true
+	if mutation then
+		local mutationId = GetMutationId(mutation)
+
+		if mutationId then
+			mutationIndexed = entry[mutationId] == true
+		end
 	end
 	
 	return variantIndexed and mutationIndexed

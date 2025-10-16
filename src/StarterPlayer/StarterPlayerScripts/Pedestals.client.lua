@@ -1162,10 +1162,11 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             parent = plotFishGold
         end
 
-        if fishData.FishData.Mutation == "Bloodfish" then
-            FishTypes.MakeBloodfishModel(fishModel)
-        elseif fishData.FishData.Mutation == "Galaxy" then
-            FishTypes.MakeGalaxyModel(fishModel)
+        if fishData.FishData.Mutation then
+            local mutationDir = Directory.Mutations[fishData.FishData.Mutation]
+            if mutationDir then
+                mutationDir.ApplyToModel(fishModel)
+            end
         end
         
         -- Apply trait visual effects to the model

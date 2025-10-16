@@ -43,7 +43,7 @@ return {
 			["Rainbow"] = 1,
 		}
 
-		local mutation: FishTypes.fish_mutation_type? = nil
+		local mutation: string? = nil
 		if math.random() <= 0.1 then
 			mutation = "Galaxy"
 		end

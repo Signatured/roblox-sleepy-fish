@@ -17,6 +17,8 @@ local UNSELECTED_IMG = "rbxassetid://72752195568291"
 
 local currentCategory: FishTypes.fish_type | "BloodMoon" | "Galaxy" = "Normal"
 
+local categories = {"Normal","Gold","Rainbow","Shiny","BloodMoon","Galaxy"}
+
 local resolutionSettings = {
 	{
 		ResolutionThreshold = 0.65, 
@@ -34,6 +36,26 @@ local resolutionSettings = {
 		Padding = UDim2.new(0.01, 0, 0.01, 0)
 	}
 }
+
+local function GetMutationId(mutation: string?): string?
+	if not mutation then
+		return nil
+	end
+
+    if mutation == "BloodMoon" then
+        return "Bloodfish"
+    else
+        local mutationDir = Directory.Mutations[mutation]
+        if mutationDir then
+            if mutationDir._id == "Bloodfish" then -- Bloodfish was done weird originally, so we need to convert it to the new format
+                return "BloodMoon"
+            else
+                return mutationDir._id
+            end
+        end
+    end
+    return nil
+end
 
 local function getGui()
     local indexGui = GUI.Index()
@@ -64,7 +86,7 @@ local function setCategoryButtons(root: Instance, onCategoryChanged: () -> ())
             btn.Activated:Connect(function()
                 currentCategory = cat
                 btn.Image = SELECTED_IMG
-                for _, other in ipairs({"Normal","Gold","Rainbow","Shiny","BloodMoon","Galaxy"}) do
+                for _, other in ipairs(categories) do
                     if other ~= buttonName then
                         local ob = side:FindFirstChild(other)
                         if ob and ob:IsA("ImageButton") then
@@ -110,7 +132,7 @@ local function realRender()
     -- default selection visuals
     local side = frame:FindFirstChild("SideFrame")
     if side and side:IsA("Frame") then
-        for _, n in ipairs({"Normal","Gold","Rainbow","Shiny","BloodMoon","Galaxy"}) do
+        for _, n in ipairs(categories) do
             local b = side:FindFirstChild(n)
             if b and b:IsA("ImageButton") then
                 b.Image = (n == currentCategory) and SELECTED_IMG or UNSELECTED_IMG
@@ -142,10 +164,12 @@ local function realRender()
         clone.Parent = container
         
         -- Apply Bloodfish visual effect for BloodMoon category
-        if currentCategory == "BloodMoon" and hasSeen then
-            FishTypes.MakeBloodfishModel(clone)
-        elseif currentCategory == "Galaxy" and hasSeen then
-            FishTypes.MakeGalaxyModel(clone)
+        local mutationId = GetMutationId(currentCategory)
+        if mutationId and hasSeen then  
+            local mutationDir = Directory.Mutations[mutationId]
+            if mutationDir then
+                mutationDir.ApplyToModel(clone)
+            end
         end
 
         local bboxCF, bboxSize = container:GetBoundingBox()

@@ -18,6 +18,23 @@ export type IndexData = {
 
 local Index = {}
 
+local function GetMutationId(mutation: string?): string?
+	if not mutation then
+		return nil
+	end
+	
+	local mutationDir = Directory.Mutations[mutation]
+	if mutationDir then
+		if mutationDir._id == "Bloodfish" then -- Bloodfish was done weird originally, so we need to convert it to the new format
+			return "BloodMoon"
+		else
+			return mutationDir._id
+		end
+	end
+
+	return nil
+end
+
 local function ensureEntry(map: {[string]: IndexData}, fishId: string): IndexData
 	local entry = map[fishId]
 	if not entry then
@@ -48,7 +65,7 @@ local function markVariant(entry: IndexData, fishType: FishTypes.fish_type)
 	end
 end
 
-function Index.Add(player: Player, fishId: string, fishType: FishTypes.fish_type, mutation: FishTypes.fish_mutation_type?)
+function Index.Add(player: Player, fishId: string, fishType: FishTypes.fish_type, mutation: string?)
 	local save = Saving.Get(player)
 	if not save then return end
 
@@ -57,13 +74,11 @@ function Index.Add(player: Player, fishId: string, fishType: FishTypes.fish_type
 	markVariant(entry, fishType)
 	
 	-- Mark BloodMoon if fish has Bloodfish mutation
-	if mutation == "Bloodfish" then
-		entry.BloodMoon = true
-	end
-	
-	-- Mark Galaxy if fish has Galaxy mutation
-	if mutation == "Galaxy" then
-		entry.Galaxy = true
+	if mutation then
+		local mutationId = GetMutationId(mutation)
+		if mutationId then
+			entry[mutationId] = true
+		end
 	end
 end
 

@@ -607,7 +607,7 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
     end
 
     -- Check if Galaxy event is active and apply Galaxy mutation
-    local mutation: FishTypes.fish_mutation_type? = nil
+    local mutation: string? = nil
     if not schema.LuckyBlockId then -- Lucky Block fish never have mutations
         local isEventActive, eventId = MutationEvent.GetCurrentStatus()
         if isEventActive and eventId == "Galaxy" then
@@ -653,10 +653,11 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
     end
     
     -- Apply Bloodfish visual effect if mutation is present
-    if mutation == "Bloodfish" then
-        FishTypes.MakeBloodfishModel(fishInstance.Model)
-    elseif mutation == "Galaxy" then
-        FishTypes.MakeGalaxyModel(fishInstance.Model)
+    if mutation then
+        local mutationDir = Directory.Mutations[mutation]
+        if mutationDir then
+            mutationDir.ApplyToModel(fishInstance.Model)
+        end
     end
     
     attachGui(fishInstance, schema)
@@ -724,7 +725,7 @@ local function spawnOne(into: BasePart, backdate: number?)
     end
 
     -- Check if Galaxy event is active and apply Bloodfish mutation
-    local mutation: FishTypes.fish_mutation_type? = nil
+    local mutation: string? = nil
     if not schema.LuckyBlockId then -- Lucky Block fish never have mutations
         local isBloodMoonActive, eventId = MutationEvent.GetCurrentStatus()
         if isBloodMoonActive and eventId == "Galaxy" then
@@ -766,10 +767,11 @@ local function spawnOne(into: BasePart, backdate: number?)
     fishInstance.Model:SetAttribute("OceanFish", true)
     
     -- Apply Bloodfish visual effect if mutation is present
-    if mutation == "Bloodfish" then
-        FishTypes.MakeBloodfishModel(fishInstance.Model)
-    elseif mutation == "Galaxy" then
-        FishTypes.MakeGalaxyModel(fishInstance.Model)
+    if mutation then
+        local mutationDir = Directory.Mutations[mutation]
+        if mutationDir then
+            mutationDir.ApplyToModel(fishInstance.Model)
+        end
     end
     
     attachGui(fishInstance, schema)
@@ -940,13 +942,10 @@ function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutat
     end
 
     -- Validate mutation
-    local validatedMutation: FishTypes.fish_mutation_type? = nil
-    if not schema.LuckyBlockId then -- Lucky Block fish never have mutations
-        if mutation == "Bloodfish" then
-            validatedMutation = "Bloodfish"
-        elseif mutation == "Galaxy" then
-            validatedMutation = "Galaxy"
-        end
+    local validatedMutation: string? = nil
+    if not schema.LuckyBlockId and mutation then -- Lucky Block fish never have mutations
+        local mutationDir = Directory.Mutations[mutation]
+        validatedMutation = mutationDir._id
     end
 
     local fishData: FishTypes.data_schema = {
@@ -985,10 +984,11 @@ function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutat
     fishInstance.Model:SetAttribute("OceanFish", true)
     
     -- Apply Bloodfish visual effect if mutation is present
-    if validatedMutation == "Bloodfish" then
-        FishTypes.MakeBloodfishModel(fishInstance.Model)
-    elseif validatedMutation == "Galaxy" then
-        FishTypes.MakeGalaxyModel(fishInstance.Model)
+    if validatedMutation then
+        local mutationDir = Directory.Mutations[validatedMutation]
+        if mutationDir then
+            mutationDir.ApplyToModel(fishInstance.Model)
+        end
     end
     
     attachGui(fishInstance, schema)

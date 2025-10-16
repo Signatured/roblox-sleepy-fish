@@ -24,7 +24,7 @@ local function onToolAddedToCharacter(tool: Tool)
 
     -- Attach highlight based on tool Type attribute
     local toolType = tool:GetAttribute("Type")
-    local toolMutation = tool:GetAttribute("Mutation")
+    local toolMutation = tool:GetAttribute("Mutation")::string?
     local assets = ReplicatedStorage:FindFirstChild("Assets")
     local function attachAndAnimate(hlTemplateName: string, mode: string)
         if not assets then return end
@@ -77,10 +77,11 @@ local function onToolAddedToCharacter(tool: Tool)
             attachAndAnimate("ShinyHighlight", "Shiny")
         end
 
-        if toolMutation == "Bloodfish" then
-            FishTypes.MakeBloodfishModel(tool)
-        elseif toolMutation == "Galaxy" then
-            FishTypes.MakeGalaxyModel(tool)
+        if toolMutation then
+            local mutationDir = Directory.Mutations[toolMutation]
+            if mutationDir then
+                mutationDir.ApplyToModel(tool)
+            end
         end
     end)
     tool.Unequipped:Connect(function()
