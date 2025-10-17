@@ -50,9 +50,18 @@ local function handleForceRarity(message: Message)
 	if typeof(data) ~= "table" then return end
 	local rarityId = data.rarityId
     local fishType = data.fishType
+	local mutation = data.mutation
+	local traits = data.traits
+	
 	if typeof(rarityId) ~= "string" then return end
+	
+	-- Validate mutation if provided by checking if it exists in the Mutations directory
+	if mutation and not Directory.Mutations[mutation] then
+		mutation = nil
+	end
+	
     pcall(function()
-        FishGenerator.ForceSpawnRandomType(rarityId, nil, fishType)
+        FishGenerator.ForceSpawnRandomType(rarityId, nil, fishType, mutation, traits)
     end)
 end
 

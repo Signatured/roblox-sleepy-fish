@@ -587,7 +587,7 @@ local function chooseSpawnPart(): BasePart
 end
 
 -- owner: if provided, marks the fish as private to this player
-local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: string?)
+local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: string?, mutationOverride: string?, traitsOverride: {[string]: boolean}?)
     local schema = chooseFishByRarity(rarityId)
     if not schema then return end
     local fishModelTemplate = schema._script:WaitForChild("Model")
@@ -606,9 +606,13 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
         fishType = "Normal"
     end
 
-    -- Check if Spooky event is active and apply Spooky mutation
+    -- Determine mutation: use override if provided, otherwise check for active events
     local mutation: string? = nil
-    if not schema.LuckyBlockId then -- Lucky Block fish never have mutations
+    if mutationOverride then
+        -- Use the provided mutation override
+        mutation = mutationOverride
+    elseif not schema.LuckyBlockId then -- Lucky Block fish never have mutations
+        -- Check if Spooky event is active and apply Spooky mutation
         local isEventActive, eventId = MutationEvent.GetCurrentStatus()
         if isEventActive and eventId == "Spooky" then
             mutation = "Spooky"
@@ -624,6 +628,7 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
         Level = 1,
         CreateTime = workspace:GetServerTimeNow(),
         BaseTime = workspace:GetServerTimeNow(),
+        Traits = traitsOverride,
     }
 
     local fishInstance: Swimming = {
@@ -918,8 +923,8 @@ function FishGen.Destroy(uid: string)
     despawn(uid)
 end
 
-function FishGen.ForceSpawnRandomType(rarityId: string, player: Player?, fishTypeOverride: string?)
-    spawnForcedByRarity(rarityId, player, fishTypeOverride)
+function FishGen.ForceSpawnRandomType(rarityId: string, player: Player?, fishTypeOverride: string?, mutation: string?, traits: {[string]: boolean}?)
+    spawnForcedByRarity(rarityId, player, fishTypeOverride, mutation, traits)
 end
 
 function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutation: string?, adminSpawned: boolean?, traits: {[string]: boolean}?)
