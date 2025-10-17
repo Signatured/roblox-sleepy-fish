@@ -25,6 +25,7 @@ local function onToolAddedToCharacter(tool: Tool)
     -- Attach highlight based on tool Type attribute
     local toolType = tool:GetAttribute("Type")
     local toolMutation = tool:GetAttribute("Mutation")::string?
+    local toolTraits = tool:GetAttribute("Traits")::string?
     local assets = ReplicatedStorage:FindFirstChild("Assets")
     local function attachAndAnimate(hlTemplateName: string, mode: string)
         if not assets then return end
@@ -81,6 +82,20 @@ local function onToolAddedToCharacter(tool: Tool)
             local mutationDir = Directory.Mutations[toolMutation]
             if mutationDir then
                 mutationDir.ApplyToModel(tool)
+            end
+        end
+
+        if toolTraits then
+            -- Parse comma-separated traits
+            for traitId in string.gmatch(toolTraits, "[^,]+") do
+                -- Trim whitespace
+                local trimmedTraitId = string.match(traitId, "^%s*(.-)%s*$")
+                if trimmedTraitId then
+                    local traitDir = Directory.Traits[trimmedTraitId]
+                    if traitDir and traitDir.ApplyToModel then
+                        traitDir.ApplyToModel(tool)
+                    end
+                end
             end
         end
     end)

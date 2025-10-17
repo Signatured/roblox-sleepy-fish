@@ -922,7 +922,7 @@ function FishGen.ForceSpawnRandomType(rarityId: string, player: Player?, fishTyp
     spawnForcedByRarity(rarityId, player, fishTypeOverride)
 end
 
-function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutation: string?, adminSpawned: boolean?)
+function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutation: string?, adminSpawned: boolean?, traits: {[string]: boolean}?)
     local schema = Directory.Fish[fishId]
     if not schema then return end
     local fishModelTemplate = schema._script:WaitForChild("Model")
@@ -953,6 +953,7 @@ function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutat
         FishId = schema._id,
         Type = selectedFishType,
         Mutation = validatedMutation,
+        Traits = traits,
         Shiny = false,
         Level = 1,
         CreateTime = workspace:GetServerTimeNow(),
@@ -989,6 +990,11 @@ function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutat
         if mutationDir then
             mutationDir.ApplyToModel(fishInstance.Model)
         end
+    end
+    
+    -- Apply traits to model if present
+    if traits then
+        Traits.ApplyTraitsToModel(fishData, fishInstance.Model)
     end
     
     attachGui(fishInstance, schema)

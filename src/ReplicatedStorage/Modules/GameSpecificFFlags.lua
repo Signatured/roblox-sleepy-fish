@@ -18,6 +18,7 @@ module.Raw = {
 
     -- Admin Abuse Events
     AdminAbuseEvent_Lightning = { Default = false, Type = "boolean" },
+    LightningChance = { Default = 0.15, Type = "number" },
 }
 
 -- Optionally extend per-game admin access for the FFlags UI.

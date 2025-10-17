@@ -43,6 +43,7 @@ export type create_params = {
     FishId: string,
     Type: fish_type,
     Mutation: string?,
+    Traits: {[string]: boolean}?,
     Shiny: boolean?,
     Level: number?,
 }

@@ -39,6 +39,7 @@ local function createFishData(player: Player, params: FishTypes.create_params): 
         FishId = params.FishId,
         Type = params.Type,
         Mutation = params.Mutation,
+        Traits = params.Traits,
         Shiny = params.Shiny,
         Level = params.Level or 1,
         CreateTime = now,
@@ -64,6 +65,19 @@ local function removeFromInventory(player: Player, uid: string)
             break
         end
     end
+end
+
+local function traitsToString(traits: {[string]: boolean}?): string?
+    if not traits then return nil end
+    local traitList = {}
+    for traitId, hasTrait in pairs(traits) do
+        if hasTrait then
+            table.insert(traitList, traitId)
+        end
+    end
+    if #traitList == 0 then return nil end
+    table.sort(traitList) -- Sort for consistent ordering
+    return table.concat(traitList, ",")
 end
 
 function Fish.GetFromInventory(player: Player, uid: string): FishTypes.data_schema?
@@ -179,6 +193,7 @@ function Fish.Give(player: Player, params: FishTypes.create_params | FishTypes.s
     tool:SetAttribute("UID", fishData.UID)
     tool:SetAttribute("Type", fishData.Type)
     tool:SetAttribute("Mutation", fishData.Mutation)
+    tool:SetAttribute("Traits", traitsToString(fishData.Traits))
     tool.Parent = backpack
 
     local userTools = playerFishTools[player.UserId]
@@ -229,6 +244,7 @@ local function populateToolsFromInventory(player: Player)
                     newTool:SetAttribute("UID", fishData.UID)
                     newTool:SetAttribute("Type", fishData.Type)
                     newTool:SetAttribute("Mutation", fishData.Mutation)
+                    newTool:SetAttribute("Traits", traitsToString(fishData.Traits))
                     newTool.Parent = backpack
                     playerFishTools[player.UserId][fishData.UID] = newTool
                 end

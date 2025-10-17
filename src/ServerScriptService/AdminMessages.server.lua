@@ -74,6 +74,7 @@ local function handleGlobalForceGive(message: Message)
 	local fishId = data.fishId
 	local fishType = data.fishType or "Normal"
 	local mutation = data.mutation
+	local traits = data.traits
 	local level = data.level or 1
 	
 	if typeof(fishId) ~= "string" then return end
@@ -90,6 +91,7 @@ local function handleGlobalForceGive(message: Message)
 				FishId = fishId,
 				Type = fishType,
 				Mutation = mutation,
+				Traits = traits,
 				Shiny = false,
 				Level = level
 			})
@@ -183,6 +185,7 @@ local function handleGlobalForceSpawn(message: Message)
 	local fishId = data.fishId
 	local fishType = data.fishType or "Normal"
 	local mutation = data.mutation
+	local traits = data.traits
 	
 	if typeof(fishId) ~= "string" then return end
 	
@@ -193,7 +196,7 @@ local function handleGlobalForceSpawn(message: Message)
 	
 	-- Force spawn the specific fish in the ocean (admin-originated)
 	pcall(function()
-		FishGenerator.ForceSpawnSpecificFish(fishId, fishType, mutation, true)
+		FishGenerator.ForceSpawnSpecificFish(fishId, fishType, mutation, true, traits)
 	end)
 end
 

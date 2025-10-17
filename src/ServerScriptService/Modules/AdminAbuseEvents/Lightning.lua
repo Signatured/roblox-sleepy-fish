@@ -11,6 +11,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local FishGenerator = require(ServerScriptService.Game.Library.FishGenerator)
 local Traits = require(ServerScriptService.Game.Library.Traits)
 local AdminAbuseEvents = require(ServerScriptService.Game.Library.AdminAbuseEvents)
+local FFlags = require(ServerScriptService.Library.FFlags)
 
 local module = {}
 
@@ -75,8 +76,9 @@ function module.Heartbeat(delta: number, time: number)
 	if secondsPassed > lastSecond then
 		lastStrikeCheckTime = time
 		
-		-- 15% chance of lightning strike
-		if math.random() < 0.15 then
+		-- Check for lightning strike based on FFlag chance
+		local lightningChance = FFlags.GetNumber(FFlags.Keys.LightningChance)
+		if math.random() < lightningChance then
 			-- Get all active fish
 			local activeFish = {}
 			for uid, fish in pairs(FishGenerator.GetAllActive()) do
@@ -112,8 +114,6 @@ function module.Heartbeat(delta: number, time: number)
 							-- Default to 200 studs above if no cloud
 							startPosition = Vector3.new(fishPosition.X, fishPosition.Y + 200, fishPosition.Z)
 						end
-						
-						print("[Lightning Server] Strike #" .. strikeCount .. " - Lightning trait applied to fish:", targetUID)
 						
 						-- Notify all clients about the lightning strike
 						AdminAbuseEvents.Fire("Lightning", "Strike", {
