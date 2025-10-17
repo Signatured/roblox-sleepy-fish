@@ -213,8 +213,9 @@ local function realRender()
             elseif currentCategory == "Shiny" then hasSeen = entry.Shiny == true
             elseif currentCategory == "Rainbow" then hasSeen = entry.Rainbow == true
             elseif currentCategory == "BloodMoon" then hasSeen = entry.BloodMoon == true
-            elseif currentCategory == "Galaxy" then hasSeen = entry.Galaxy == true end
+            elseif currentCategory == "Galaxy" then hasSeen = entry.Galaxy == true
             elseif currentCategory == "Spooky" then hasSeen = entry.Spooky == true
+            end
         end
         local countVal = 0
         if hasSeen then
