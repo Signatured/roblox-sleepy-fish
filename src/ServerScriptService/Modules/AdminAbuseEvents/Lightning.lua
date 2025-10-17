@@ -54,6 +54,12 @@ function module.OnStart()
 					
 					cloned.Parent = adminEventsFolder
 					lightningCloud = cloned
+
+					local sound = cloned:FindFirstChild("Sound")::Sound?
+					if sound then
+						sound.Playing = true
+					end
+
 					print("[Lightning Server] LightningCloud spawned in workspace")
 				else
 					warn("[Lightning Server] LightningCloud not found in template")

@@ -22,6 +22,7 @@ local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
 local LuckyBlockTypes = require(game.ReplicatedStorage.Game.Library.Types.LuckyBlocks)
 local MutationCmds = require(game.ReplicatedStorage.Game.Library.Client.MutationCmds)
 local TraitCmds = require(game.ReplicatedStorage.Game.Library.Client.TraitCmds)
+local Message = require(game.ReplicatedStorage.Library.Client.Message)
 
 -- Upgrade button images
 local UPGRADE_IMAGE_GREEN = "rbxassetid://85004105467436"
@@ -1217,9 +1218,22 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
                     if not sellPrice then
                         return
                     end
+                    
+                    -- Check if fish is Mythical or above and prompt for confirmation
+                    local schema = Directory.Fish[fishData.FishId]
+                    if schema and schema.Rarity then
+                        local rarityId = schema.Rarity._id
+                        if rarityId == "Mythical" or rarityId == "Exclusive" or rarityId == "God" or rarityId == "Secret" then
+                            local rarityName = schema.Rarity.DisplayName
+                            local confirmed = Message.new(`Are you sure? This is a {rarityName} fish you're selling!`, true)
+                            if not confirmed then
+                                return
+                            end
+                        end
+                    end
+                    
                     local success = plot:Invoke("SellFish", pedestalId)
                     if success then
-                        local schema = Directory.Fish[fishData.FishId]
                         if not schema then
                             NotificationCmds.Message("Could not find fish data!", {
                                 Color = Color3.fromRGB(255, 0, 0),

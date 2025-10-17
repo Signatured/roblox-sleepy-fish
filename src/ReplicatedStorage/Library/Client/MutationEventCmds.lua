@@ -107,7 +107,7 @@ local function startSpookyEvent()
     NotificationCmds.Message("Something spooky is arriving...", {
         Color = eventData.Color,
         Time = 10,
-        Sound = "rbxassetid://131321022475059"
+        Sound = "rbxassetid://119969791895244"
     })
 
     task.wait(3)
@@ -122,10 +122,10 @@ local function startSpookyEvent()
 
             Audio.Play("rbxassetid://111689316568748", spookyPortal, 1, 1.5, 450)
 
-            local sound = spookyPortal:FindFirstChild("Sound")::Sound?
-            if sound then
-                sound.Playing = true
-            end
+            -- local sound = spookyPortal:FindFirstChild("Sound")::Sound?
+            -- if sound then
+            --     sound.Playing = true
+            -- end
         end
     end
     

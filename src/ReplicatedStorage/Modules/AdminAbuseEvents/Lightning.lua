@@ -12,21 +12,48 @@ local NotificationCmds = require(ReplicatedStorage.Library.Client.NotificationCm
 local AdminAbuseEventCmds = require(ReplicatedStorage.Game.Library.Client.AdminAbuseEventCmds)
 local Functions = require(ReplicatedStorage.Library.Functions)
 local GUIFX = require(ReplicatedStorage.Library.Client.GUIFX)
+local Audio = require(ReplicatedStorage.Library.Audio)
 
 local module = {}
+
+-- Lightning strike sound IDs
+local STRIKE_SOUNDS = {
+	"rbxassetid://138674084543064",
+	"rbxassetid://75263020536239",
+	"rbxassetid://78466157575717"
+}
 
 -- Shared state for this event
 local flashCount = 0
 local _intensity = 0
+local lastStrikeSoundIndex = 0
+
+-- Pick a random strike sound different from the last one
+local function getRandomStrikeSound(): string
+	local index: number
+	if lastStrikeSoundIndex == 0 or #STRIKE_SOUNDS == 1 then
+		-- First time or only one sound, pick any
+		index = math.random(1, #STRIKE_SOUNDS)
+	else
+		-- Pick a different sound from last time
+		repeat
+			index = math.random(1, #STRIKE_SOUNDS)
+		until index ~= lastStrikeSoundIndex
+	end
+	lastStrikeSoundIndex = index
+	return STRIKE_SOUNDS[index]
+end
 
 function module.OnStart()
 	print("[Lightning Client] Event started")
 	flashCount = 0
 	_intensity = 0
+	lastStrikeSoundIndex = 0
 	
 	NotificationCmds.Message("A storm is brewing...", {
 		Color = Color3.fromRGB(100, 193, 255),
 		Time = 8,
+		Sound = "rbxassetid://73851509377743"
 	})
 	
 	-- Register handler for lightning strikes
@@ -88,6 +115,10 @@ function module.OnStart()
 								-- Emit all particles
 								Functions.Emit(strike)
 
+								-- Play strike sound at the hit position
+								local strikeSound = getRandomStrikeSound()
+								Audio.Play(strikeSound, endPos, 1, Functions.RandomDouble(1.2, 1.6), 450)
+
 								-- Screen flash: only if hit part is on screen
 								if hitPart then
 									local camera = Workspace.CurrentCamera
@@ -147,6 +178,7 @@ function module.OnStop()
 	-- Reset state
 	flashCount = 0
 	_intensity = 0
+	lastStrikeSoundIndex = 0
 end
 
 return module
