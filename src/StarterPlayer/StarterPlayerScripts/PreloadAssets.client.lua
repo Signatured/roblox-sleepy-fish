@@ -22,14 +22,19 @@ local preloadSounds = {
     "rbxassetid://133240422241361",
     "rbxassetid://137080714801874",
     "rbxassetid://6308606116", -- Jumpscare sound
-    "rbxassetid://100618183828369", -- Galaxy black hole loop
-    "rbxassetid://131321022475059", -- Galaxy event start
+    -- "rbxassetid://100618183828369", -- Galaxy black hole loop
+    -- "rbxassetid://131321022475059", -- Galaxy event start
     "rbxassetid://111689316568748", -- Galaxy vortex open/close
     "rbxassetid://73644741132942",
     "rbxassetid://78632974820364",
     "rbxassetid://130401084353873",
     "rbxassetid://81968496022483",
-    "rbxassetid://70646733921269"
+    "rbxassetid://70646733921269",
+	"rbxassetid://138674084543064", -- lightning strike
+	"rbxassetid://75263020536239", -- lightning strike
+	"rbxassetid://78466157575717", -- lightning strike
+    "rbxassetid://73851509377743", -- lightning storm start
+    "rbxassetid://119969791895244", -- witch laugh
 }
 
 Audio.PreloadSounds(preloadSounds)
