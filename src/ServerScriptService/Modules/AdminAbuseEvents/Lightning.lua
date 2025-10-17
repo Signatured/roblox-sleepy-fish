@@ -17,7 +17,7 @@ local module = {}
 -- Shared state for this event
 local strikeCount = 0
 local lastStrikeCheckTime = 0
-local lightningCloud: Model? = nil
+local lightningCloud: BasePart? = nil
 
 function module.OnStart()
 	print("[Lightning Server] Event started")
@@ -32,7 +32,7 @@ function module.OnStart()
 			local lightning = adminEvents:FindFirstChild("Lightning")
 			if lightning then
 				local cloudTemplate = lightning:FindFirstChild("LightningCloud")
-				if cloudTemplate then
+				if cloudTemplate and cloudTemplate:IsA("BasePart") then
 					-- Clone the cloud
 					local cloned = cloudTemplate:Clone()
 					
@@ -91,16 +91,38 @@ function module.Heartbeat(delta: number, time: number)
 				local randomIndex = math.random(1, #activeFish)
 				local targetUID = activeFish[randomIndex]
 				
-				local success = FishGenerator.AddTrait(targetUID, "Lightning")
-				if success then
-					strikeCount += 1
-					print("[Lightning Server] Strike #" .. strikeCount .. " - Lightning trait applied to fish:", targetUID)
-					
-					-- Notify all clients about the lightning strike
-					AdminAbuseEvents.Fire("Lightning", "Strike", {
-						UID = targetUID,
-						StrikeCount = strikeCount,
-					})
+				-- Get the fish to find its position
+				local allFish = FishGenerator.GetAllActive()
+				local targetFish = allFish[targetUID]
+				
+				if targetFish and targetFish.Model and targetFish.Model.PrimaryPart then
+					local success = FishGenerator.AddTrait(targetUID, "Lightning")
+					if success then
+						strikeCount += 1
+						
+						-- Calculate strike positions
+						local fishPosition = targetFish.Model.PrimaryPart.Position
+						local endPosition = fishPosition
+						local startPosition = Vector3.new(fishPosition.X, fishPosition.Y, fishPosition.Z)
+						
+						-- Set start Y to lightning cloud's Y position if cloud exists
+						if lightningCloud then
+							startPosition = Vector3.new(fishPosition.X, lightningCloud.Position.Y, fishPosition.Z)
+						else
+							-- Default to 200 studs above if no cloud
+							startPosition = Vector3.new(fishPosition.X, fishPosition.Y + 200, fishPosition.Z)
+						end
+						
+						print("[Lightning Server] Strike #" .. strikeCount .. " - Lightning trait applied to fish:", targetUID)
+						
+						-- Notify all clients about the lightning strike
+						AdminAbuseEvents.Fire("Lightning", "Strike", {
+							UID = targetUID,
+							StrikeCount = strikeCount,
+							StartPosition = startPosition,
+							EndPosition = endPosition,
+						})
+					end
 				end
 			end
 		end

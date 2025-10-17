@@ -247,6 +247,16 @@ Signal.Fired("Player Loaded"):Connect(function(player: Player)
 	end
 end)
 
+-- Handle client requesting active events (when module loads)
+Network.Fired("AdminAbuseEvent_RequestActive", function(player: Player)
+	print("[AdminAbuseEvents] Client requested active events:", player.Name)
+	local activeEventsData = module.GetActiveEvents()
+	for eventId, startTime in pairs(activeEventsData) do
+		print("[AdminAbuseEvents] Sending active event to", player.Name, "-", eventId, "started at", startTime)
+		Network.Fire(player, "AdminAbuseEvent_Start", eventId, startTime)
+	end
+end)
+
 -- Initialize on server start
 task.spawn(initialize)
 

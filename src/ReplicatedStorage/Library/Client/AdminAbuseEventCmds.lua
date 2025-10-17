@@ -73,7 +73,6 @@ local function startEvent(eventId: string, startTime: number)
 
 	-- Check if already running
 	if activeEvents[eventId] then
-		warn("[AdminAbuseEventCmds] Event already running:", eventId)
 		return
 	end
 
@@ -188,6 +187,12 @@ Network.Fired("AdminAbuseEvent_Network", function(eventId: string, eventName: st
 	if handler then
 		task.spawn(handler, data)
 	end
+end)
+
+-- Request active events from server when module loads
+task.defer(function()
+	print("[AdminAbuseEventCmds] Requesting active events from server...")
+	Network.Fire("AdminAbuseEvent_RequestActive")
 end)
 
 return module
