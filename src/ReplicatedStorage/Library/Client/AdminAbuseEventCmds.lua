@@ -14,9 +14,26 @@ type ActiveEvent = {
 	StartTime: number,
 	RenderSteppedConnection: RBXScriptConnection?,
 	ClientModule: AdminAbuseEventsTypes.EventModule?,
+	NetworkHandlers: { [string]: (data: any?) -> () },
 }
 
 local activeEvents: { [string]: ActiveEvent } = {}
+
+-- Register a handler for network events from the server
+function module.Fired(eventId: string, eventName: string, handler: (data: any?) -> ())
+	local activeEvent = activeEvents[eventId]
+	if not activeEvent then
+		warn("[AdminAbuseEventCmds] Cannot register handler for inactive event:", eventId)
+		return
+	end
+	
+	if activeEvent.NetworkHandlers[eventName] then
+		warn("[AdminAbuseEventCmds] Handler already registered for:", eventId, eventName)
+		return
+	end
+	
+	activeEvent.NetworkHandlers[eventName] = handler
+end
 
 -- Get client module for an event
 local function getClientModule(eventId: string, eventData: AdminAbuseEventsTypes.dir_schema): AdminAbuseEventsTypes.EventModule?
@@ -73,6 +90,7 @@ local function startEvent(eventId: string, startTime: number)
 		StartTime = startTime,
 		RenderSteppedConnection = nil,
 		ClientModule = clientModule,
+		NetworkHandlers = {},
 	}
 	activeEvents[eventId] = activeEvent
 
@@ -157,6 +175,19 @@ end)
 
 Network.Fired("AdminAbuseEvent_Stop", function(eventId: string)
 	stopEvent(eventId)
+end)
+
+-- Listen for custom network events from server
+Network.Fired("AdminAbuseEvent_Network", function(eventId: string, eventName: string, data: any?)
+	local activeEvent = activeEvents[eventId]
+	if not activeEvent then
+		return
+	end
+	
+	local handler = activeEvent.NetworkHandlers[eventName]
+	if handler then
+		task.spawn(handler, data)
+	end
 end)
 
 return module

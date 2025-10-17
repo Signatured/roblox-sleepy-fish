@@ -10,6 +10,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 
 local FishGenerator = require(ServerScriptService.Game.Library.FishGenerator)
 local Traits = require(ServerScriptService.Game.Library.Traits)
+local AdminAbuseEvents = require(ServerScriptService.Game.Library.AdminAbuseEvents)
 
 local module = {}
 
@@ -94,6 +95,12 @@ function module.Heartbeat(delta: number, time: number)
 				if success then
 					strikeCount += 1
 					print("[Lightning Server] Strike #" .. strikeCount .. " - Lightning trait applied to fish:", targetUID)
+					
+					-- Notify all clients about the lightning strike
+					AdminAbuseEvents.Fire("Lightning", "Strike", {
+						UID = targetUID,
+						StrikeCount = strikeCount,
+					})
 				end
 			end
 		end

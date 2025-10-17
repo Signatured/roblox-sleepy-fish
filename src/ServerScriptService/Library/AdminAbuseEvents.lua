@@ -22,6 +22,26 @@ type ActiveEvent = {
 
 local activeEvents: { [string]: ActiveEvent } = {}
 
+-- Fire a network event to all clients for a specific event
+function module.Fire(eventId: string, eventName: string, data: any?)
+	if not activeEvents[eventId] then
+		warn("[AdminAbuseEvents] Cannot fire network event for inactive event:", eventId)
+		return
+	end
+	
+	Network.FireAll("AdminAbuseEvent_Network", eventId, eventName, data)
+end
+
+-- Fire a network event to a specific player for a specific event
+function module.FirePlayer(player: Player, eventId: string, eventName: string, data: any?)
+	if not activeEvents[eventId] then
+		warn("[AdminAbuseEvents] Cannot fire network event for inactive event:", eventId)
+		return
+	end
+	
+	Network.Fire(player, "AdminAbuseEvent_Network", eventId, eventName, data)
+end
+
 -- Get server module for an event
 local function getServerModule(eventId: string, eventData: AdminAbuseEventsTypes.dir_schema): AdminAbuseEventsTypes.EventModule?
 	local success, serverModule = pcall(function()

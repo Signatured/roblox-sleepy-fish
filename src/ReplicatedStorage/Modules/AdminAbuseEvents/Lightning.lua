@@ -7,6 +7,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local NotificationCmds = require(ReplicatedStorage.Library.Client.NotificationCmds)
+local AdminAbuseEventCmds = require(ReplicatedStorage.Game.Library.Client.AdminAbuseEventCmds)
 
 local module = {}
 
@@ -23,6 +24,17 @@ function module.OnStart()
 		Color = Color3.fromRGB(100, 193, 255),
 		Time = 8,
 	})
+	
+	-- Register handler for lightning strikes
+	AdminAbuseEventCmds.Fired("Lightning", "Strike", function(data: any?)
+		if typeof(data) == "table" then
+			local strikeData = data :: {UID: string?, StrikeCount: number?}
+			print("[Lightning Client] Lightning struck fish:", strikeData.UID, "Strike #" .. tostring(strikeData.StrikeCount or 0))
+			
+			-- Could add visual/audio effects here
+			-- For example: flash the screen, play thunder sound, etc.
+		end
+	end)
 end
 
 function module.RenderStepped(delta: number, time: number)
