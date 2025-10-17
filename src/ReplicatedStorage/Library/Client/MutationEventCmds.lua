@@ -34,10 +34,10 @@ local function getESTTime(): number
 end
 
 -- Event effect instances
-local galaxyBlackHole: BasePart? = nil
+local spookyPortal: BasePart? = nil
 local sky: Instance? = nil
 local colorCorrection: ColorCorrectionEffect? = nil
-local galaxyParticles: BasePart? = nil
+local spookyParticles: BasePart? = nil
 
 -- Event state tracking
 local isSpookyRunning = false
@@ -104,25 +104,25 @@ local function startSpookyEvent()
     isSpookyRunning = true
     
     -- Send notification
-    NotificationCmds.Message("The Spooky Portal is opening...", {
+    NotificationCmds.Message("Something spooky is arriving...", {
         Color = eventData.Color,
         Time = 10,
         Sound = "rbxassetid://131321022475059"
     })
 
-    task.wait(8.5)
+    task.wait(3)
     
     -- Clone and setup Black Hole
     local eventFolder = Assets:FindFirstChild("Spooky")
-    local blackHoleTemplate = eventFolder and eventFolder:FindFirstChild("BlackHole")
-    if blackHoleTemplate and blackHoleTemplate:IsA("BasePart") then
-        galaxyBlackHole = blackHoleTemplate:Clone() :: BasePart
-        if galaxyBlackHole then
-            galaxyBlackHole.Parent = DEBRIS
+    local spookyPortalTemplate = eventFolder and eventFolder:FindFirstChild("SpookyPortal")
+    if spookyPortalTemplate and spookyPortalTemplate:IsA("BasePart") then
+        spookyPortal = spookyPortalTemplate:Clone() :: BasePart
+        if spookyPortal then
+            spookyPortal.Parent = DEBRIS
 
-            Audio.Play("rbxassetid://111689316568748", galaxyBlackHole, 1, 1.5, 450)
+            Audio.Play("rbxassetid://111689316568748", spookyPortal, 1, 1.5, 450)
 
-            local sound = galaxyBlackHole:FindFirstChild("Sound")::Sound?
+            local sound = spookyPortal:FindFirstChild("Sound")::Sound?
             if sound then
                 sound.Playing = true
             end
@@ -132,8 +132,8 @@ local function startSpookyEvent()
     -- task.wait(3)
     
     -- Clone sky
-    local galaxyFolder2 = Assets:FindFirstChild("Galaxy")
-    local skyTemplate = galaxyFolder2 and galaxyFolder2:FindFirstChild("GalaxySky")
+    local spookyFolder2 = Assets:FindFirstChild("Spooky")
+    local skyTemplate = spookyFolder2 and spookyFolder2:FindFirstChild("SpookySky")
     if skyTemplate then
         sky = skyTemplate:Clone()
         if sky then
@@ -142,8 +142,8 @@ local function startSpookyEvent()
     end
     
     -- Change colors of parts with EventColor attribute
-    local galaxyData = Directory.MutationEvents["Galaxy"]
-    if galaxyData then
+    local spookyData = Directory.MutationEvents["Spooky"]
+    if spookyData then
         local THINGS = workspace:FindFirstChild("__THINGS")
         if THINGS then
             for _, obj in ipairs(THINGS:GetDescendants()) do
@@ -151,10 +151,10 @@ local function startSpookyEvent()
                     local part = obj :: BasePart
                     -- Store original color
                     originalColors[part] = part.Color
-                    -- Tween to galaxy color
+                    -- Tween to spooky color
                     local tween = TweenService:Create(part,
                         TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                        {Color = galaxyData.Color}
+                        {Color = spookyData.Color}
                     )
                     tween:Play()
                 end
@@ -172,13 +172,13 @@ local function startSpookyEvent()
         tween:Play()
     end
     
-    -- Clone GalaxyParticles
-    local galaxyParticlesTemplate = galaxyFolder2 and galaxyFolder2:FindFirstChild("GalaxyParticles")
+    -- Clone SpookyParticles
+    local spookyParticlesTemplate = spookyFolder2 and spookyFolder2:FindFirstChild("SpookyParticles")
     
-    if galaxyParticlesTemplate and galaxyParticlesTemplate:IsA("BasePart") then
-        galaxyParticles = galaxyParticlesTemplate:Clone() :: BasePart
-        if galaxyParticles then
-            galaxyParticles.Parent = DEBRIS
+    if spookyParticlesTemplate and spookyParticlesTemplate:IsA("BasePart") then
+        spookyParticles = spookyParticlesTemplate:Clone() :: BasePart
+        if spookyParticles then
+            spookyParticles.Parent = DEBRIS
         end
     end
     
@@ -189,7 +189,7 @@ end
 local function endSpookyEvent()
     -- Prevent ending if not running
     if not isSpookyRunning then 
-        warn("[MutationEvent] Galaxy event not running, ignoring end request")
+        warn("[MutationEvent] Spooky event not running, ignoring end request")
         return 
     end
     
@@ -199,16 +199,16 @@ local function endSpookyEvent()
     end
     
     -- Turn on whirlpool particles for 3 seconds
-    if galaxyBlackHole then
-        Audio.Play("rbxassetid://111689316568748", galaxyBlackHole, 1, 1.5, 450)
+    if spookyPortal then
+        Audio.Play("rbxassetid://111689316568748", spookyPortal, 1, 1.5, 450)
         
         task.wait(6)
-        setParticlesEnabled(galaxyBlackHole, false)
+        setParticlesEnabled(spookyPortal, false)
     end
     
-    -- Turn off particles for GalaxyParticles
-    if galaxyParticles then
-        setParticlesEnabled(galaxyParticles, false)
+    -- Turn off particles for SpookyParticles
+    if spookyParticles then
+        setParticlesEnabled(spookyParticles, false)
     end
     
     -- Remove sky
@@ -241,20 +241,20 @@ local function endSpookyEvent()
     end
     
     -- Turn off whirlpool particles again
-    if galaxyBlackHole then
-        setParticlesEnabled(galaxyBlackHole, false)
+    if spookyPortal then
+        setParticlesEnabled(spookyPortal, false)
     end
     
     task.wait(3)
     
     -- Destroy all cloned parts
-    if galaxyBlackHole then
-        galaxyBlackHole:Destroy()
-        galaxyBlackHole = nil
+    if spookyPortal then
+        spookyPortal:Destroy()
+        spookyPortal = nil
     end
-    if galaxyParticles then
-        galaxyParticles:Destroy()
-        galaxyParticles = nil
+    if spookyParticles then
+        spookyParticles:Destroy()
+        spookyParticles = nil
     end
     
     -- Reset event state
