@@ -7,8 +7,8 @@ return {
     DisplayName = "Haunted Kraken",
     Icon = "rbxassetid://126180884467474",
     MutationIcons = {
-        Bloodfish = "rbxassetid://126180884467474",
-        Galaxy = "rbxassetid://126180884467474",
+        Bloodfish = "rbxassetid://139741143103598",
+        Galaxy = "rbxassetid://122205135305488",
         Spooky = "",
     },
     Rarity = Rarity.God,

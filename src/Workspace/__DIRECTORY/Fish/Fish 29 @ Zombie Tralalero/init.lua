@@ -7,8 +7,8 @@ return {
     DisplayName = "Zombie Tralalero", 
     Icon = "rbxassetid://106296036649881",
     MutationIcons = {
-        Bloodfish = "rbxassetid://106296036649881",
-        Galaxy = "rbxassetid://106296036649881",
+        Bloodfish = "rbxassetid://96529139558594",
+        Galaxy = "rbxassetid://78486715760654",
         Spooky = "",
     },
     Rarity = Rarity.Mythical,

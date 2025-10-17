@@ -7,8 +7,8 @@ return {
     DisplayName = "Vampire Sea Dragon",
     Icon = "rbxassetid://136331765901242",
     MutationIcons = {
-        Bloodfish = "rbxassetid://136331765901242",
-        Galaxy = "rbxassetid://136331765901242",
+        Bloodfish = "rbxassetid://79099792473267",
+        Galaxy = "rbxassetid://96162368252642",
         Spooky = "",
     },
     Rarity = Rarity.Secret,

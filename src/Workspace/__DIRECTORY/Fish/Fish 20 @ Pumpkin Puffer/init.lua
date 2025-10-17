@@ -7,8 +7,8 @@ return {
     DisplayName = "Pumpkin Puffer",
     Icon = "rbxassetid://137862564036884",
     MutationIcons = {
-        Bloodfish = "rbxassetid://137862564036884",
-        Galaxy = "rbxassetid://137862564036884",
+        Bloodfish = "rbxassetid://138739146261970",
+        Galaxy = "rbxassetid://114240561011313",
         Spooky = "",
     },
     Rarity = Rarity.Legendary,
