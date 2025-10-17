@@ -1148,6 +1148,10 @@ Network.Fired("DropFish", function(player: Player)
     FishGen.Drop(player)
 end)
 
+function FishGen.GetAllActive(): {[string]: Swimming}
+	return uidToFish
+end
+
 return FishGen
 
 
