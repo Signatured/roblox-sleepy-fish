@@ -5,10 +5,10 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Pumpkin Puffer",
-    Icon = "rbxassetid://137862564036884",
+    Icon = "rbxassetid://121124709133867",
     MutationIcons = {
-        Bloodfish = "rbxassetid://138739146261970",
-        Galaxy = "rbxassetid://114240561011313",
+        Bloodfish = "rbxassetid://121124709133867",
+        Galaxy = "rbxassetid://121124709133867",
         Spooky = "",
     },
     Rarity = Rarity.Legendary,
