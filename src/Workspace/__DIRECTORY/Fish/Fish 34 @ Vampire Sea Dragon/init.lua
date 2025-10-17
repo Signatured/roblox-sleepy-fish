@@ -14,10 +14,11 @@ return {
     MoneyPerSecond = 960,
     BaseUpgradeCost = 30500,
     BillboardOffset = 12,
-    PedestalOffset = -2,
+    PedestalOffset = -4,
     RarityWeight = 5,
-    -- IndexOffset = 8,
-    IndexPositionOffset = Vector3.new(-7, 2, 0),
+    IndexOffset = -17,
+    IndexPositionOffset = Vector3.new(-6, 0, 0),
+    IndexRotationOffset = Vector3.new(0, math.rad(90), 0),
 }::FishTypes.raw_dir
 
 

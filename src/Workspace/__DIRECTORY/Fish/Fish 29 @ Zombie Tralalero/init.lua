@@ -4,7 +4,7 @@ local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
 local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
-    DisplayName = "Zombie Tralalero",
+    DisplayName = "Zombie Tralalero", 
     Icon = "rbxassetid://106296036649881",
     MutationIcons = {
         Bloodfish = "rbxassetid://106296036649881",
@@ -13,11 +13,12 @@ return {
     Rarity = Rarity.Mythical,
     MoneyPerSecond = 425,
     BaseUpgradeCost = 10500,
-    BillboardOffset = 9,
-    PedestalOffset = -2.5,
+    BillboardOffset = 10,
+    PedestalOffset = 0.5,
     RarityWeight = 3,
-    IndexOffset = 8,
-    IndexPositionOffset = Vector3.new(-5, 2, 0),
+    IndexOffset = -4,
+    IndexPositionOffset = Vector3.new(-3, 0, 0),
+    IndexRotationOffset = Vector3.new(0, math.rad(90), 0),
 }::FishTypes.raw_dir
 
 

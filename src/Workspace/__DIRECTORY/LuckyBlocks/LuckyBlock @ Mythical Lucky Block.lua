@@ -7,8 +7,8 @@ return {
     DisplayName = "Mythical",
     Rarity = Rarity.Mythical,
     Loot = {
-        ["Crystalite Fish"] = 40,
-        ["Firevulcan Serpent"] = 30,
+        ["Firevulcan Serpent"] = 40,
+        ["Zombie Tralalero"] = 30,
         ["Narwhal"] = 20,
         ["Diamond Serpent"] = 10,
     },
