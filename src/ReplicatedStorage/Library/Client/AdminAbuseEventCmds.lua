@@ -191,7 +191,6 @@ end)
 
 -- Request active events from server when module loads
 task.defer(function()
-	print("[AdminAbuseEventCmds] Requesting active events from server...")
 	Network.Fire("AdminAbuseEvent_RequestActive")
 end)
 

@@ -36,15 +36,10 @@ function module.OnStart()
 				StartPosition: Vector3?,
 				EndPosition: Vector3?
 			}
-			print("[Lightning Client] Lightning struck fish:", strikeData.UID, "Strike #" .. tostring(strikeData.StrikeCount or 0))
-			
 			-- Create visual effect
 			if strikeData.StartPosition and strikeData.EndPosition then
 				local startPos = strikeData.StartPosition
 				local endPos = strikeData.EndPosition
-				
-				print("[Lightning Client] Strike positions - Start:", startPos, "End:", endPos)
-				print("[Lightning Client] Distance:", (endPos - startPos).Magnitude)
 				
 				-- Find the LightningStrike template
 				local assets = ReplicatedStorage:FindFirstChild("Assets")
@@ -62,8 +57,6 @@ function module.OnStart()
 								local hitPart = strike:FindFirstChild("Hit")
 								if hitPart and hitPart:IsA("BasePart") then
 									hitPart.Position = endPos
-									print("[Lightning Client] Hit part positioned at:", hitPart.Position)
-									print("[Lightning Client] Hit position difference from end:", (hitPart.Position - endPos).Magnitude)
 								end
 								
 								-- Resize and position the Beam part
@@ -73,34 +66,18 @@ function module.OnStart()
 									local distance = (endPos - startPos).Magnitude
 									local midPoint = (startPos + endPos) / 2
 									
-									print("[Lightning Client] Calculated midpoint:", midPoint)
-									print("[Lightning Client] Calculated distance:", distance)
-									
-									-- Original size is 5, 243.896, 5 (Y is the length)
-									-- Resize to match the strike distance
-									beamPart.Size = Vector3.new(5, distance, 5)
+									-- Beam needs to be 114 studs shorter (minimum 10)
+									local beamLength = math.max(10, distance - 114)
+									beamPart.Size = Vector3.new(5, beamLength, 5)
 									
 									-- Orient the beam so its Y-axis points from start to end
-									-- The beam's Y-axis is its length, so it should point downward
 									local direction = (endPos - startPos).Unit
 									
-									-- Create a CFrame at midpoint with Y-axis pointing toward endPos
-									-- We use lookAt which points -Z, then rotate 90° around X to make Y point that way
-									beamPart.CFrame = CFrame.lookAt(midPoint, midPoint + direction) * CFrame.Angles(math.rad(90), 0, 0)
+									-- Position at midpoint, then move up 57 studs
+									local adjustedPosition = midPoint + Vector3.new(0, 57, 0)
 									
-									print("[Lightning Client] Beam size:", beamPart.Size)
-									print("[Lightning Client] Beam CFrame position:", beamPart.CFrame.Position)
-									print("[Lightning Client] Beam CFrame lookVector:", beamPart.CFrame.LookVector)
-									print("[Lightning Client] Beam CFrame upVector:", beamPart.CFrame.UpVector)
-									
-									-- Verify the top and bottom of the beam
-									local halfHeight = distance / 2
-									local topPos = beamPart.CFrame * Vector3.new(0, halfHeight, 0)
-									local bottomPos = beamPart.CFrame * Vector3.new(0, -halfHeight, 0)
-									print("[Lightning Client] Beam top should be at:", startPos, "actual:", topPos)
-									print("[Lightning Client] Beam bottom should be at:", endPos, "actual:", bottomPos)
-									print("[Lightning Client] Top difference:", (topPos - startPos).Magnitude)
-									print("[Lightning Client] Bottom difference:", (bottomPos - endPos).Magnitude)
+									-- Create a CFrame at adjusted position with Y-axis pointing toward endPos
+									beamPart.CFrame = CFrame.lookAt(adjustedPosition, adjustedPosition + direction) * CFrame.Angles(math.rad(90), 0, 0)
 								end
 								
 								-- Parent to workspace
@@ -109,7 +86,8 @@ function module.OnStart()
 								-- Emit all particles
 								Functions.Emit(strike)
 
-								GUIFX.ScreenFlash(Functions.RandomDouble(0.05, 0.15), Functions.RandomDouble(0.2, 0.35), nil, Functions.RandomDouble(0.2, 0.5))
+								-- Screen flash: quick fade in, longer fade out, white color, mostly opaque
+								GUIFX.ScreenFlash(Functions.RandomDouble(0.05, 0.15), Functions.RandomDouble(0.3, 0.5), nil, Functions.RandomDouble(0.4, 0.6))
 								
 								-- Disable particles after 1 second
 								task.delay(0.1, function()
