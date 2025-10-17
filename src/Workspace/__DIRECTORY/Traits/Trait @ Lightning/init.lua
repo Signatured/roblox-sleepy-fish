@@ -3,7 +3,7 @@
 return {
     DisplayName = "Lightning",
     Color = Color3.fromRGB(100, 193, 255),
-    Icon = "rbxassetid://103951511108485",
+    Icon = "rbxassetid://88095773014449",
     TraitEarningsMultiplier = 1.5,
     ApplyToModel = function(model: Model)
         local defaultScale = Vector3.new(5.565, 2.443, 2.823)
