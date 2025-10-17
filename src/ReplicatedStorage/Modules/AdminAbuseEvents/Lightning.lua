@@ -6,6 +6,8 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+
 local NotificationCmds = require(ReplicatedStorage.Library.Client.NotificationCmds)
 local AdminAbuseEventCmds = require(ReplicatedStorage.Game.Library.Client.AdminAbuseEventCmds)
 local Functions = require(ReplicatedStorage.Library.Functions)
@@ -86,8 +88,16 @@ function module.OnStart()
 								-- Emit all particles
 								Functions.Emit(strike)
 
-								-- Screen flash: quick fade in, longer fade out, white color, mostly opaque
-								GUIFX.ScreenFlash(Functions.RandomDouble(0.05, 0.15), Functions.RandomDouble(0.3, 0.5), nil, Functions.RandomDouble(0.4, 0.6))
+								-- Screen flash: only if hit part is on screen
+								if hitPart then
+									local camera = Workspace.CurrentCamera
+									if camera then
+										local _viewportPoint, onScreen = camera:WorldToViewportPoint(hitPart.Position)
+										if onScreen then
+											GUIFX.ScreenFlash(Functions.RandomDouble(0.05, 0.15), Functions.RandomDouble(0.3, 0.5), nil, Functions.RandomDouble(0.4, 0.6))
+										end
+									end
+								end
 								
 								-- Disable particles after 1 second
 								task.delay(0.1, function()

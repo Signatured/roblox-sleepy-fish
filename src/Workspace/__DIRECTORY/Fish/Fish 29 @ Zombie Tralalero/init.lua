@@ -5,10 +5,10 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Zombie Tralalero",
-    Icon = "rbxassetid://90100794789269",
+    Icon = "rbxassetid://106296036649881",
     MutationIcons = {
-        Bloodfish = "rbxassetid://137872727279052",
-        Galaxy = "rbxassetid://113374408263385",
+        Bloodfish = "rbxassetid://106296036649881",
+        Galaxy = "rbxassetid://106296036649881",
     },
     Rarity = Rarity.Mythical,
     MoneyPerSecond = 425,
