@@ -30,6 +30,17 @@ export type Quest = {
 
 local DailyQuests = {}
 
+local function getPumpkinSellPrice(id: string): number
+	if id == "Common Pumpkin" then
+		return 10_000
+	elseif id == "Epic Pumpkin" then
+		return 25_000
+	elseif id == "Mythical Pumpkin" then
+		return 50_000
+	end
+	return 0
+end
+
 -- Compute day key for EST midnight
 local function getDayKey(): number
 	local utc = workspace:GetServerTimeNow()
@@ -68,16 +79,16 @@ local function getRarityName(fishId: string): string
 end
 
 local function buildQuests(): {Quest}
-	local q1Fish = (math.random() < 0.5) and chooseWeighted(Rarity.Common) or chooseWeighted(Rarity.Uncommon)
-	local q1Amt = Directory.Fish[q1Fish].Rarity == Rarity.Common and 4 or 2
+	local q1Fish = "Common Pumpkin"
+	local q1Amt = math.random(5, 7)
 	local q1Rarity = getRarityName(q1Fish)
 
-	local q2Fish = (math.random() < 0.5) and chooseWeighted(Rarity.Rare) or chooseWeighted(Rarity.Epic)
-	local q2Amt = Directory.Fish[q2Fish].Rarity == Rarity.Rare and 3 or 2
+	local q2Fish = "Epic Pumpkin"
+	local q2Amt = math.random(2, 5)
 	local q2Rarity = getRarityName(q2Fish)
 
-	local q3Fish = (math.random() < 0.5) and chooseWeighted(Rarity.Epic) or chooseWeighted(Rarity.Legendary)
-	local q3Amt = Directory.Fish[q3Fish].Rarity == Rarity.Epic and 2 or 1
+	local q3Fish = "Mythical Pumpkin"
+	local q3Amt = math.random(1, 2)
 	local q3Rarity = getRarityName(q3Fish)
 
 	local quests: {Quest} = {
@@ -104,9 +115,7 @@ local function ensureQuestsFor(player: Player)
 end
 
 local function computeSellPrice(fishId: string): number
-	local schema = Directory.Fish[fishId]
-	local mps = (schema and tonumber(schema.MoneyPerSecond)) or 0
-	return math.floor(mps * 20 * 25)
+	return getPumpkinSellPrice(fishId)
 end
 
 local function tryRemoveOneFish(player: Player, fishId: string): boolean
@@ -177,24 +186,31 @@ Network.Fired("HalloweenDailyQuests_Claim", function(player: Player)
 	quest.ReadyToClaim = false
 
     if current == 1 then
-        grantMoney(player, 10_000)
+        grantMoney(player, 250_000)
 
         Notifications.Message(player, `Quest Completed!`, {
             Color = Color3.fromRGB(0, 255, 0),
         })
-        Notifications.Message(player, `You earned ${Functions.NumberShorten(10_000)}!`, {
+        Notifications.Message(player, `You earned ${Functions.NumberShorten(250_000)}!`, {
             Color = Color3.fromRGB(0, 255, 0),
         })
     elseif current == 2 then
         local plot = ServerPlot.GetByPlayer(player)
         if plot then
-            plot:SessionSet("HalloweenDailyQuests_Multiplied", workspace:GetServerTimeNow() + (60 * 60 * 2))
+            local data = Fish.Give(player, {
+				FishId = "Mythical Lucky Block",
+				Type = "Normal"
+			})
+	
+			if data then
+				Fish.ForceHoldFish(player, data)
+			end
 
             Notifications.Message(player, `Quest Completed!`, {
                 Color = Color3.fromRGB(0, 255, 0),
             })
-            Notifications.Message(player, `Enjoy 2x money for the next 2 hours! Must stay online!`, {
-                Color = Color3.fromRGB(0, 255, 0),
+            Notifications.Message(player, `You earned a Mythical Lucky Block!`, {
+                Rainbow = true,
             })
         end
     elseif current == 3 then
@@ -202,7 +218,7 @@ Network.Fired("HalloweenDailyQuests_Claim", function(player: Player)
             Color = Color3.fromRGB(0, 255, 0),
         })
 
-        FishGenerator.ForceSpawnRandomType("Mythical", player)
+        FishGenerator.ForceSpawnRandomType("God", player)
     end
 
     local pos = Player.Optional.Position(player)

@@ -23,6 +23,17 @@ local greyGradient = Assets:WaitForChild("GreyButtonGradient")
 -- Token to manage the timer update loop so only one runs at a time
 local timerToken = 0
 
+local function getPumpkinSellPrice(id: string): number
+	if id == "Common Pumpkin" then
+		return 10_000
+	elseif id == "Epic Pumpkin" then
+		return 25_000
+	elseif id == "Mythical Pumpkin" then
+		return 50_000
+	end
+	return 0
+end
+
 local function getContentContainer(): ScrollingFrame?
 	local toolsGui = GUI.HalloweenDailyQuests()
 	local frame = toolsGui:FindFirstChild("Frame")
@@ -128,8 +139,7 @@ local function setQuest(frame: Frame, quest, isUnlocked: boolean, isActive: bool
 		if sellLabel and sellLabel:IsA("TextLabel") then sellLabel.Text = "Sell" end
 	end
 	if sellPriceLabel and sellPriceLabel:IsA("TextLabel") then
-		local fishSchema = Directory.Fish[quest.FishId]
-		local pricePerSale = math.floor(((tonumber(fishSchema.MoneyPerSecond) or 0) * 20) * 25)
+		local pricePerSale = getPumpkinSellPrice(quest.FishId)
 		sellPriceLabel.Visible = isActive and not quest.Completed and not (quest.ReadyToClaim == true)
 		sellPriceLabel.Text = `${Functions.NumberShorten(pricePerSale)}`
 	end
@@ -145,7 +155,7 @@ local function setQuest(frame: Frame, quest, isUnlocked: boolean, isActive: bool
 	-- Description text under quest frame
 	local description = frame:FindFirstChild("Description")
 	if description and description:IsA("TextLabel") and schema then
-		description.Text = string.format("Sell me %d %s!", quest.Amount or 0, tostring(schema.DisplayName))
+		description.Text = string.format("Sell me %d %ss!", quest.Amount or 0, tostring(schema.DisplayName))
 	end
 
 	local rewardText = frame:FindFirstChild("RewardText")
