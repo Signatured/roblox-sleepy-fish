@@ -50,8 +50,13 @@ export type schema = {
 		Current: number?,
 		Quests: {any}?,
 	},
-		Wheels: {[string]: { Free: number, Paid: number, FreeNextAt: number? }},
-		WheelDailyDealDayKey: number?,
+	HalloweenDailyQuests: {
+		DayKey: number?,
+		Current: number?,
+		Quests: {any}?,
+	},
+	Wheels: {[string]: { Free: number, Paid: number, FreeNextAt: number? }},
+	WheelDailyDealDayKey: number?,
 }
 
 local DefaultStats = {

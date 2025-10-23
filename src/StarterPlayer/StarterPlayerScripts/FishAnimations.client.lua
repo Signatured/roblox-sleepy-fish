@@ -81,7 +81,7 @@ local function ensureStep()
             return
         end
 
-        for _m, data in pairs(registry :: {[Model]: any}) do
+        for _m, data in pairs(registry) do
             local model = _m :: any
             if not model or not model.Parent then
                 registry[model] = nil
@@ -97,23 +97,40 @@ local function ensureStep()
             end
 
             local opts = data.options
-            local bobAmp = getNumberAttributeOrDefault(model, "BobAmplitude", (opts.BobAmplitude :: number?) or 1)
-            local bobSpeed = getNumberAttributeOrDefault(model, "BobSpeed", (opts.BobSpeed :: number?) or (1/6))
-            local swayAmp = getNumberAttributeOrDefault(model, "SwayAmplitude", (opts.SwayAmplitude :: number?) or 1)
-            local swaySpeed = getNumberAttributeOrDefault(model, "SwaySpeed", (opts.SwaySpeed :: number?) or 0.3)
-            local rollMax = math.rad(getNumberAttributeOrDefault(model, "RollMaxDeg", (opts.RollMaxDeg :: number?) or 10))
-            local yawMax = math.rad(getNumberAttributeOrDefault(model, "YawMaxDeg", (opts.YawMaxDeg :: number?) or 10))
-
             local elapsed = workspace:GetServerTimeNow() - data.startTime
-            local omega = 2 * math.pi * bobSpeed
+            
+            -- Check if this is a SpecialItemFish
+            if model:HasTag("ItemFish") then
+                -- Special Item Fish: bob and spin (1 rotation per 10 seconds)
+                local bobAmp = getNumberAttributeOrDefault(model, "BobAmplitude", (opts.BobAmplitude :: number?) or 1)
+                local bobSpeed = getNumberAttributeOrDefault(model, "BobSpeed", (opts.BobSpeed :: number?) or (1/6))
+                local omega = 2 * math.pi * bobSpeed
+                
+                local bob = math.cos(omega * elapsed) * bobAmp
+                local spinAngle = ((elapsed % 10) / 10) * (2 * math.pi)
+                
+                local basePos = data.baseCFrame.Position
+                local newCF = CFrame.new(basePos.X, basePos.Y + bob, basePos.Z) * data.baseCFrame.Rotation * CFrame.Angles(0, spinAngle, 0)
+                model:PivotTo(newCF)
+            else
+                -- Normal fish: bob and sway
+                local bobAmp = getNumberAttributeOrDefault(model, "BobAmplitude", (opts.BobAmplitude :: number?) or 1)
+                local bobSpeed = getNumberAttributeOrDefault(model, "BobSpeed", (opts.BobSpeed :: number?) or (1/6))
+                local swayAmp = getNumberAttributeOrDefault(model, "SwayAmplitude", (opts.SwayAmplitude :: number?) or 1)
+                local swaySpeed = getNumberAttributeOrDefault(model, "SwaySpeed", (opts.SwaySpeed :: number?) or 0.3)
+                local rollMax = math.rad(getNumberAttributeOrDefault(model, "RollMaxDeg", (opts.RollMaxDeg :: number?) or 10))
+                local yawMax = math.rad(getNumberAttributeOrDefault(model, "YawMaxDeg", (opts.YawMaxDeg :: number?) or 10))
 
-            local bob = math.cos(omega * elapsed) * bobAmp
-            local sway = math.sin(2 * math.pi * swaySpeed * elapsed + math.pi/3) * swayAmp
-            local yaw = math.cos(2 * omega * elapsed) * yawMax
-            local roll = (-math.sin(omega * elapsed) * math.sin(2 * omega * elapsed)) * rollMax
+                local omega = 2 * math.pi * bobSpeed
 
-            local newCF = data.baseCFrame * CFrame.Angles(0, yaw, 0) * CFrame.new(sway, bob, 0) * CFrame.Angles(0, 0, roll)
-            model:PivotTo(newCF)
+                local bob = math.cos(omega * elapsed) * bobAmp
+                local sway = math.sin(2 * math.pi * swaySpeed * elapsed + math.pi/3) * swayAmp
+                local yaw = math.cos(2 * omega * elapsed) * yawMax
+                local roll = (-math.sin(omega * elapsed) * math.sin(2 * omega * elapsed)) * rollMax
+
+                local newCF = data.baseCFrame * CFrame.Angles(0, yaw, 0) * CFrame.new(sway, bob, 0) * CFrame.Angles(0, 0, roll)
+                model:PivotTo(newCF)
+            end
         end
 
         -- Highlights animation

@@ -23,6 +23,7 @@ export type raw_dir = {
     IndexRotationOffset: Vector3?,
     BestFishMultiplier: number?,
     LuckyBlockId: string?,
+    SpecialItemFish: boolean?,
 }
 
 export type fish_type = "Normal" | "Shiny" | "Gold" | "Rainbow"

@@ -25,6 +25,7 @@ function module.GlobalMessage() return PlayerGui:WaitForChild("GlobalMessage", W
 function module.SpinnyWheel() return PlayerGui:WaitForChild("SpinnyWheel", WAIT_TIME) end
 function module.JumpScare() return PlayerGui:WaitForChild("JumpScare", WAIT_TIME) end
 function module.AdminPanel() return PlayerGui:WaitForChild("AdminPanel", WAIT_TIME) end
+function module.HalloweenDailyQuests() return PlayerGui:WaitForChild("HalloweenDailyQuests", WAIT_TIME) end
 
 task.spawn(function()
     local images = {}

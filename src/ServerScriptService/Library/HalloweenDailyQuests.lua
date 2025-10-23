@@ -3,11 +3,12 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
-local AnalyticsService = game:GetService("AnalyticsService")
 
 local Player = require(ReplicatedStorage.Library.Player)
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
+local _FishTypes = require(ReplicatedStorage.Game.Library.Types.Fish)
 local Rarity = require(ReplicatedStorage.Game.Library.Directory.Rarity)
+local _Functions = require(ReplicatedStorage.Library.Functions)
 local Network = require(ServerScriptService.Library.Network)
 local Saving = require(ServerScriptService.Library.Saving)
 local Fish = require(script.Parent.Fish)
@@ -90,8 +91,8 @@ end
 local function ensureQuestsFor(player: Player)
 	local save = Saving.Get(player)
 	if not save then return end
-	save.DailyQuests = save.DailyQuests or { DayKey = nil, Current = nil, Quests = nil }
-	local dq = save.DailyQuests
+	save.HalloweenDailyQuests = save.HalloweenDailyQuests or { DayKey = nil, Current = nil, Quests = nil }
+	local dq = save.HalloweenDailyQuests
 	local today = getDayKey()
 	if dq.DayKey ~= today or typeof(dq.Quests) ~= "table" then
 		dq.DayKey = today
@@ -131,14 +132,14 @@ end
 local function syncClient(player: Player)
 	local save = Saving.Get(player)
 	if not save then return end
-	Network.Fire(player, "DailyQuests_Sync", save.DailyQuests)
+	Network.Fire(player, "HalloweenDailyQuests_Sync", save.HalloweenDailyQuests)
 end
 
-Network.Fired("DailyQuests_Sell", function(player: Player)
+Network.Fired("HalloweenDailyQuests_Sell", function(player: Player)
 	ensureQuestsFor(player)
 	local save = Saving.Get(player)
 	if not save then return end
-	local dq = save.DailyQuests
+	local dq = save.HalloweenDailyQuests
 	local current = dq.Current :: number
 	if current == nil then return end
 	local quest = dq.Quests and dq.Quests[current]
@@ -159,18 +160,14 @@ Network.Fired("DailyQuests_Sell", function(player: Player)
         if pos then
             Audio.Play("rbxassetid://133458542234750", pos, 1, 0.3, nil, nil, nil, player)
         end
-
-        pcall(function()
-            AnalyticsService:LogCustomEvent(player, `DailyQuestSold_{current}_{dir.Rarity.DisplayName}_{quest.Amount}`)
-        end)
 	end
 end)
 
-Network.Fired("DailyQuests_Claim", function(player: Player)
+Network.Fired("HalloweenDailyQuests_Claim", function(player: Player)
 	ensureQuestsFor(player)
 	local save = Saving.Get(player)
 	if not save then return end
-	local dq = save.DailyQuests
+	local dq = save.HalloweenDailyQuests
 	local current = dq.Current :: number
 	if current == nil then return end
 	local quest = dq.Quests and dq.Quests[current]
@@ -191,7 +188,7 @@ Network.Fired("DailyQuests_Claim", function(player: Player)
     elseif current == 2 then
         local plot = ServerPlot.GetByPlayer(player)
         if plot then
-            plot:SessionSet("DailyQuests_Multiplied", workspace:GetServerTimeNow() + (60 * 60 * 2))
+            plot:SessionSet("HalloweenDailyQuests_Multiplied", workspace:GetServerTimeNow() + (60 * 60 * 2))
 
             Notifications.Message(player, `Quest Completed!`, {
                 Color = Color3.fromRGB(0, 255, 0),
@@ -207,10 +204,6 @@ Network.Fired("DailyQuests_Claim", function(player: Player)
 
         FishGenerator.ForceSpawnRandomType("Mythical", player)
     end
-
-    pcall(function()
-        AnalyticsService:LogCustomEvent(player, `DailyQuestCompleted_{current}`)
-    end)
 
     local pos = Player.Optional.Position(player)
     if pos then

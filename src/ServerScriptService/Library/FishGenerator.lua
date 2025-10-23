@@ -420,7 +420,17 @@ function FishGen.AddTrait(uid: string, traitId: string): boolean
         warn("AddTrait: Fish not found:", uid)
         return false
     end
+
+    local schema = Directory.Fish[fish.FishData.FishId]
+    if not schema then
+        warn("AddTrait: Schema not found:", fish.FishData.FishId)
+        return false
+    end
     
+    if schema.LuckyBlockId or schema.SpecialItemFish then
+        return false
+    end
+
     -- Initialize Traits table if it doesn't exist
     if not fish.FishData.Traits then
         fish.FishData.Traits = {}
@@ -511,7 +521,7 @@ local function attachGui(fish: Swimming, schema: FishTypes.dir_schema)
         end
         local mps = frame:FindFirstChild("MoneyPerSecond")
         if mps and mps:IsA("TextLabel") then
-            if isLuckyBlock and luckyBlockDir then
+            if (isLuckyBlock and luckyBlockDir) or schema.SpecialItemFish then
                 mps.Visible = false
             else
                 local typeMultiplier = SharedGameSettings.TypeMultipliers[fish.FishData.Type] or 1
@@ -611,7 +621,7 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
     if mutationOverride then
         -- Use the provided mutation override
         mutation = mutationOverride
-    elseif not schema.LuckyBlockId then -- Lucky Block fish never have mutations
+    elseif not schema.LuckyBlockId and not schema.SpecialItemFish then -- Lucky Block fish never have mutations
         -- Check if Spooky event is active and apply Spooky mutation
         local isEventActive, eventId = MutationEvent.GetCurrentStatus()
         if isEventActive and eventId == "Spooky" then
@@ -655,6 +665,9 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
     fishInstance.Model:SetAttribute("CFrame", spawnCFrame)
     if owner then
         fishInstance.Model:SetAttribute("OwnerUserId", owner.UserId)
+    end
+    if schema.SpecialItemFish then
+        fishInstance.Model:AddTag("ItemFish")
     end
     
     -- Apply Bloodfish visual effect if mutation is present
@@ -725,13 +738,13 @@ local function spawnOne(into: BasePart, backdate: number?)
     local fishType = Functions.Lottery(typeChances)
 
     -- Lucky Block fish always have Normal type and no mutation
-    if schema.LuckyBlockId then
+    if schema.LuckyBlockId or schema.SpecialItemFish then
         fishType = "Normal"
     end
 
     -- Check if Spooky event is active and apply Bloodfish mutation
     local mutation: string? = nil
-    if not schema.LuckyBlockId then -- Lucky Block fish never have mutations
+    if not schema.LuckyBlockId and not schema.SpecialItemFish then -- Lucky Block fish never have mutations
         local isEventActive, eventId = MutationEvent.GetCurrentStatus()
         if isEventActive and eventId == "Spooky" then
             mutation = "Spooky"
@@ -770,6 +783,9 @@ local function spawnOne(into: BasePart, backdate: number?)
     fishInstance.Model:SetAttribute("UID", uid)
     fishInstance.Model:SetAttribute("CFrame", spawnCFrame)
     fishInstance.Model:SetAttribute("OceanFish", true)
+    if schema.SpecialItemFish then
+        fishInstance.Model:AddTag("ItemFish")
+    end
     
     -- Apply Bloodfish visual effect if mutation is present
     if mutation then
@@ -937,7 +953,7 @@ function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutat
     local selectedFishType: FishTypes.fish_type = "Normal"
     
     -- Lucky Block fish always have Normal type and no mutation
-    if schema.LuckyBlockId then
+    if schema.LuckyBlockId or schema.SpecialItemFish then
         selectedFishType = "Normal"
     else
         -- Validate fish type
@@ -948,7 +964,7 @@ function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutat
 
     -- Validate mutation
     local validatedMutation: string? = nil
-    if not schema.LuckyBlockId and mutation then -- Lucky Block fish never have mutations
+    if not schema.LuckyBlockId and not schema.SpecialItemFish and mutation then -- Lucky Block fish never have mutations
         local mutationDir = Directory.Mutations[mutation]
         validatedMutation = mutationDir._id
     end
@@ -988,6 +1004,9 @@ function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutat
     fishInstance.Model:SetAttribute("UID", uid)
     fishInstance.Model:SetAttribute("CFrame", spawnCFrame)
     fishInstance.Model:SetAttribute("OceanFish", true)
+    if schema.SpecialItemFish then
+        fishInstance.Model:AddTag("ItemFish")
+    end
     
     -- Apply Bloodfish visual effect if mutation is present
     if validatedMutation then
