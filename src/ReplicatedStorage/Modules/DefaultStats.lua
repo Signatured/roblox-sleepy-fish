@@ -55,6 +55,7 @@ export type schema = {
 		Current: number?,
 		Quests: {any}?,
 	},
+	TrickOrTreatHouses: {[string]: number},
 	Wheels: {[string]: { Free: number, Paid: number, FreeNextAt: number? }},
 	WheelDailyDealDayKey: number?,
 }
@@ -86,6 +87,12 @@ local DefaultStats = {
 	PromptedNotifications = false,
 	RobuxSpent = 0,
 	DailyQuests = {
+		DayKey = nil,
+		Current = nil,
+		Quests = nil,
+	},
+	TrickOrTreatHouses = {},
+	HalloweenDailyQuests = {
 		DayKey = nil,
 		Current = nil,
 		Quests = nil,

@@ -727,14 +727,14 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
     end
 end
 
-local function spawnOne(into: BasePart, backdate: number?)
-    local rarityId = chooseRarityId()
+local function spawnOne(into: BasePart, backdate: number?, positionOverride: CFrame?, owner: Player?, rarityOverride: string?)
+    local rarityId = rarityOverride or chooseRarityId()
     local schema = chooseFishByRarity(rarityId)
     if not schema then return end
 
     -- Special halloween code
     local pumpkinSpawnChance = 0.01
-    if math.random() < pumpkinSpawnChance then
+    if not owner and math.random() < pumpkinSpawnChance then
         local pumpkinLottery = {
             ["Common Pumpkin"] = 80,
             ["Epic Pumpkin"] = 15,
@@ -787,9 +787,15 @@ local function spawnOne(into: BasePart, backdate: number?)
     }
     uidToFish[uid] = fishInstance
 
-    local cf = randomPointIn(into)
-    local yaw = math.rad(math.random(0, 359))
-    local spawnCFrame = CFrame.new(cf.Position) * CFrame.Angles(0, yaw, 0)
+    local spawnCFrame: CFrame
+    if positionOverride then
+        spawnCFrame = positionOverride
+    else
+        local cf = randomPointIn(into)
+        local yaw = math.rad(math.random(0, 359))
+        spawnCFrame = CFrame.new(cf.Position) * CFrame.Angles(0, yaw, 0)
+    end
+    
     fishInstance.Model:PivotTo(spawnCFrame)
     setModelAnchored(fishInstance.Model, true)
     fishInstance.Model.Name = fishData.FishId
@@ -797,7 +803,11 @@ local function spawnOne(into: BasePart, backdate: number?)
     fishInstance.Model:AddTag("SwimmingFish")
     fishInstance.Model:SetAttribute("UID", uid)
     fishInstance.Model:SetAttribute("CFrame", spawnCFrame)
-    fishInstance.Model:SetAttribute("OceanFish", true)
+    if not owner then
+        fishInstance.Model:SetAttribute("OceanFish", true)
+    else
+        fishInstance.Model:SetAttribute("OwnerUserId", owner.UserId)
+    end
     if schema.SpecialItemFish then
         fishInstance.Model:AddTag("ItemFish")
     end
@@ -811,6 +821,15 @@ local function spawnOne(into: BasePart, backdate: number?)
     end
     
     attachGui(fishInstance, schema)
+    -- If owned, mark GUI as private with owner name
+    if owner and fishInstance.Gui then
+        local frame = fishInstance.Gui:FindFirstChild("Frame")
+        local private = frame and frame:FindFirstChild("Private")
+        if private and private:IsA("TextLabel") then
+            private.Visible = true
+            private.Text = `{owner.DisplayName}'s Fish!`
+        end
+    end
     makePrompt(fishInstance)
 end
 
@@ -952,6 +971,12 @@ end
 
 function FishGen.Destroy(uid: string)
     despawn(uid)
+end
+
+function FishGen.SpawnAtPosition(spawnCFrame: CFrame, owner: Player?, rarityId: string?)
+    -- Use a dummy part for the into parameter since we're overriding position anyway
+    local dummyPart = EASY
+    spawnOne(dummyPart, nil, spawnCFrame, owner, rarityId)
 end
 
 function FishGen.ForceSpawnRandomType(rarityId: string, player: Player?, fishTypeOverride: string?, mutation: string?, traits: {[string]: boolean}?)
