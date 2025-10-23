@@ -736,9 +736,9 @@ local function spawnOne(into: BasePart, backdate: number?)
     local pumpkinSpawnChance = 0.01
     if math.random() < pumpkinSpawnChance then
         local pumpkinLottery = {
-            ["Common Pumpkin"] = 90,
-            ["Epic Pumpkin"] = 9,
-            ["Mythical Pumpkin"] = 1,
+            ["Common Pumpkin"] = 80,
+            ["Epic Pumpkin"] = 15,
+            ["Mythical Pumpkin"] = 5,
         }
 
         schema = Directory.Fish[Functions.Lottery(pumpkinLottery)]
