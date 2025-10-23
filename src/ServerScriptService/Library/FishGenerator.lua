@@ -731,6 +731,21 @@ local function spawnOne(into: BasePart, backdate: number?)
     local rarityId = chooseRarityId()
     local schema = chooseFishByRarity(rarityId)
     if not schema then return end
+
+    -- Special halloween code
+    local pumpkinSpawnChance = 0.01
+    if math.random() < pumpkinSpawnChance then
+        local pumpkinLottery = {
+            ["Common Pumpkin"] = 90,
+            ["Epic Pumpkin"] = 9,
+            ["Mythical Pumpkin"] = 1,
+        }
+
+        schema = Directory.Fish[Functions.Lottery(pumpkinLottery)]
+        if not schema then return end
+        rarityId = schema.Rarity._id
+    end
+
     local fishModelTemplate = schema._script:WaitForChild("Model")
     if not fishModelTemplate or not fishModelTemplate:IsA("Model") then return end
 
