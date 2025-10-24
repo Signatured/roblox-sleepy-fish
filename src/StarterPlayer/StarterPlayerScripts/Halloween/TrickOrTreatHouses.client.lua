@@ -135,8 +135,15 @@ TagHook(TAG, function(instance: Instance)
 		return function() end
 	end
 	
-	-- Find the BillboardGui and Subtitle
-	local billboardGui = attachment:FindFirstChild("BillboardGui")
+	-- Find the BillboardAttachment
+	local billboardAttachment = primaryPart:FindFirstChild("BillboardAttachment")
+	if not billboardAttachment or not billboardAttachment:IsA("Attachment") then
+		warn(`[TrickOrTreatHouses] PrimaryPart of {houseModel:GetFullName()} has no BillboardAttachment`)
+		return function() end
+	end
+	
+	-- Find the BillboardGui and Subtitle under BillboardAttachment
+	local billboardGui = billboardAttachment:FindFirstChild("BillboardGui")
 	local subtitle: TextLabel? = nil
 	if billboardGui and billboardGui:IsA("BillboardGui") then
 		local frame = billboardGui:FindFirstChild("Frame")

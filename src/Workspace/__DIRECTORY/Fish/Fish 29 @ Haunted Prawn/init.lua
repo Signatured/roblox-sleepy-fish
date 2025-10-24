@@ -5,11 +5,11 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Haunted Prawn",
-    Icon = "rbxassetid://115727958930970",
+    Icon = "rbxassetid://74932174099576",
     MutationIcons = {
-        Bloodfish = "rbxassetid://101793152935431",
-        Galaxy = "rbxassetid://76270915645237",
-        Spooky = "rbxassetid://75427686974919",
+        Bloodfish = "rbxassetid://74932174099576",
+        Galaxy = "rbxassetid://74932174099576",
+        Spooky = "rbxassetid://74932174099576",
     },
     Rarity = Rarity.Mythical,
     MoneyPerSecond = 430,
