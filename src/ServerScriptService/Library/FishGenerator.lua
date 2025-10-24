@@ -1158,10 +1158,12 @@ RunService.Heartbeat:Connect(function()
 
                             local schema = Directory.Fish[fish.FishData.FishId]
                             local rarity = schema.Rarity
-                            if rarity._id == "God" then
-                                Analytics.LogCustomEvent(player, `FishGenerator_God`)
-                            elseif rarity._id == "Secret" then
-                                Analytics.LogCustomEvent(player, `FishGenerator_Secret`)
+                            if not fish.Model:GetAttribute("OwnerUserId") then
+                                if rarity._id == "God" then
+                                    Analytics.LogCustomEvent(player, `FishGenerator_God`)
+                                elseif rarity._id == "Secret" then
+                                    Analytics.LogCustomEvent(player, `FishGenerator_Secret`)
+                                end
                             end
 						end)
 					end
