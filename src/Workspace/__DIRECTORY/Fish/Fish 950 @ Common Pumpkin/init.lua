@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Common Pumpkin",
-    Icon = "rbxassetid://98863945230769",
+    Icon = "rbxassetid://82908039985513",
     Rarity = Rarity.Common,
     MoneyPerSecond = 0,
     BaseUpgradeCost = 0,
