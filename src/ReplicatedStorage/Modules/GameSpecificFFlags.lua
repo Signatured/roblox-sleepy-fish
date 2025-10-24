@@ -19,6 +19,12 @@ module.Raw = {
     -- Admin Abuse Events
     AdminAbuseEvent_Lightning = { Default = false, Type = "boolean" },
     LightningChance = { Default = 0.15, Type = "number" },
+
+    -- Pumpkin Spawn System
+    PumpkinSpawnChance = { Default = 0.01, Type = "number" },
+    PumpkinCommonWeight = { Default = 80, Type = "number" },
+    PumpkinEpicWeight = { Default = 15, Type = "number" },
+    PumpkinMythicalWeight = { Default = 5, Type = "number" },
 }
 
 -- Optionally extend per-game admin access for the FFlags UI.

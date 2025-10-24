@@ -29,6 +29,7 @@ local MutationEvent = require(ServerScriptService.Game.Library.MutationEvent)
 local Mutations = require(ServerScriptService.Game.Library.Mutations)
 local Traits = require(ServerScriptService.Game.Library.Traits)
 local Analytics = require(ServerScriptService.Library.Analytics)
+local FFlags = require(ServerScriptService.Library.FFlags)
 
 local THINGS = workspace:WaitForChild("__THINGS")
 local ROOT = THINGS:WaitForChild("SwimmingFish")
@@ -740,12 +741,12 @@ local function spawnOne(into: BasePart, backdate: number?, positionOverride: CFr
     if not schema then return end
 
     -- Special halloween code
-    local pumpkinSpawnChance = 0.01
+    local pumpkinSpawnChance = FFlags.GetNumber(FFlags.Keys.PumpkinSpawnChance)
     if not owner and math.random() < pumpkinSpawnChance then
         local pumpkinLottery = {
-            ["Common Pumpkin"] = 80,
-            ["Epic Pumpkin"] = 15,
-            ["Mythical Pumpkin"] = 5,
+            ["Common Pumpkin"] = FFlags.GetNumber(FFlags.Keys.PumpkinCommonWeight),
+            ["Epic Pumpkin"] = FFlags.GetNumber(FFlags.Keys.PumpkinEpicWeight),
+            ["Mythical Pumpkin"] = FFlags.GetNumber(FFlags.Keys.PumpkinMythicalWeight),
         }
 
         schema = Directory.Fish[Functions.Lottery(pumpkinLottery)]
