@@ -5,11 +5,11 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "The Seeker",
-    Icon = "rbxassetid://102466648574486",
+    Icon = "rbxassetid://89658188700696",
     MutationIcons = {
-        Bloodfish = "rbxassetid://134560255470912",
-        Galaxy = "rbxassetid://99255448903907",
-        Spooky = "rbxassetid://99951482893561",
+        Bloodfish = "rbxassetid://89658188700696",
+        Galaxy = "rbxassetid://89658188700696",
+        Spooky = "rbxassetid://89658188700696",
     },
     Rarity = Rarity.Secret,
     MoneyPerSecond = 1050,

@@ -5,11 +5,11 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Octobloop",
-    Icon = "rbxassetid://82803321939240",
+    Icon = "rbxassetid://114385688262048",
     MutationIcons = {
-        Bloodfish = "rbxassetid://93368172717234",
-        Galaxy = "rbxassetid://126624016705908",
-        Spooky = "rbxassetid://77237730484469",
+        Bloodfish = "rbxassetid://114385688262048",
+        Galaxy = "rbxassetid://114385688262048",
+        Spooky = "rbxassetid://114385688262048",
     },
     Rarity = Rarity.Exclusive,
     MoneyPerSecond = 150,
