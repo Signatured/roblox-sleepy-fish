@@ -25,6 +25,14 @@ module.Raw = {
     PumpkinCommonWeight = { Default = 80, Type = "number" },
     PumpkinEpicWeight = { Default = 15, Type = "number" },
     PumpkinMythicalWeight = { Default = 5, Type = "number" },
+
+    -- Trick or Treat Houses Rarity Weights
+    TrickOrTreatRareWeight = { Default = 50.7, Type = "number" },
+    TrickOrTreatEpicWeight = { Default = 45, Type = "number" },
+    TrickOrTreatLegendaryWeight = { Default = 3, Type = "number" },
+    TrickOrTreatMythicalWeight = { Default = 1, Type = "number" },
+    TrickOrTreatGodWeight = { Default = 0.25, Type = "number" },
+    TrickOrTreatSecretWeight = { Default = 0.05, Type = "number" },
 }
 
 -- Optionally extend per-game admin access for the FFlags UI.

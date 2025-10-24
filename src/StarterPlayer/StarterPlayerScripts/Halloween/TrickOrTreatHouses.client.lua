@@ -128,6 +128,8 @@ local function animateDoor(door: Model, houseId: number, houseModel: Model, prom
 	
 	-- Door is fully open, request trick or treat from server
 	TrickOrTreatHouseCmds.RequestTrickOrTreat(houseId)
+
+	Audio.Play("rbxassetid://83210828687333", primaryPart.Position, 1, 3, 50)
 	
 	-- Hold door open
 	task.wait(DOOR_HOLD_TIME)

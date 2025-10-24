@@ -35,10 +35,11 @@ local preloadSounds = {
 	"rbxassetid://78466157575717", -- lightning strike
     "rbxassetid://73851509377743", -- lightning storm start
     "rbxassetid://119969791895244", -- witch laugh
-    
+
     "rbxassetid://7511730566", -- knocking
     "rbxassetid://125209584906878", -- door open
     "rbxassetid://122398964277913", -- door close
+    "rbxassetid://83210828687333", -- spawn haunted house fish
 }
 
 Audio.PreloadSounds(preloadSounds)

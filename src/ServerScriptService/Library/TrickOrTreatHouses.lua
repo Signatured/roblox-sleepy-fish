@@ -11,6 +11,7 @@ local Functions = require(ReplicatedStorage.Library.Functions)
 local Notifications = require(ServerScriptService.Library.Notifications)
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
 local Analytics = require(ServerScriptService.Library.Analytics)
+local FFlags = require(ServerScriptService.Library.FFlags)
 
 local TrickOrTreatHouses = {}
 
@@ -151,12 +152,12 @@ function TrickOrTreatHouses.RequestTrickOrTreat(player: Player, houseId: number)
 	
 	-- Pick a rarity from the lottery
 	local rarityLottery = {
-		["Rare"] = 50.7,
-		["Epic"] = 45,
-		["Legendary"] = 3,
-		["Mythical"] = 1,
-		["God"] = 0.25,
-		["Secret"] = 0.05,
+		["Rare"] = FFlags.GetNumber(FFlags.Keys.TrickOrTreatRareWeight),
+		["Epic"] = FFlags.GetNumber(FFlags.Keys.TrickOrTreatEpicWeight),
+		["Legendary"] = FFlags.GetNumber(FFlags.Keys.TrickOrTreatLegendaryWeight),
+		["Mythical"] = FFlags.GetNumber(FFlags.Keys.TrickOrTreatMythicalWeight),
+		["God"] = FFlags.GetNumber(FFlags.Keys.TrickOrTreatGodWeight),
+		["Secret"] = FFlags.GetNumber(FFlags.Keys.TrickOrTreatSecretWeight),
 	}
 	local rarityId = Functions.Lottery(rarityLottery)
 	
