@@ -10,6 +10,7 @@ local FishGenerator = require(ServerScriptService.Game.Library.FishGenerator)
 local Functions = require(ReplicatedStorage.Library.Functions)
 local Notifications = require(ServerScriptService.Library.Notifications)
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
+local Analytics = require(ServerScriptService.Library.Analytics)
 
 local TrickOrTreatHouses = {}
 
@@ -188,11 +189,19 @@ function TrickOrTreatHouses.RequestTrickOrTreat(player: Player, houseId: number)
                 Rainbow = true,
                 Time = 8,
             })
+
+			task.spawn(function()
+				Analytics.LogCustomEvent(player, `TrickOrTreatHouses_God`)
+			end)
         elseif rarity._id == "Secret" then
             Notifications.Message(player, `A SECRET {schema.DisplayName} answered the door!`, {
                 Rainbow = true,
                 Time = 8,
             })
+
+			task.spawn(function()
+				Analytics.LogCustomEvent(player, `TrickOrTreatHouses_Secret`)
+			end)
         else
             Notifications.Message(player, `A {rarity.DisplayName} {schema.DisplayName} answered the door!`, {
                 Time = 8,

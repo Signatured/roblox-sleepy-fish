@@ -28,6 +28,7 @@ local Invisibility = require(ServerScriptService.Game.Library.Invisibility)
 local MutationEvent = require(ServerScriptService.Game.Library.MutationEvent)
 local Mutations = require(ServerScriptService.Game.Library.Mutations)
 local Traits = require(ServerScriptService.Game.Library.Traits)
+local Analytics = require(ServerScriptService.Library.Analytics)
 
 local THINGS = workspace:WaitForChild("__THINGS")
 local ROOT = THINGS:WaitForChild("SwimmingFish")
@@ -1153,6 +1154,14 @@ RunService.Heartbeat:Connect(function()
                             ExistCount.IncrementMutationCount(fish.FishData.FishId, fish.FishData.Mutation)
                             Index.Add(player, fish.FishData.FishId, fish.FishData.Type, fish.FishData.Mutation)
 							BadgeManager.GiveBadgeByName(player, "FirstCatch")
+
+                            local schema = Directory.Fish[fish.FishData.FishId]
+                            local rarity = schema.Rarity
+                            if rarity._id == "God" then
+                                Analytics.LogCustomEvent(player, `FishGenerator_God`)
+                            elseif rarity._id == "Secret" then
+                                Analytics.LogCustomEvent(player, `FishGenerator_Secret`)
+                            end
 						end)
 					end
 				end

@@ -17,6 +17,7 @@ local FishGenerator = require(ServerScriptService.Game.Library.FishGenerator)
 local Notifications = require(ServerScriptService.Library.Notifications)
 local Functions = require(ReplicatedStorage.Library.Functions)
 local Audio = require(ReplicatedStorage.Library.Audio)
+local Analytics = require(ServerScriptService.Library.Analytics)
 
 export type Quest = {
 	Index: number,
@@ -214,6 +215,10 @@ Network.Fired("HalloweenDailyQuests_Claim", function(player: Player)
         })
 
         FishGenerator.ForceSpawnRandomType("God", player)
+
+		task.spawn(function()
+			Analytics.LogCustomEvent(player, `HalloweenDailyQuests_God`)
+		end)
     end
 
     local pos = Player.Optional.Position(player)
