@@ -17,7 +17,7 @@ local TrickOrTreatHouses = {}
 -- Track used spawn points per house {[houseId] = {1, 2, 3, ...}}
 local usedSpawnPoints: {[number]: {number}} = {}
 
-local COOLDOWN_DURATION = 300 -- 5 minutes in seconds
+local COOLDOWN_DURATION = 60 * 10 -- 10 minutes in seconds
 local NUM_SPAWN_POINTS = 6
 
 --[[
