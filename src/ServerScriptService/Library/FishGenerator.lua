@@ -663,6 +663,7 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
     fishInstance.Model:AddTag("SwimmingFish")
     fishInstance.Model:SetAttribute("UID", uid)
     fishInstance.Model:SetAttribute("CFrame", spawnCFrame)
+    fishInstance.Model:SetAttribute("OceanFish", true)
     if owner then
         fishInstance.Model:SetAttribute("OwnerUserId", owner.UserId)
     end
@@ -727,7 +728,7 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
     end
 end
 
-local function spawnOne(into: BasePart, backdate: number?, positionOverride: CFrame?, owner: Player?, rarityOverride: string?)
+local function spawnOne(into: BasePart, backdate: number?, positionOverride: CFrame?, owner: Player?, rarityOverride: string?): Swimming?
     local rarityId = rarityOverride or chooseRarityId()
     local schema = chooseFishByRarity(rarityId)
     if not schema then return end
@@ -803,9 +804,8 @@ local function spawnOne(into: BasePart, backdate: number?, positionOverride: CFr
     fishInstance.Model:AddTag("SwimmingFish")
     fishInstance.Model:SetAttribute("UID", uid)
     fishInstance.Model:SetAttribute("CFrame", spawnCFrame)
-    if not owner then
-        fishInstance.Model:SetAttribute("OceanFish", true)
-    else
+    fishInstance.Model:SetAttribute("OceanFish", true)
+    if owner then
         fishInstance.Model:SetAttribute("OwnerUserId", owner.UserId)
     end
     if schema.SpecialItemFish then
@@ -831,6 +831,8 @@ local function spawnOne(into: BasePart, backdate: number?, positionOverride: CFr
         end
     end
     makePrompt(fishInstance)
+
+    return fishInstance
 end
 
 local function respawnReplacement()
@@ -973,10 +975,10 @@ function FishGen.Destroy(uid: string)
     despawn(uid)
 end
 
-function FishGen.SpawnAtPosition(spawnCFrame: CFrame, owner: Player?, rarityId: string?)
+function FishGen.SpawnAtPosition(spawnCFrame: CFrame, owner: Player?, rarityId: string?): Swimming?
     -- Use a dummy part for the into parameter since we're overriding position anyway
     local dummyPart = EASY
-    spawnOne(dummyPart, nil, spawnCFrame, owner, rarityId)
+    return spawnOne(dummyPart, nil, spawnCFrame, owner, rarityId)
 end
 
 function FishGen.ForceSpawnRandomType(rarityId: string, player: Player?, fishTypeOverride: string?, mutation: string?, traits: {[string]: boolean}?)

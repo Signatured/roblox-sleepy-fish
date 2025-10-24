@@ -8,6 +8,8 @@ local Network = require(ServerScriptService.Library.Network)
 local Saving = require(ServerScriptService.Library.Saving)
 local FishGenerator = require(ServerScriptService.Game.Library.FishGenerator)
 local Functions = require(ReplicatedStorage.Library.Functions)
+local Notifications = require(ServerScriptService.Library.Notifications)
+local Directory = require(ReplicatedStorage.Game.Library.Directory)
 
 local TrickOrTreatHouses = {}
 
@@ -163,10 +165,40 @@ function TrickOrTreatHouses.RequestTrickOrTreat(player: Player, houseId: number)
 	spawnCFrame = CFrame.new(spawnCFrame.Position) * CFrame.Angles(0, yaw, 0)
 	
 	-- Use FishGenerator to spawn the fish with position override, owner, and rarity
-	FishGenerator.SpawnAtPosition(spawnCFrame, player, rarityId)
-	
-	-- Allow trick or treat
-	print("allow trick or treat")
+	local fish = FishGenerator.SpawnAtPosition(spawnCFrame, player, rarityId)
+
+    if fish then
+        local schema = Directory.Fish[fish.FishData.FishId]
+        local rarity = schema.Rarity
+
+        fish.Model:SetAttribute("TrickOrTreat", true)
+
+        Notifications.Message(player, "Trick or Treat! 👻", {
+            Color = Color3.fromRGB(255, 136, 0),
+            Time = 8,
+        })
+
+        if rarity._id == "Mythical" then
+            Notifications.Message(player, `A Mythical {schema.DisplayName} answered the door!`, {
+                Rainbow = true,
+                Time = 8,
+            })
+        elseif rarity._id == "God" then
+            Notifications.Message(player, `A GOD {schema.DisplayName} answered the door!`, {
+                Rainbow = true,
+                Time = 8,
+            })
+        elseif rarity._id == "Secret" then
+            Notifications.Message(player, `A SECRET {schema.DisplayName} answered the door!`, {
+                Rainbow = true,
+                Time = 8,
+            })
+        else
+            Notifications.Message(player, `A {rarity.DisplayName} {schema.DisplayName} answered the door!`, {
+                Time = 8,
+            })
+        end
+    end
 	
 	-- Set cooldown (current time + 5 minutes)
 	local cooldownEnd = workspace:GetServerTimeNow() + COOLDOWN_DURATION

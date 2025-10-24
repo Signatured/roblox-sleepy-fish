@@ -35,4 +35,5 @@ return {
 			vfxBox:SetAttribute("LightningAdded", true)
         end
     end
+    
 }

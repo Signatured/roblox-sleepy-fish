@@ -8,6 +8,8 @@ local TrickOrTreatHouseCmds = require(ReplicatedStorage.Game.Library.Client.Tric
 local Save = require(ReplicatedStorage.Library.Client.Save)
 local Functions = require(ReplicatedStorage.Library.Functions)
 
+local Assets = ReplicatedStorage:WaitForChild("Assets")
+
 local TAG = "HalloweenHouse"
 local DOOR_OPEN_ANGLE = 160
 local DOOR_ANIMATION_TIME = 0.5
@@ -141,7 +143,7 @@ TagHook(TAG, function(instance: Instance)
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "TrickOrTreatPrompt"
 	prompt.ActionText = "Trick or Treat!"
-	prompt.HoldDuration = 1.5
+	prompt.HoldDuration = 0.5
 	prompt.MaxActivationDistance = 10
 	prompt.RequiresLineOfSight = false
 	prompt.KeyboardKeyCode = Enum.KeyCode.E
@@ -217,6 +219,94 @@ TagHook(TAG, function(instance: Instance)
 		pcall(function()
 			if prompt then
 				prompt:Destroy()
+			end
+		end)
+	end
+end)
+
+-- TagHook for Trick or Treat fish VFX
+local defaultScale = Vector3.new(5.565, 2.443, 2.823)
+
+TagHook("SwimmingFish", function(instance: Instance)
+	if not instance:IsA("Model") then
+		return function() end
+	end
+	
+	-- Check if this is a Trick or Treat fish
+	if not instance:GetAttribute("TrickOrTreat") then
+		return function() end
+	end
+	
+	local fishModel = instance
+	local vfxBox = fishModel:FindFirstChild("VFX")
+	if not vfxBox or not vfxBox:IsA("BasePart") then
+		return function() end
+	end
+	
+	-- Get the particles template
+	local particlesFolder = Assets:WaitForChild("Particles"):WaitForChild("Halloween"):WaitForChild("TrickOrTreat")
+	if not particlesFolder then
+		warn("[TrickOrTreatHouses] Could not find TrickOrTreat particles")
+		return function() end
+	end
+	
+	local function scaleParticlesRecursively(obj: Instance, scaleMultiplier: number)
+		if obj:IsA("ParticleEmitter") and scaleMultiplier > 1.5 then
+			scaleMultiplier = math.min(scaleMultiplier, 3)
+			obj.Rate = obj.Rate * scaleMultiplier
+		end
+		for _, child in obj:GetChildren() do
+			scaleParticlesRecursively(child, scaleMultiplier)
+		end
+	end
+	
+	-- Create attachment for VFX
+	local attachment = Instance.new("Attachment")
+	attachment.Name = "TrickOrTreatVFX"
+	attachment.Parent = vfxBox
+	
+	-- Calculate scale multiplier
+	local scale = vfxBox.Size
+	local scaleMultiplier = scale.Magnitude / defaultScale.Magnitude
+	
+	-- Clone all particles from the template
+	local clonedParticles: {ParticleEmitter} = {}
+	local batsParticle: ParticleEmitter? = nil
+	
+	for _, obj in ipairs(particlesFolder:GetChildren()) do
+		if obj:IsA("ParticleEmitter") then
+			local clonedObj = obj:Clone()
+			clonedObj.Parent = attachment
+			scaleParticlesRecursively(clonedObj, scaleMultiplier)
+			
+			if clonedObj.Name == "Bats" then
+				batsParticle = clonedObj
+			else
+				table.insert(clonedParticles, clonedObj)
+			end
+		end
+	end
+	
+	-- Emit all particles once (except Bats)
+	for _, particleEmitter in ipairs(clonedParticles) do
+		Functions.Emit(particleEmitter)
+	end
+	
+	-- Handle Bats particle separately - enable for 2 seconds
+	if batsParticle then
+		batsParticle.Enabled = true
+		task.delay(2, function()
+			if batsParticle then
+				batsParticle.Enabled = false
+			end
+		end)
+	end
+	
+	-- Cleanup function
+	return function()
+		pcall(function()
+			if attachment then
+				attachment:Destroy()
 			end
 		end)
 	end
