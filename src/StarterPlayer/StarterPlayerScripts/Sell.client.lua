@@ -36,9 +36,15 @@ local inventoryValueLabel = content:FindFirstChild("InventoryValue")
 local function getSellPrice(fishData: any): number
     local dir = Directory.Fish[fishData.FishId]
     if not dir then return 0 end
-    -- Server refuses Exclusive sales; still show price from base directory
-    local level = fishData.Level or 1
-    local base = math.ceil((dir.MoneyPerSecond or 0) * level * 20)
+    -- Use OverrideSellPrice if it exists (for special items like pumpkins)
+    local base
+    if dir.OverrideSellPrice then
+        base = dir.OverrideSellPrice
+    else
+        -- Server refuses Exclusive sales; still show price from base directory
+        local level = fishData.Level or 1
+        base = math.ceil((dir.MoneyPerSecond or 0) * level * 60 * 5)
+    end
     -- Apply Double Money gamepass multiplier for display parity with server
     local schema = GamepassCmds.GetSchema("Double Money") or GamepassesDirectory["Double Money"]
     local ownsDouble = schema and GamepassCmds.Owns(schema) or false

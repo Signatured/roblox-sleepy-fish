@@ -31,14 +31,9 @@ export type Quest = {
 local DailyQuests = {}
 
 local function getPumpkinSellPrice(id: string): number
-	if id == "Common Pumpkin" then
-		return 10_000
-	elseif id == "Epic Pumpkin" then
-		return 25_000
-	elseif id == "Mythical Pumpkin" then
-		return 50_000
-	end
-	return 0
+	local dir = Directory.Fish[id]
+	if not dir then return 0 end
+	return dir.OverrideSellPrice or 0
 end
 
 -- Compute day key for EST midnight

@@ -15,6 +15,7 @@ export type raw_dir = {
 export type lucky_block_visual_data = {
     FishId: string,
     Type: FishTypes.fish_type,
+    Mutation: string?,
 }
 
 export type dir_schema = raw_dir & DirectoryTypes.dir_schema

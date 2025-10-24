@@ -715,6 +715,11 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
                 Rainbow = true,
                 Time = 8,
             })
+        elseif rarity._id == "God" then
+            Notifications.MessageAll(`A GOD {displayName} has spawned!`, {
+                Rainbow = true,
+                Time = 8,
+            })
         elseif rarity._id == "Secret" then
                 Notifications.MessageAll(`A SECRET {displayName} has spawned!`, {
                     Rainbow = true,

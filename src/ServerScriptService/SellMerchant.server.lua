@@ -18,11 +18,17 @@ local DOUBLE_MONEY_SCHEMA = GamepassDirectory["Double Money"]
 -- Compute sell price using the same logic as ServerPlot:GetSellPrice
 local function computeSellPrice(plot: any, fishData: any): number?
 	if not plot then return nil end
+	local dir = Directory.Fish[fishData.FishId]
+	if not dir then return nil end
+	
+	-- Use OverrideSellPrice if it exists (for special items like pumpkins)
+	if dir.OverrideSellPrice then
+		return dir.OverrideSellPrice
+	end
+	
 	-- Temporarily inject fishData into a faux index reader by FishId and Level
 	-- We mirror the GetSellPrice math: ceil(GetMoneyPerSecond(index) * 20)
 	-- Here we compute MPS from directory and apply type/mutation/trait multipliers
-	local dir = Directory.Fish[fishData.FishId]
-	if not dir then return nil end
 	local level = fishData.Level or 1
 	local base = dir.MoneyPerSecond * level
 	

@@ -12,6 +12,7 @@ return {
     BillboardOffset = 6.5,
     RarityWeight = 0,
     SpecialItemFish = true,
+    OverrideSellPrice = 25_000,
     -- IndexOffset = 8,
     -- IndexPositionOffset = Vector3.new(-7, 2, 0),
 }::FishTypes.raw_dir

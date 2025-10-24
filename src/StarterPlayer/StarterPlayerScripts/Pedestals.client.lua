@@ -475,6 +475,28 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, upgradeFrame: F
             return
         end
 
+        -- Check if this is a SpecialItemFish
+        local fishSchema = Directory.Fish[currentFishData.FishId]
+        if fishSchema and fishSchema.SpecialItemFish then
+            local pumpkins = {
+                ["Common Pumpkin"] = true,
+                ["Epic Pumpkin"] = true,
+                ["Mythical Pumpkin"] = true,
+            }
+
+            if pumpkins[fishSchema._id] then
+                NotificationCmds.Message("You cannot place this, use it for Halloween Quests!", {
+                    Color = Color3.fromRGB(255, 0, 0),
+                })
+                return
+            end
+
+            NotificationCmds.Message("You cannot place this!", {
+                Color = Color3.fromRGB(255, 0, 0),
+            })
+            return
+        end
+
         -- playing here as verification from the server takes too long and sounds bad
         Audio.Play("rbxassetid://134182180985783", script, 1, 0.4)
         NotificationCmds.Message(`You placed down a {currentFishData.FishId}!`, {
@@ -785,6 +807,14 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
                     parent = plotFishFolder:WaitForChild("Gold")
                 end
                 
+                -- Apply mutation if present
+                if visual.Mutation then
+                    local mutationDir = Directory.Mutations[visual.Mutation]
+                    if mutationDir then
+                        mutationDir.ApplyToModel(tempFishModel)
+                    end
+                end
+                
                 -- Position the temporary model at the original position
                 tempFishModel:PivotTo(originalPivot)
                 tempFishModel:SetAttribute("PedestalFish", true)
@@ -807,7 +837,7 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
                         FishId = visual.FishId,
                         Type = visual.Type,
                         Level = 1,
-                        Mutation = nil,
+                        Mutation = visual.Mutation,
                         Shiny = false,
                         CreateTime = workspace:GetServerTimeNow(),
                         BaseTime = workspace:GetServerTimeNow(),
@@ -847,7 +877,19 @@ local function playLuckyBlockAnimation(plot: ClientPlot.Type, pedestalId: number
                     fishType.Visible = false
                 end
                 
-                mutation.Visible = false
+                -- Show mutation if present
+                if visual.Mutation then
+                    local mutationDir = Directory.Mutations[visual.Mutation]
+                    if mutationDir then
+                        mutation.Text = mutationDir.DisplayName
+                        mutation.TextColor3 = mutationDir.Color
+                        mutation.Visible = true
+                    else
+                        mutation.Visible = false
+                    end
+                else
+                    mutation.Visible = false
+                end
                 
                 -- Wait for the variable interval (fast at start, slow at end)
                 task.wait(intervals[i])
@@ -1111,6 +1153,28 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
                     local fishData = FishCmds.GetCurrentFishData()
                     if not fishData then
                         NotificationCmds.Message("Equip a fish to place it!", {
+                            Color = Color3.fromRGB(255, 0, 0),
+                        })
+                        return
+                    end
+
+                    -- Check if this is a SpecialItemFish
+                    local fishSchema = Directory.Fish[fishData.FishId]
+                    if fishSchema and fishSchema.SpecialItemFish then
+                        local pumpkins = {
+                            ["Common Pumpkin"] = true,
+                            ["Epic Pumpkin"] = true,
+                            ["Mythical Pumpkin"] = true,
+                        }
+
+                        if pumpkins[fishSchema._id] then
+                            NotificationCmds.Message("You cannot place this, use it for Halloween Quests!", {
+                                Color = Color3.fromRGB(255, 0, 0),
+                            })
+                            return
+                        end
+
+                        NotificationCmds.Message("You cannot place this!", {
                             Color = Color3.fromRGB(255, 0, 0),
                         })
                         return
