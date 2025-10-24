@@ -7,9 +7,9 @@ return {
     DisplayName = "Skeleton Seahorse",
     Icon = "rbxassetid://88747837083551",
     MutationIcons = {
-        Bloodfish = "rbxassetid://88747837083551",
-        Galaxy = "rbxassetid://88747837083551",
-        Spooky = "rbxassetid://88747837083551",
+        Bloodfish = "rbxassetid://124111484915158",
+        Galaxy = "rbxassetid://124086688296135",
+        Spooky = "rbxassetid://138933764153134",
     },
     Rarity = Rarity.Legendary,
     MoneyPerSecond = 95,
