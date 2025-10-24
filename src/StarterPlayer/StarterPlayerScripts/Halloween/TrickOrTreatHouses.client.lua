@@ -3,6 +3,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
 local TagHook = require(ReplicatedStorage.Library.Functions.TagHook)
 local TrickOrTreatHouseCmds = require(ReplicatedStorage.Game.Library.Client.TrickOrTreatHouseCmds)
@@ -58,11 +59,18 @@ local function updateSubtitle(subtitle: TextLabel, houseId: number)
 end
 
 -- Helper function to animate door opening and closing
-local function animateDoor(door: Model, houseId: number)
+local function animateDoor(door: Model, houseId: number, houseModel: Model)
 	local primaryPart = door.PrimaryPart
 	if not primaryPart then
 		warn("[TrickOrTreatHouses] Door model has no PrimaryPart")
 		return
+	end
+	
+	-- Find the Glow part
+	local glowPart = houseModel:FindFirstChild("Glow")
+	if glowPart and glowPart:IsA("BasePart") then
+		-- Set to yellow when door starts opening
+		glowPart.Color = Color3.fromRGB(254, 239, 74)
 	end
 	
 	-- Store original pivot
@@ -101,6 +109,11 @@ local function animateDoor(door: Model, houseId: number)
 	
 	closeTween:Play()
 	closeTween.Completed:Wait()
+	
+	-- Set glow back to black when door is closed
+	if glowPart and glowPart:IsA("BasePart") then
+		glowPart.Color = Color3.fromRGB(0, 0, 0)
+	end
 	
 	-- Cleanup
 	connection:Disconnect()
@@ -185,7 +198,7 @@ TagHook(TAG, function(instance: Instance)
 	-- Connect to prompt triggered event
 	local triggeredConnection = prompt.Triggered:Connect(function()
 		-- Check if player has completed the tutorial
-		if not hasHadFishBefore(Players.LocalPlayer) then
+		if not hasHadFishBefore(Players.LocalPlayer) and not RunService:IsStudio() then
 			NotificationCmds.Message("Complete the tutorial first!", {
 				Color = Color3.fromRGB(255, 0, 0),
 			})
@@ -198,7 +211,7 @@ TagHook(TAG, function(instance: Instance)
 			prompt.Enabled = false
 			
 			-- Animate door
-			animateDoor(door, houseId)
+			animateDoor(door, houseId, houseModel)
 			
 			-- Wait a bit before re-checking cooldown
 			task.wait(0.5)
