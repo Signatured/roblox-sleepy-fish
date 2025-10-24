@@ -7,9 +7,9 @@ return {
     DisplayName = "Haunted Prawn",
     Icon = "rbxassetid://74932174099576",
     MutationIcons = {
-        Bloodfish = "rbxassetid://74932174099576",
-        Galaxy = "rbxassetid://74932174099576",
-        Spooky = "rbxassetid://74932174099576",
+        Bloodfish = "rbxassetid://131432108467604",
+        Galaxy = "rbxassetid://131885109502242",
+        Spooky = "rbxassetid://74921609506668",
     },
     Rarity = Rarity.Mythical,
     MoneyPerSecond = 430,

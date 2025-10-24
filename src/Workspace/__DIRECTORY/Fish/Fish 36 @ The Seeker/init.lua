@@ -7,9 +7,9 @@ return {
     DisplayName = "The Seeker",
     Icon = "rbxassetid://89658188700696",
     MutationIcons = {
-        Bloodfish = "rbxassetid://89658188700696",
-        Galaxy = "rbxassetid://89658188700696",
-        Spooky = "rbxassetid://89658188700696",
+        Bloodfish = "rbxassetid://112183688935106",
+        Galaxy = "rbxassetid://80968908078731",
+        Spooky = "rbxassetid://102950632185989",
     },
     Rarity = Rarity.Secret,
     MoneyPerSecond = 1050,

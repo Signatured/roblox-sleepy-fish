@@ -68,10 +68,10 @@ local function animateDoor(door: Model, houseId: number, houseModel: Model)
 	end
 	
 	-- Play knocking sound
-	Audio.Play("rbxassetid://7511730566", primaryPart.Position, 1, 1.5, 50)
+	Audio.Play("rbxassetid://7511730566", primaryPart.Position, 1, 3, 50)
 	
-	-- Wait 1 second
-	task.wait(1)
+	-- Wait 3 second
+	task.wait(3)
 	
 	-- Find the Glow part
 	local glowPart = houseModel:FindFirstChild("Glow")
@@ -90,7 +90,7 @@ local function animateDoor(door: Model, houseId: number, houseModel: Model)
 	end
 	
 	-- Play door open sound
-	Audio.Play("rbxassetid://125209584906878", primaryPart.Position, 1, 1.5, 50)
+	Audio.Play("rbxassetid://125209584906878", primaryPart.Position, 1, 3, 50)
 	
 	-- Store original pivot
 	local originalPivot = door:GetPivot()
@@ -122,7 +122,7 @@ local function animateDoor(door: Model, houseId: number, houseModel: Model)
 	task.wait(DOOR_HOLD_TIME)
 	
 	-- Play door close sound
-	Audio.Play("rbxassetid://122398964277913", primaryPart.Position, 1, 1.5, 50)
+	Audio.Play("rbxassetid://122398964277913", primaryPart.Position, 1, 3, 50)
 	
 	-- Close door by tweening back to 0
 	local closeTween = TweenService:Create(angleValue, tweenInfo, {

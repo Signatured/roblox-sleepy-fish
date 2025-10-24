@@ -7,9 +7,9 @@ return {
     DisplayName = "Octobloop",
     Icon = "rbxassetid://114385688262048",
     MutationIcons = {
-        Bloodfish = "rbxassetid://114385688262048",
-        Galaxy = "rbxassetid://114385688262048",
-        Spooky = "rbxassetid://114385688262048",
+        Bloodfish = "rbxassetid://79007910712218",
+        Galaxy = "rbxassetid://101923213586939",
+        Spooky = "rbxassetid://101142318868075",
     },
     Rarity = Rarity.Exclusive,
     MoneyPerSecond = 150,
