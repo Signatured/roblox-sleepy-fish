@@ -73,6 +73,15 @@ local function animateDoor(door: Model, houseId: number, houseModel: Model)
 		glowPart.Color = Color3.fromRGB(254, 239, 74)
 	end
 	
+	-- Disable collision on all door parts and store original states
+	local collisionStates: {[BasePart]: boolean} = {}
+	for _, descendant in ipairs(door:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			collisionStates[descendant] = descendant.CanCollide
+			descendant.CanCollide = false
+		end
+	end
+	
 	-- Store original pivot
 	local originalPivot = door:GetPivot()
 	
@@ -113,6 +122,13 @@ local function animateDoor(door: Model, houseId: number, houseModel: Model)
 	-- Set glow back to black when door is closed
 	if glowPart and glowPart:IsA("BasePart") then
 		glowPart.Color = Color3.fromRGB(0, 0, 0)
+	end
+	
+	-- Restore collision on all door parts
+	for part, originalState in pairs(collisionStates) do
+		if part and part.Parent then
+			part.CanCollide = originalState
+		end
 	end
 	
 	-- Cleanup
