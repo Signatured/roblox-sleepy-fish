@@ -10,6 +10,7 @@ local TrickOrTreatHouseCmds = require(ReplicatedStorage.Game.Library.Client.Tric
 local Save = require(ReplicatedStorage.Library.Client.Save)
 local Functions = require(ReplicatedStorage.Library.Functions)
 local NotificationCmds = require(ReplicatedStorage.Library.Client.NotificationCmds)
+local Audio = require(ReplicatedStorage.Library.Audio)
 
 local Assets = ReplicatedStorage:WaitForChild("Assets")
 
@@ -66,6 +67,12 @@ local function animateDoor(door: Model, houseId: number, houseModel: Model)
 		return
 	end
 	
+	-- Play knocking sound
+	Audio.Play("rbxassetid://7511730566", primaryPart.Position, 1, 1.5, 50)
+	
+	-- Wait 1 second
+	task.wait(1)
+	
 	-- Find the Glow part
 	local glowPart = houseModel:FindFirstChild("Glow")
 	if glowPart and glowPart:IsA("BasePart") then
@@ -81,6 +88,9 @@ local function animateDoor(door: Model, houseId: number, houseModel: Model)
 			descendant.CanCollide = false
 		end
 	end
+	
+	-- Play door open sound
+	Audio.Play("rbxassetid://125209584906878", primaryPart.Position, 1, 1.5, 50)
 	
 	-- Store original pivot
 	local originalPivot = door:GetPivot()
@@ -110,6 +120,9 @@ local function animateDoor(door: Model, houseId: number, houseModel: Model)
 	
 	-- Hold door open
 	task.wait(DOOR_HOLD_TIME)
+	
+	-- Play door close sound
+	Audio.Play("rbxassetid://122398964277913", primaryPart.Position, 1, 1.5, 50)
 	
 	-- Close door by tweening back to 0
 	local closeTween = TweenService:Create(angleValue, tweenInfo, {
