@@ -77,9 +77,9 @@ local function animateDoor(door: Model, houseId: number)
 		Value = DOOR_OPEN_ANGLE
 	})
 	
-	-- Update door pivot as the tween progresses
+	-- Update door pivot as the tween progresses (rotate around Z axis for side swing)
 	local connection = angleValue.Changed:Connect(function(value)
-		local currentRotation = CFrame.Angles(0, math.rad(value), 0)
+		local currentRotation = CFrame.Angles(0, 0, math.rad(value))
 		door:PivotTo(originalPivot * currentRotation)
 	end)
 	
