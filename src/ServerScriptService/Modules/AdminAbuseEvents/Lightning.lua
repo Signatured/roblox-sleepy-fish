@@ -12,6 +12,7 @@ local FishGenerator = require(ServerScriptService.Game.Library.FishGenerator)
 local Traits = require(ServerScriptService.Game.Library.Traits)
 local AdminAbuseEvents = require(ServerScriptService.Game.Library.AdminAbuseEvents)
 local FFlags = require(ServerScriptService.Library.FFlags)
+local Directory = require(ReplicatedStorage.Game.Library.Directory)
 
 local module = {}
 
@@ -88,8 +89,9 @@ function module.Heartbeat(delta: number, time: number)
 			-- Get all active fish
 			local activeFish = {}
 			for uid, fish in pairs(FishGenerator.GetAllActive()) do
-				-- Check if fish doesn't have Lightning trait
-				if not Traits.HasTrait(fish, "Lightning") then
+				local schema = Directory.Fish[fish.FishData.FishId]
+				-- Check if fish doesn't have Lightning trait and is not a Lucky Block or Special Item Fish
+				if not Traits.HasTrait(fish, "Lightning") and not schema.LuckyBlockId and not schema.SpecialItemFish then
 					table.insert(activeFish, uid)
 				end
 			end
