@@ -2,11 +2,13 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
 
 local TagHook = require(ReplicatedStorage.Library.Functions.TagHook)
 local TrickOrTreatHouseCmds = require(ReplicatedStorage.Game.Library.Client.TrickOrTreatHouseCmds)
 local Save = require(ReplicatedStorage.Library.Client.Save)
 local Functions = require(ReplicatedStorage.Library.Functions)
+local NotificationCmds = require(ReplicatedStorage.Library.Client.NotificationCmds)
 
 local Assets = ReplicatedStorage:WaitForChild("Assets")
 
@@ -21,6 +23,13 @@ local tweenInfo = TweenInfo.new(
 	Enum.EasingStyle.Quad,
 	Enum.EasingDirection.InOut
 )
+
+local function hasHadFishBefore(player: Player): boolean
+    local save = Save.Get()
+    if not save then return false end
+    if not save.Index then return false end
+    return Functions.DictionarySize(save.Index) > 0
+end
 
 -- Helper function to get house ID from a house model
 local function getHouseId(houseModel: Instance): number?
@@ -56,17 +65,23 @@ local function animateDoor(door: Model, houseId: number)
 		return
 	end
 	
-	-- Store original CFrame
-	local originalCFrame = primaryPart.CFrame
+	-- Store original pivot
+	local originalPivot = door:GetPivot()
 	
-	-- Calculate open CFrame (rotate 160 degrees around Y axis)
-	local rotationCFrame = CFrame.Angles(0, math.rad(DOOR_OPEN_ANGLE), 0)
-	local openCFrame = originalCFrame * rotationCFrame
+	-- Create a NumberValue to tween the angle
+	local angleValue = Instance.new("NumberValue")
+	angleValue.Value = 0
 	
-	-- Open door
-	local openTween = TweenService:Create(primaryPart, tweenInfo, {
-		CFrame = openCFrame
+	-- Open door by tweening the angle
+	local openTween = TweenService:Create(angleValue, tweenInfo, {
+		Value = DOOR_OPEN_ANGLE
 	})
+	
+	-- Update door pivot as the tween progresses
+	local connection = angleValue.Changed:Connect(function(value)
+		local currentRotation = CFrame.Angles(0, math.rad(value), 0)
+		door:PivotTo(originalPivot * currentRotation)
+	end)
 	
 	openTween:Play()
 	
@@ -79,12 +94,17 @@ local function animateDoor(door: Model, houseId: number)
 	-- Hold door open
 	task.wait(DOOR_HOLD_TIME)
 	
-	-- Close door
-	local closeTween = TweenService:Create(primaryPart, tweenInfo, {
-		CFrame = originalCFrame
+	-- Close door by tweening back to 0
+	local closeTween = TweenService:Create(angleValue, tweenInfo, {
+		Value = 0
 	})
 	
 	closeTween:Play()
+	closeTween.Completed:Wait()
+	
+	-- Cleanup
+	connection:Disconnect()
+	angleValue:Destroy()
 end
 
 -- Main TagHook setup
@@ -157,6 +177,14 @@ TagHook(TAG, function(instance: Instance)
 	
 	-- Connect to prompt triggered event
 	local triggeredConnection = prompt.Triggered:Connect(function()
+		-- Check if player has completed the tutorial
+		if not hasHadFishBefore(Players.LocalPlayer) then
+			NotificationCmds.Message("Complete the tutorial first!", {
+				Color = Color3.fromRGB(255, 0, 0),
+			})
+			return
+		end
+		
 		-- Double check cooldown before animating
 		if not TrickOrTreatHouseCmds.IsOnCooldown(houseId) then
 			-- Disable prompt during animation

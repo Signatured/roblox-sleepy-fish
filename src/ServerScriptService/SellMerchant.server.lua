@@ -37,7 +37,7 @@ local function computeSellPrice(plot: any, fishData: any): number?
 	local mutationMultiplier = Mutations.GetMutationMulti(fishData)
 	local traitMultiplier = Traits.GetTraitMulti(fishData)
 	
-	return math.ceil(base * typeMultiplier * mutationMultiplier * traitMultiplier * 60 * 5)
+	return math.ceil(base * typeMultiplier * mutationMultiplier * traitMultiplier * 60 * 2)
 end
 
 -- Sell a list of inventory UIDs; returns total money added and list of sold UIDs

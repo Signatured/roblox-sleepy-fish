@@ -43,7 +43,7 @@ local function getSellPrice(fishData: any): number
     else
         -- Server refuses Exclusive sales; still show price from base directory
         local level = fishData.Level or 1
-        base = math.ceil((dir.MoneyPerSecond or 0) * level * 60 * 5)
+        base = math.ceil((dir.MoneyPerSecond or 0) * level * 60 * 2)
     end
     -- Apply Double Money gamepass multiplier for display parity with server
     local schema = GamepassCmds.GetSchema("Double Money") or GamepassesDirectory["Double Money"]
