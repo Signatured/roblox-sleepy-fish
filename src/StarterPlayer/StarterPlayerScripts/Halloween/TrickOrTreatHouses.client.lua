@@ -44,6 +44,11 @@ end
 
 -- Helper function to update prompt visibility based on cooldown
 local function updatePromptVisibility(prompt: ProximityPrompt, houseId: number)
+	-- Don't change visibility if animation is in progress
+	if prompt:GetAttribute("AnimationInProgress") then
+		return
+	end
+	
 	local isOnCooldown = TrickOrTreatHouseCmds.IsOnCooldown(houseId)
 	prompt.Enabled = not isOnCooldown
 end
@@ -60,18 +65,24 @@ local function updateSubtitle(subtitle: TextLabel, houseId: number)
 end
 
 -- Helper function to animate door opening and closing
-local function animateDoor(door: Model, houseId: number, houseModel: Model)
+local function animateDoor(door: Model, houseId: number, houseModel: Model, prompt: ProximityPrompt)
 	local primaryPart = door.PrimaryPart
 	if not primaryPart then
 		warn("[TrickOrTreatHouses] Door model has no PrimaryPart")
 		return
 	end
 	
+	-- Mark animation as in progress
+	prompt:SetAttribute("AnimationInProgress", true)
+	
+	-- Hide proximity prompt during animation
+	prompt.Enabled = false
+	
 	-- Play knocking sound
 	Audio.Play("rbxassetid://7511730566", primaryPart.Position, 1, 3, 50)
 	
-	-- Wait 3 second
-	task.wait(3)
+	-- Wait 2.25 second
+	task.wait(2.25)
 	
 	-- Find the Glow part
 	local glowPart = houseModel:FindFirstChild("Glow")
@@ -143,6 +154,12 @@ local function animateDoor(door: Model, houseId: number, houseModel: Model)
 			part.CanCollide = originalState
 		end
 	end
+	
+	-- Mark animation as complete
+	prompt:SetAttribute("AnimationInProgress", false)
+	
+	-- Show proximity prompt again
+	prompt.Enabled = true
 	
 	-- Cleanup
 	connection:Disconnect()
@@ -216,6 +233,7 @@ TagHook(TAG, function(instance: Instance)
 	prompt.MaxActivationDistance = 10
 	prompt.RequiresLineOfSight = false
 	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt:SetAttribute("AnimationInProgress", false)
 	prompt.Parent = attachment
 	
 	-- Set initial visibility and subtitle based on cooldown
@@ -236,11 +254,8 @@ TagHook(TAG, function(instance: Instance)
 		
 		-- Double check cooldown before animating
 		if not TrickOrTreatHouseCmds.IsOnCooldown(houseId) then
-			-- Disable prompt during animation
-			prompt.Enabled = false
-			
 			-- Animate door
-			animateDoor(door, houseId, houseModel)
+			animateDoor(door, houseId, houseModel, prompt)
 			
 			-- Wait a bit before re-checking cooldown
 			task.wait(0.5)

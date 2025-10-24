@@ -5,11 +5,11 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Skeleton Seahorse",
-    Icon = "rbxassetid://121124709133867",
+    Icon = "rbxassetid://88747837083551",
     MutationIcons = {
-        Bloodfish = "rbxassetid://119628112879305",
-        Galaxy = "rbxassetid://78831121890972",
-        Spooky = "rbxassetid://126697480873290",
+        Bloodfish = "rbxassetid://88747837083551",
+        Galaxy = "rbxassetid://88747837083551",
+        Spooky = "rbxassetid://88747837083551",
     },
     Rarity = Rarity.Legendary,
     MoneyPerSecond = 95,
