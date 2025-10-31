@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CommandManager = require(ServerScriptService.CommandManager)
 local Saving = require(ServerScriptService.Library.Saving)
 local CommandType = require(ReplicatedStorage.Game.Library.Types.Commands)
+local Notifications = require(ServerScriptService.Library.Notifications)
 
 local Command = {
 	Name = "SkipCraftingTimes",
@@ -38,6 +39,12 @@ local Command = {
 				if skippedCount > 0 then
 					print(`Skipped {skippedCount} crafting timer(s) for {targetPlayer.Name}`)
 				end
+
+                -- Notify all players
+                Notifications.Message(targetPlayer,"Admin instantly finished all crafting times!", {
+                    Rainbow = true,
+                    Time = 8,
+                })
 			end
 		end
 	end,

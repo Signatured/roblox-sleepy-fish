@@ -7,8 +7,8 @@ return {
     DisplayName = "God",
     Rarity = Rarity.God,
     Loot = {
-        ["Vortex Barracuda"] = 40,
-        ["Squalana"] = 30,
+        ["Squalana"] = 40,
+        ["Haunted Serpent"] = 30,
         ["Haunted Kraken"] = 20,
         ["Loch Ness Monster"] = 10,
     },

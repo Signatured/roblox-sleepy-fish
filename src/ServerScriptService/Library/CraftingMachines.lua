@@ -401,6 +401,7 @@ function CraftingMachines.Craft(player: Player, craftingMachineId: string, recip
 	local displayName = fishSchema and fishSchema.DisplayName or fishName
 	Notifications.Message(player, `Your {displayName} will be ready in {Functions.FormatTime(recipe.CraftTime)}!`, {
 		Color = Color3.fromRGB(0, 255, 0),
+		Sound = "rbxassetid://77384594247778",
 	})
 	
 	return true
@@ -446,6 +447,7 @@ function CraftingMachines.Claim(player: Player, craftingMachineId: string, recip
 	if currentInventoryCount >= inventorySize then
 		Notifications.Message(player, "You need to make room in your inventory first!", {
 			Color = Color3.fromRGB(255, 0, 0),
+			Sound = "rbxassetid://77384594247778",
 		})
 		return false
 	end
@@ -473,6 +475,7 @@ function CraftingMachines.Claim(player: Player, craftingMachineId: string, recip
 		local prefix = Functions.AnOrA(displayName)
 		Notifications.Message(player, `You crafted {prefix} {displayName}!`, {
 			Color = Color3.fromRGB(0, 255, 0),
+			Sound = "rbxassetid://108578182800070",
 		})
 		
 		-- Clear the slot

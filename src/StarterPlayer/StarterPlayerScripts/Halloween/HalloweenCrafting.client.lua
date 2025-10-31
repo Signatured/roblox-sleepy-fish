@@ -68,12 +68,9 @@ local updateCraftButton: (number, any) -> ()
 
 -- Update the Left frame with the selected recipe information
 local function updateLeftFrame(recipeIndex: number)
-	print(`[HalloweenCrafting] Updating left frame for recipe {recipeIndex}`)
-	
 	local craftData = CraftingMachinesCmds.GetCraftData(CRAFTING_MACHINE_ID, recipeIndex)
 	
 	if not craftData.RecipeIngredients or not craftData.RecipeIngredients.Result then
-		warn(`[HalloweenCrafting] No recipe ingredients found for recipe {recipeIndex}`)
 		return
 	end
 	
@@ -81,7 +78,6 @@ local function updateLeftFrame(recipeIndex: number)
 	local fishSchema = Directory.Fish[resultFish.FishId]
 	
 	if not fishSchema then
-		warn(`[HalloweenCrafting] Fish schema not found for {resultFish.FishId}`)
 		return
 	end
 	
@@ -263,8 +259,6 @@ local function updateLeftFrame(recipeIndex: number)
 			-- Get ingredients and sort by MoneyPerSecond
 			local ingredients = craftData.RecipeIngredients.Ingredients
 			if ingredients then
-				print(`[HalloweenCrafting] Updating {#ingredients} required ingredients`)
-				
 				local sortedIngredients = {}
 				for _, ingredient in ipairs(ingredients) do
 					local ingredientFishSchema = Directory.Fish[ingredient.FishId]
@@ -274,8 +268,6 @@ local function updateLeftFrame(recipeIndex: number)
 							schema = ingredientFishSchema,
 							mps = ingredientFishSchema.MoneyPerSecond or 0,
 						})
-					else
-						warn(`[HalloweenCrafting] Fish schema not found for ingredient: {ingredient.FishId}`)
 					end
 				end
 				
@@ -300,7 +292,6 @@ local function updateLeftFrame(recipeIndex: number)
 							ingredientIcon = ingredientData.schema.MutationIcons[ingredientData.params.Mutation] or ingredientData.schema.Icon
 						end
 						ingredientImageLabel.Image = ingredientIcon
-						print(`[HalloweenCrafting] Set ingredient {i} icon: {ingredientData.schema.DisplayName}`)
 					end
 					
 					if ingredientTitle and ingredientTitle:IsA("TextLabel") then
@@ -324,14 +315,8 @@ local function updateLeftFrame(recipeIndex: number)
 					
 					clone.Parent = requiredFrame
 				end
-			else
-				warn("[HalloweenCrafting] No ingredients found in recipe data")
 			end
-		else
-			warn("[HalloweenCrafting] Template not found in Required frame")
 		end
-	else
-		warn("[HalloweenCrafting] Required frame not found in Left frame")
 	end
 end
 
@@ -384,7 +369,6 @@ end
 local function setupCraftButton()
 	local craftButton = leftFrame:FindFirstChild("CraftButton")
 	if not craftButton or not craftButton:IsA("ImageButton") then
-		warn("[HalloweenCrafting] CraftButton not found")
 		return
 	end
 	
@@ -438,7 +422,6 @@ end
 local function updateRecipeSlot(slotIndex: number)
 	local slotButton = rightFrame:FindFirstChild(tostring(slotIndex))
 	if not slotButton then
-		warn(`[HalloweenCrafting] Slot button {slotIndex} not found`)
 		return
 	end
 	
@@ -447,12 +430,10 @@ local function updateRecipeSlot(slotIndex: number)
 	local backgroundLabel = slotButton:FindFirstChild("Background")
 	
 	if not imageLabel or not imageLabel:IsA("ImageLabel") then
-		warn(`[HalloweenCrafting] ImageLabel not found in slot {slotIndex}`)
 		return
 	end
 	
 	if not titleLabel or not titleLabel:IsA("TextLabel") then
-		warn(`[HalloweenCrafting] Title not found in slot {slotIndex}`)
 		return
 	end
 	
@@ -470,7 +451,6 @@ local function updateRecipeSlot(slotIndex: number)
 	local fishSchema = Directory.Fish[resultFish.FishId]
 	
 	if not fishSchema then
-		warn(`[HalloweenCrafting] Fish schema not found for {resultFish.FishId}`)
 		imageLabel.Image = ""
 		titleLabel.Text = "Unknown Fish"
 		return
@@ -497,36 +477,24 @@ end
 local function setupRecipeButtons()
 	local schema = Directory.CraftingMachines[CRAFTING_MACHINE_ID]
 	if not schema then
-		warn("[HalloweenCrafting] No crafting machine schema found!")
 		return
 	end
 	
-	print(`[HalloweenCrafting] Setting up {#schema.Recipes} recipe buttons`)
-	
 	for i = 1, #schema.Recipes do
 		local slotButton = rightFrame:FindFirstChild(tostring(i))
-		if slotButton then
-			if slotButton:IsA("ImageButton") then
-				-- Ensure button is active and can receive input
-				slotButton.Active = true
-				slotButton.AutoButtonColor = true
-				
-				-- Add button effects
-				ButtonFX(slotButton)
-				
-				-- Set up click handler
-				slotButton.Activated:Connect(function()
-					print(`[HalloweenCrafting] Recipe {i} clicked`)
-					currentSelectedRecipe = i
-					updateLeftFrame(i)
-				end)
-				
-				print(`[HalloweenCrafting] Setup button {i} - Active: {slotButton.Active}, ZIndex: {slotButton.ZIndex}`)
-			else
-				warn(`[HalloweenCrafting] Slot {i} is not an ImageButton, it's a {slotButton.ClassName}`)
-			end
-		else
-			warn(`[HalloweenCrafting] Slot button {i} not found in Right/Frame`)
+		if slotButton and slotButton:IsA("ImageButton") then
+			-- Ensure button is active and can receive input
+			slotButton.Active = true
+			slotButton.AutoButtonColor = true
+			
+			-- Add button effects
+			ButtonFX(slotButton)
+			
+			-- Set up click handler
+			slotButton.Activated:Connect(function()
+				currentSelectedRecipe = i
+				updateLeftFrame(i)
+			end)
 		end
 	end
 end
@@ -535,7 +503,6 @@ end
 local function updateAllRecipes()
 	local schema = Directory.CraftingMachines[CRAFTING_MACHINE_ID]
 	if not schema then
-		warn(`[HalloweenCrafting] Crafting machine schema not found for {CRAFTING_MACHINE_ID}`)
 		return
 	end
 	
@@ -601,14 +568,12 @@ TagHook("HalloweenCraftingBillboard", function(instance: Instance)
 	
 	local refreshInLabel = instance:FindFirstChild("RefreshIn")
 	if not refreshInLabel or not refreshInLabel:IsA("TextLabel") then
-		warn("[HalloweenCrafting] RefreshIn TextLabel not found in billboard")
 		return function() end
 	end
 	
 	-- Get the crafting machine schema
 	local schema = Directory.CraftingMachines[CRAFTING_MACHINE_ID]
 	if not schema then
-		warn("[HalloweenCrafting] No schema found for billboard")
 		return function() end
 	end
 	

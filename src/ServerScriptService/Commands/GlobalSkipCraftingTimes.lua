@@ -12,7 +12,7 @@ local GLOBAL_SKIP_CRAFTING_TOPIC = "SleepyFish:GlobalSkipCraftingTimes"
 local Command = {
 	Name = "GlobalSkipCraftingTimes",
 	Aliases = {"globalskipcrafting"},
-	Permissions = {"Owner", "Developer"},
+	Permissions = {"Admin", "Owner", "Developer"}, 
 	Parameters = {} :: {CommandType.Parameter},
 
 	Execute = function(player, args)

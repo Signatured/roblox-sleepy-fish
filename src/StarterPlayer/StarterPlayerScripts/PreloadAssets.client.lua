@@ -42,6 +42,10 @@ local preloadSounds = {
     "rbxassetid://125209584906878", -- door open
     "rbxassetid://122398964277913", -- door close
     "rbxassetid://83210828687333", -- spawn haunted house fish
+
+    "rbxassetid://77384594247778", -- craft sound
+    "rbxassetid://86764609074639", -- electricity loop
+    "rbxassetid://108578182800070", -- successful craft sound
 }
 
 Audio.PreloadSounds(preloadSounds)

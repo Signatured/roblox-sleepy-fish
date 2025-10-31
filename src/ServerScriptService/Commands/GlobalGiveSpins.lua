@@ -13,7 +13,7 @@ local GLOBAL_GIVE_SPINS_TOPIC = "SleepyFish:GlobalGiveSpins"
 local Command = {
 	Name = "GlobalGiveSpins",
 	Aliases = {"globalgivespins", "globalspins", "ggs"},
-	Permissions = {"Owner", "Developer"},
+	Permissions = {"Admin", "Owner", "Developer"}, 
 	Parameters = {
 		{Type = "String", Name = "WheelId"},
 		{Type = "Number", Name = "Amount"},
