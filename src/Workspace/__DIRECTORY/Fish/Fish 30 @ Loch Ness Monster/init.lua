@@ -10,6 +10,7 @@ return {
         Bloodfish = "rbxassetid://116052337277111",
         Galaxy = "rbxassetid://91677753341218",
         Spooky = "rbxassetid://94275974393084",
+        Haunted = "rbxassetid://84975274785254",
     },
     Rarity = Rarity.God,
     MoneyPerSecond = 650,
