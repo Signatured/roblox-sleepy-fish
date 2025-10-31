@@ -181,6 +181,18 @@ local function startHauntedEvent()
             hauntedParticles.Parent = DEBRIS
         end
     end
+
+    -- Clone ghost particles for water
+    local topLayer = workspace:WaitForChild("__THINGS"):FindFirstChild("TopLayer")
+    local hauntedGhostParticles = hauntedFolder2 and hauntedFolder2:FindFirstChild("TopLayerParticles")
+    if hauntedGhostParticles then
+        for _, particle in ipairs(hauntedGhostParticles:GetChildren()) do
+            if particle:IsA("ParticleEmitter") then
+                local cloned = particle:Clone()
+                cloned.Parent = topLayer
+            end
+        end
+    end
     
     -- Mark startup as complete
     isHauntedStarting = false
@@ -244,6 +256,13 @@ local function endHauntedEvent()
     if hauntedPortal then
         setParticlesEnabled(hauntedPortal, false)
     end
+
+    local topLayer = workspace:WaitForChild("__THINGS"):FindFirstChild("TopLayer")
+    for _, particle in ipairs(topLayer:GetChildren()) do
+        if particle:IsA("ParticleEmitter") then
+            particle.Enabled = false
+        end
+    end
     
     task.wait(3)
     
@@ -255,6 +274,11 @@ local function endHauntedEvent()
     if hauntedParticles then
         hauntedParticles:Destroy()
         hauntedParticles = nil
+    end
+    for _, particle in ipairs(topLayer:GetChildren()) do
+        if particle:IsA("ParticleEmitter") then
+            particle:Destroy()
+        end
     end
     
     -- Reset event state

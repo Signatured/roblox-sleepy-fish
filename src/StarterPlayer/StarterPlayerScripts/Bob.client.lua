@@ -37,6 +37,8 @@ TagHook(TAG, function(instance: Instance)
     local amplitude: number = (typeof(amplitudeAttr) == "number") and (amplitudeAttr :: number) or 1
     local noSpinAttr = (instance :: any):GetAttribute("NoSpin")
     local noSpin: boolean = (typeof(noSpinAttr) == "boolean") and (noSpinAttr :: boolean) or false
+    local speedAttr = (instance :: any):GetAttribute("BobSpeed")
+    local speed: number = (typeof(speedAttr) == "number") and (speedAttr :: number) or 1
 
     local startTime = workspace:GetServerTimeNow()
     local period = (2 * math.pi) / OMEGA -- 4 seconds
@@ -46,10 +48,10 @@ TagHook(TAG, function(instance: Instance)
             return
         end
         local t = (workspace:GetServerTimeNow() - startTime) + phaseOffsetSec
-        local dy = amplitude * math.sin(OMEGA * t)
+        local dy = amplitude * math.sin(OMEGA * speed * t)
         local cf = baseCFrame
         if not noSpin then
-            local angle = SPIN_OMEGA * t
+            local angle = SPIN_OMEGA * speed * t
             cf = cf * CFrame.Angles(0, angle, 0)
         end
         setCFrame(cf + Vector3.new(0, dy, 0))

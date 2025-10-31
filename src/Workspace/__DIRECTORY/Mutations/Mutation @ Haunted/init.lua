@@ -5,8 +5,8 @@ return {
 	Color = Color3.fromRGB(80, 42, 119),
 	MutationEarningsMultiplier = 2,
 	ApplyToModel = function(model: Model)
-		-- local Particles = script:WaitForChild("Particles")
-		local _defaultScale = Vector3.new(5.565, 2.443, 2.823)
+		local Particles = script:WaitForChild("Particles")
+		local defaultScale = Vector3.new(5.565, 2.443, 2.823)
 
 		for _, obj in ipairs(model:GetDescendants()) do
 			if obj:IsA("BasePart") then
@@ -38,23 +38,29 @@ return {
 				
 				part.Color = newColor
 			end
+
+			if obj:GetAttribute("Eyes") and obj:IsA("BasePart") then
+				local eye = obj :: BasePart
+				eye.Color = Color3.fromRGB(255, 0, 0)
+				eye.Material = Enum.Material.Neon
+			end
 		end
 
-		-- local vfxBox = model:FindFirstChild("VFX")::BasePart
-		-- if vfxBox and not vfxBox:GetAttribute("Added") then
-		-- 	local scale = vfxBox.Size
-		-- 	local scaleMultiplier = scale.Magnitude / defaultScale.Magnitude
-		-- 	for _, particle in ipairs(Particles:GetChildren()) do
-		-- 		local cloned = particle:Clone()
+		local vfxBox = model:FindFirstChild("VFX")::BasePart
+		if vfxBox and not vfxBox:GetAttribute("Added") then
+			local scale = vfxBox.Size
+			local scaleMultiplier = scale.Magnitude / defaultScale.Magnitude
+			for _, particle in ipairs(Particles:GetChildren()) do
+				local cloned = particle:Clone()
 
-		-- 		if cloned:IsA("ParticleEmitter") and scaleMultiplier > 1.5 then
-		-- 			scaleMultiplier = math.min(scaleMultiplier, 3)
-		-- 			cloned.Rate = cloned.Rate * scaleMultiplier
-		-- 		end
+				if cloned:IsA("ParticleEmitter") and scaleMultiplier > 1.5 then
+					scaleMultiplier = math.min(scaleMultiplier, 3)
+					cloned.Rate = cloned.Rate * scaleMultiplier
+				end
 
-		-- 		cloned.Parent = vfxBox
-		-- 	end
-		-- 	vfxBox:SetAttribute("Added", true)
-		-- end
+				cloned.Parent = vfxBox
+			end
+			vfxBox:SetAttribute("Added", true)
+		end
 	end
 }
