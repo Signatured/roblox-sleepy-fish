@@ -226,6 +226,8 @@ Functions.TagHook("SwimmingFish", animate)
 Functions.TagHook("FishSwimmingGui", function(gui: BillboardGui)
     if not gui or not gui:IsA("BillboardGui") then return function() end end
 
+    local cancelFn: (() -> ())? = nil
+
     local frame = gui:FindFirstChild("Frame")
     local rarity = frame and frame:FindFirstChild("Rarity")
     if rarity and rarity:IsA("TextLabel") then
@@ -237,7 +239,7 @@ Functions.TagHook("FishSwimmingGui", function(gui: BillboardGui)
                 if template and template:IsA("UIGradient") then
                     local gradient = template:Clone()
                     gradient.Parent = rarity
-                    Functions.GradientScroll(gradient, 2.5)
+                    cancelFn = Functions.GradientScroll(gradient, 2.5)
                 end
             end
         elseif text == "God" then
@@ -247,7 +249,7 @@ Functions.TagHook("FishSwimmingGui", function(gui: BillboardGui)
                 if template and template:IsA("UIGradient") then
                     local gradient = template:Clone()
                     gradient.Parent = rarity
-                    Functions.GradientScroll(gradient, 2.5)
+                    cancelFn = Functions.GradientScroll(gradient, 2.5)
                 end
             end
         elseif text == "Secret" then
@@ -257,23 +259,33 @@ Functions.TagHook("FishSwimmingGui", function(gui: BillboardGui)
                 if template and template:IsA("UIGradient") then
                     local gradient = template:Clone()
                     gradient.Parent = rarity
-                    Functions.GradientScroll(gradient, 2.5)
+                    cancelFn = Functions.GradientScroll(gradient, 2.5)
                 end
             end
         end
     end
 
-    return function() end
+    return function()
+        if cancelFn then
+            cancelFn()
+        end
+    end
 end)
 
 Functions.TagHook("RainbowFishType", function(label: TextLabel)
+    local cancelFn: (() -> ())? = nil
+    
     task.defer(function()
         if label.Text == "Rainbow" then
-            Functions.Rainbow(label, "TextColor3")
+            cancelFn = Functions.Rainbow(label, "TextColor3")
         end
     end)
 
-    return function()  end
+    return function()
+        if cancelFn then
+            cancelFn()
+        end
+    end
 end)
 
 -- Seed highlights and ensure the step is running even if no swimming fish are present
