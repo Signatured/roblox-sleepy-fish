@@ -37,6 +37,10 @@ module.Raw = {
     -- Mutation Event
     MutationEvent_EnableOverride = { Default = true, Type = "boolean" },
     MutationEvent_DurationOverride = { Default = 60 * 15, Type = "number" },
+
+    -- Halloween Crafting Machine
+    HalloweenCrafting_AllowCrafting = { Default = true, Type = "boolean" },
+    HalloweenCrafting_AllowClaiming = { Default = true, Type = "boolean" },
 }
 
 -- Optionally extend per-game admin access for the FFlags UI.

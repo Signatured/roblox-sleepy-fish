@@ -16,6 +16,7 @@ local ButtonFX = require(ReplicatedStorage.Library.Client.GUIFX.ButtonFX)
 local Functions = require(ReplicatedStorage.Library.Functions)
 local NotificationCmds = require(ReplicatedStorage.Library.Client.NotificationCmds)
 local TagHook = require(ReplicatedStorage.Library.Functions.TagHook)
+local FFlags = require(ReplicatedStorage.Library.Client.FFlags)
 
 local CRAFTING_MACHINE_ID = "Halloween Crafting Machine"
 local CRAFTING_EPOCH_START = 1761930000
@@ -381,6 +382,14 @@ local function setupCraftButton()
 		
 		if craftData.IsCrafting then
 			-- In claiming mode
+			-- Check if claiming is allowed via FFlag
+			if not FFlags.Get(FFlags.Keys.HalloweenCrafting_AllowClaiming) then
+				NotificationCmds.Message("Claiming is currently disabled!", {
+					Color = Color3.fromRGB(255, 0, 0),
+				})
+				return
+			end
+			
 			if not craftData.IsReady then
 				NotificationCmds.Message("You cannot claim this yet!", {
 					Color = Color3.fromRGB(255, 0, 0),
@@ -397,6 +406,14 @@ local function setupCraftButton()
 			end
 		else
 			-- In crafting mode
+			-- Check if crafting is allowed via FFlag
+			if not FFlags.Get(FFlags.Keys.HalloweenCrafting_AllowCrafting) then
+				NotificationCmds.Message("Crafting is currently disabled!", {
+					Color = Color3.fromRGB(255, 0, 0),
+				})
+				return
+			end
+			
 			local canCraft = CraftingMachinesCmds.CanCraft(CRAFTING_MACHINE_ID, currentSelectedRecipe)
 			
 			if not canCraft then

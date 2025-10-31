@@ -16,6 +16,7 @@ local Network = require(ServerScriptService.Library.Network)
 local Fish = require(ServerScriptService.Game.Library.Fish)
 local Notifications = require(ServerScriptService.Library.Notifications)
 local Functions = require(ReplicatedStorage.Library.Functions)
+local FFlags = require(ServerScriptService.Library.FFlags)
 
 local ServerPlot = require(ServerScriptService.Plot.ServerPlot)
 
@@ -324,6 +325,16 @@ end
 
 -- Craft a recipe
 function CraftingMachines.Craft(player: Player, craftingMachineId: string, recipeIndex: number): boolean
+	-- Check if crafting is allowed for Halloween Crafting Machine
+	if craftingMachineId == "Halloween Crafting Machine" then
+		if not FFlags.GetBoolean(FFlags.Keys.HalloweenCrafting_AllowCrafting) then
+			Notifications.Message(player, "Crafting is currently disabled!", {
+				Color = Color3.fromRGB(255, 0, 0),
+			})
+			return false
+		end
+	end
+	
 	local save = Saving.Get(player)
 	if not save then
 		return false
@@ -401,7 +412,7 @@ function CraftingMachines.Craft(player: Player, craftingMachineId: string, recip
 	local displayName = fishSchema and fishSchema.DisplayName or fishName
 	Notifications.Message(player, `Your {displayName} will be ready in {Functions.FormatTime(recipe.CraftTime)}!`, {
 		Color = Color3.fromRGB(0, 255, 0),
-		Sound = "rbxassetid://77384594247778",
+		Sound = "rbxassetid://105973271745899",
 	})
 	
 	return true
@@ -431,6 +442,16 @@ end
 
 -- Claim a completed recipe
 function CraftingMachines.Claim(player: Player, craftingMachineId: string, recipeIndex: number): boolean
+	-- Check if claiming is allowed for Halloween Crafting Machine
+	if craftingMachineId == "Halloween Crafting Machine" then
+		if not FFlags.GetBoolean(FFlags.Keys.HalloweenCrafting_AllowClaiming) then
+			Notifications.Message(player, "Claiming is currently disabled!", {
+				Color = Color3.fromRGB(255, 0, 0),
+			})
+			return false
+		end
+	end
+	
 	local save = Saving.Get(player)
 	if not save then
 		return false
@@ -447,7 +468,6 @@ function CraftingMachines.Claim(player: Player, craftingMachineId: string, recip
 	if currentInventoryCount >= inventorySize then
 		Notifications.Message(player, "You need to make room in your inventory first!", {
 			Color = Color3.fromRGB(255, 0, 0),
-			Sound = "rbxassetid://77384594247778",
 		})
 		return false
 	end
