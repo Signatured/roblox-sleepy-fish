@@ -1246,6 +1246,11 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
             end
         end
 
+        local primaryPart = fishModel.PrimaryPart
+        if primaryPart then
+            primaryPart.Anchored = true
+        end
+
         fishModel:PivotTo((base:GetPivot() + Vector3.new(0, base.Size.Y / 2, 0) + Vector3.new(0, fishModel:GetExtentsSize().Y / 2, 0) + Vector3.new(0, 2, 0) + Vector3.new(0, dir.PedestalOffset or 0, 0)) * CFrame.Angles(0, math.rad(180), 0))
         fishModel:SetAttribute("PedestalFish", true)
         -- Tie the fish model to this plot for reliable cleanup
