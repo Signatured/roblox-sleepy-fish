@@ -14,6 +14,7 @@ export type schema = {
 	LuckyBlocks: typeof(require(script.LuckyBlocks)),
 	Traits: typeof(require(script.Traits)),
 	AdminAbuseEvents: typeof(require(script.AdminAbuseEvents)),
+	CraftingMachines: typeof(require(script.CraftingMachines)),
 }
 
 local module: schema = {}::any

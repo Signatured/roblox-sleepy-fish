@@ -27,6 +27,12 @@ export type IndexData = {
 	Rainbow: boolean?,
 }
 
+export type CraftingMachineSlot = {
+	RecipeIndex: number,
+	CompletionTime: number,
+	ResultFish: FishTypes.create_params,
+}
+
 export type schema = {
 	Inventory: {FishTypes.data_schema},
 	Tools: {[string]: boolean},
@@ -58,6 +64,10 @@ export type schema = {
 	TrickOrTreatHouses: {[string]: number},
 	Wheels: {[string]: { Free: number, Paid: number, FreeNextAt: number? }},
 	WheelDailyDealDayKey: number?,
+	-- CraftingMachines: [CraftingMachineId][RecipeIndex as string] = CraftingMachineSlot
+	-- Supports multiple simultaneous crafts across different machines and recipe slots
+	-- RecipeIndex is stored as string to avoid datastore serialization issues with sparse arrays
+	CraftingMachines: {[string]: {[string]: CraftingMachineSlot?}},
 }
 
 local DefaultStats = {
@@ -99,6 +109,7 @@ local DefaultStats = {
 	},
 	Wheels = {},
 	WheelDailyDealDayKey = nil,
+	CraftingMachines = {},
 }::schema
 
 return DefaultStats
