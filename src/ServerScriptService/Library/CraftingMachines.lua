@@ -309,7 +309,7 @@ function CraftingMachines.CanCraft(player: Player, craftingMachineId: string, re
 	for _, ingredientParam in ipairs(recipeData.Ingredients) do
 		local hasFish = false
 		for _, fishData in ipairs(save.Inventory) do
-			if fishData.FishId == ingredientParam.FishId and fishData.Type == ingredientParam.Type then
+			if fishData.FishId == ingredientParam.FishId then
 				hasFish = true
 				break
 			end
@@ -358,7 +358,7 @@ function CraftingMachines.Craft(player: Player, craftingMachineId: string, recip
 		local removed = false
 		for i = #save.Inventory, 1, -1 do
 			local fishData = save.Inventory[i]
-			if fishData.FishId == ingredientParam.FishId and fishData.Type == ingredientParam.Type then
+			if fishData.FishId == ingredientParam.FishId then
 				-- Check if this fish was already removed
 				local alreadyRemoved = false
 				for _, uid in ipairs(removedFish) do

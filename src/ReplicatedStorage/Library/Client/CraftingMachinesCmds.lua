@@ -71,7 +71,7 @@ function CraftingMachinesCmds.CanCraft(craftingMachineIdOrDir: string | Crafting
 		local hasFish = false
 		if save.Inventory then
 			for _, fishData in ipairs(save.Inventory) do
-				if fishData.FishId == ingredientParam.FishId and fishData.Type == ingredientParam.Type then
+				if fishData.FishId == ingredientParam.FishId then
 					hasFish = true
 					break
 				end
