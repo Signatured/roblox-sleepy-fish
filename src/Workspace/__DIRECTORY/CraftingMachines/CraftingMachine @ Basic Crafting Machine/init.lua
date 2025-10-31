@@ -7,22 +7,38 @@ return {
 	RecipeResetTime = 10800, -- 3 hours in seconds
 	Recipes = {
 		{
-			RarityResult = "Uncommon",
-			CraftTime = 300, -- 5 minutes
-			CraftCost = 1000,
-			RequiredIngredientAmount = 3,
-		},
-		{
-			RarityResult = "Rare",
-			CraftTime = 600, -- 10 minutes
-			CraftCost = 5000,
+			RarityResult = "Epic",
+			CraftTime = 10,--60 * 5, -- 5 minutes
+			CraftCost = 50_000,
 			RequiredIngredientAmount = 4,
 		},
 		{
-			RarityResult = "Epic",
-			CraftTime = 1200, -- 20 minutes
-			CraftCost = 15000,
-			RequiredIngredientAmount = 5,
+			RarityResult = "Legendary",
+			CraftTime = 60 * 15, -- 15 minutes
+			CraftCost = 300_000,
+			RequiredIngredientAmount = 4,
+		},
+		{
+			RarityResult = "Mythical",
+			CraftTime = 60 * 30, -- 30 minutes
+			CraftCost = 50_000_000,
+			RequiredIngredientAmount = 4,
+		},
+		{
+			RarityResult = "God",
+			CraftTime = 60 * 45, -- 45 minutes
+			CraftCost = 750_000_000,
+			RequiredIngredientAmount = 4,
+		},
+		{
+			FishResult = {
+				FishId = "Evil Loch Ness Monster",
+				Type = "Normal",
+			},
+			RarityResult = "Secret",
+			CraftTime = 60 * 60 * 1.5, -- 1.5 hours
+			CraftCost = 5_000_000_000,
+			RequiredIngredientAmount = 4,
 		},
 	}
 }::CraftingMachineTypes.raw_dir

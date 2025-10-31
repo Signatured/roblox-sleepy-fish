@@ -34,7 +34,9 @@ local preloadSounds = {
 	"rbxassetid://75263020536239", -- lightning strike
 	"rbxassetid://78466157575717", -- lightning strike
     "rbxassetid://73851509377743", -- lightning storm start
-    "rbxassetid://119969791895244", -- witch laugh
+    -- "rbxassetid://119969791895244", -- witch laugh
+
+    "rbxassetid://125840884527985", -- haunted event start
 
     "rbxassetid://7511730566", -- knocking
     "rbxassetid://125209584906878", -- door open

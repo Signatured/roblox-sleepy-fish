@@ -107,7 +107,7 @@ local function startHauntedEvent()
     NotificationCmds.Message("Beware! The Haunted are coming!", {
         Color = eventData.Color,
         Time = 10,
-        Sound = "rbxassetid://119969791895244"
+        Sound = "rbxassetid://125840884527985"
     })
 
     task.wait(3)

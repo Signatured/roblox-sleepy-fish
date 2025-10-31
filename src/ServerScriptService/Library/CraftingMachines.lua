@@ -33,6 +33,9 @@ local function getCurrentInterval(): number
 	return math.floor(currentTime / 10800) -- 10800 seconds = 3 hours
 end
 
+-- Track the current recipe interval
+local currentInterval = getCurrentInterval()
+
 -- Generate difficulty scaler weighted towards 0.5
 -- Uses beta distribution-like approach with seed
 local function generateDifficultyScaler(seed: number): number
@@ -369,7 +372,10 @@ function CraftingMachines.Craft(player: Player, craftingMachineId: string, recip
 		ResultFish = recipeData.Result,
 	}
 	
-	Notifications.Message(player, `Crafting started! Complete in {Functions.FormatTimer(recipe.CraftTime)}`, {
+	local fishName = recipeData.Result.FishId
+	local fishSchema = Directory.Fish[fishName]
+	local displayName = fishSchema and fishSchema.DisplayName or fishName
+	Notifications.Message(player, `Your {displayName} will be ready in {Functions.FormatTime(recipe.CraftTime)}!`, {
 		Color = Color3.fromRGB(0, 255, 0),
 	})
 	
@@ -425,7 +431,12 @@ function CraftingMachines.Claim(player: Player, craftingMachineId: string, recip
 	if fishData then
 		local fishSchema = Directory.Fish[fishData.FishId]
 		local displayName = fishSchema and fishSchema.DisplayName or fishData.FishId
-		Notifications.Message(player, `Crafted {displayName}!`, {
+		
+		-- Force player to hold the crafted fish
+		Fish.ForceHoldFish(player, fishData)
+		
+		local prefix = Functions.AnOrA(displayName)
+		Notifications.Message(player, `You crafted {prefix} {displayName}!`, {
 			Color = Color3.fromRGB(0, 255, 0),
 		})
 		
@@ -464,6 +475,41 @@ Network.Invoked("CraftingMachines_GetRecipeIngredients", function(player: Player
 	end
 	
 	return CraftingMachines.GetRecipeIngredients(craftingMachineId, recipeIndex)
+end)
+
+-- Send updated recipes to all players for a specific machine
+local function broadcastRecipeUpdates(machineId: string)
+	local schema = Directory.CraftingMachines[machineId]
+	if not schema then return end
+	
+	-- Build recipe data for all recipes
+	local recipes: {[number]: CraftingMachineTypes.recipe_ingredients_schema} = {}
+	for recipeIndex = 1, #schema.Recipes do
+		local recipeData = CraftingMachines.GetRecipeIngredients(machineId, recipeIndex)
+		if recipeData then
+			recipes[recipeIndex] = recipeData
+		end
+	end
+	
+	-- Send to all players
+	Network.FireAll("CraftingMachines_RecipesUpdated", machineId, recipes)
+end
+
+-- Check for interval changes and update recipes
+task.spawn(function()
+	while true do
+		task.wait(10) -- Check every 10 seconds
+		
+		local newInterval = getCurrentInterval()
+		if newInterval ~= currentInterval then
+			currentInterval = newInterval
+			
+			-- Broadcast updated recipes for all machines
+			for machineId, _ in pairs(Directory.CraftingMachines) do
+				broadcastRecipeUpdates(machineId)
+			end
+		end
+	end
 end)
 
 return CraftingMachines

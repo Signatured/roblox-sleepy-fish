@@ -11,8 +11,15 @@ local Network = require(ReplicatedStorage.Library.Client.Network)
 local Save = require(ReplicatedStorage.Library.Client.Save)
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
 local CraftingMachineTypes = require(ReplicatedStorage.Game.Library.Types.CraftingMachines)
+local Event = require(ReplicatedStorage.Library.Modules.Event)
 
 local CraftingMachinesCmds = {}
+
+-- Cache for recipe ingredients: [MachineId][RecipeIndex] = recipe_ingredients_schema
+local recipeIngredientsCache: {[string]: {[number]: CraftingMachineTypes.recipe_ingredients_schema?}} = {}
+
+-- Event that fires when recipe data is updated
+CraftingMachinesCmds.RecipesUpdated = Event.new()
 
 -- Check if player can craft a recipe (client-side validation)
 function CraftingMachinesCmds.CanCraft(craftingMachineIdOrDir: string | CraftingMachineTypes.dir_schema, recipeIndex: number): boolean
@@ -51,21 +58,10 @@ function CraftingMachinesCmds.CanCraft(craftingMachineIdOrDir: string | Crafting
 		return false
 	end
 	
-	-- Get recipe ingredients from server
-	local recipeData = pcall(function()
-		return Network.Invoke("CraftingMachines_GetRecipeIngredients", craftingMachineId, recipeIndex)
-	end)
+	-- Get ingredients from cache
+	local ingredients = recipeIngredientsCache[craftingMachineId] and recipeIngredientsCache[craftingMachineId][recipeIndex]
 	
-	if not recipeData then
-		return false
-	end
-	
-	-- Check if player has all required ingredients
-	local success, ingredients = pcall(function()
-		return Network.Invoke("CraftingMachines_GetRecipeIngredients", craftingMachineId, recipeIndex)
-	end)
-	
-	if not success or not ingredients then
+	if not ingredients then
 		return false
 	end
 	
@@ -216,15 +212,8 @@ function CraftingMachinesCmds.GetCraftData(craftingMachineIdOrDir: string | Craf
 		timeRemaining = math.max(0, slot.CompletionTime - currentTime)
 	end
 	
-	-- Get recipe ingredients
-	local recipeIngredients = nil
-	local success, result = pcall(function()
-		return Network.Invoke("CraftingMachines_GetRecipeIngredients", craftingMachineId, recipeIndex)
-	end)
-	
-	if success and result then
-		recipeIngredients = result
-	end
+	-- Get recipe ingredients from cache
+	local recipeIngredients = recipeIngredientsCache[craftingMachineId] and recipeIngredientsCache[craftingMachineId][recipeIndex]
 	
 	return {
 		TimeRemaining = timeRemaining,
@@ -234,6 +223,51 @@ function CraftingMachinesCmds.GetCraftData(craftingMachineIdOrDir: string | Craf
 		RecipeIngredients = recipeIngredients,
 	}
 end
+
+-- Request recipe ingredients from server (called once on load)
+local function fetchAllRecipeIngredients()
+	for machineId, machineSchema in pairs(Directory.CraftingMachines) do
+		recipeIngredientsCache[machineId] = {}
+		
+		for recipeIndex = 1, #machineSchema.Recipes do
+			local success, result = pcall(function()
+				return Network.Invoke("CraftingMachines_GetRecipeIngredients", machineId, recipeIndex)
+			end)
+			
+			if success and result then
+				recipeIngredientsCache[machineId][recipeIndex] = result
+			end
+		end
+	end
+	
+	-- Fire event to notify listeners that recipes are loaded
+	CraftingMachinesCmds.RecipesUpdated:FireAsync()
+end
+
+-- Listen for recipe updates from server
+Network.Fired("CraftingMachines_RecipesUpdated", function(machineId: string, recipes: {[number]: CraftingMachineTypes.recipe_ingredients_schema})
+	if not recipeIngredientsCache[machineId] then
+		recipeIngredientsCache[machineId] = {}
+	end
+	
+	for recipeIndex, recipeData in pairs(recipes) do
+		recipeIngredientsCache[machineId][recipeIndex] = recipeData
+	end
+	
+	-- Fire event to notify listeners
+	CraftingMachinesCmds.RecipesUpdated:FireAsync(machineId)
+end)
+
+-- Initialize: fetch recipe ingredients once when module loads
+task.spawn(function()
+	-- Wait for save to be loaded
+	while not Save.Get() do
+		task.wait(0.1)
+	end
+	
+	task.wait(0.5) -- Small delay to ensure everything is ready
+	fetchAllRecipeIngredients()
+end)
 
 return CraftingMachinesCmds
 
