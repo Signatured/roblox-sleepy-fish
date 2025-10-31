@@ -17,7 +17,7 @@ local Functions = require(ReplicatedStorage.Library.Functions)
 local NotificationCmds = require(ReplicatedStorage.Library.Client.NotificationCmds)
 local TagHook = require(ReplicatedStorage.Library.Functions.TagHook)
 
-local CRAFTING_MACHINE_ID = "Basic Crafting Machine"
+local CRAFTING_MACHINE_ID = "Halloween Crafting Machine"
 local CRAFTING_EPOCH_START = 1761930000
 
 local halloweenCraftingGui = GUI.HalloweenCrafting()

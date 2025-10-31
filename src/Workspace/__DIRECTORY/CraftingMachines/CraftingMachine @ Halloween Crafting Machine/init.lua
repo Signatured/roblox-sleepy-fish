@@ -3,8 +3,8 @@
 local CraftingMachineTypes = require(game.ReplicatedStorage.Game.Library.Types.CraftingMachines)
 
 return {
-	DisplayName = "Basic Crafting Machine",
-	RecipeResetTime = 60,--10800, -- 3 hours in seconds
+	DisplayName = "Halloween Crafting Machine",
+	RecipeResetTime = 60 * 60, -- 1 hour in seconds
 	Recipes = {
 		{
 			RarityResult = "Epic",
