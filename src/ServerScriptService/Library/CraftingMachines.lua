@@ -27,14 +27,18 @@ local function seededRandom(seed: number): number
 	return x - math.floor(x)
 end
 
--- Get the current time interval (3 hour blocks)
-local function getCurrentInterval(): number
+-- Epoch start time for crafting system
+local CRAFTING_EPOCH_START = 1761930000
+
+-- Get the current time interval for a specific crafting machine
+local function getCurrentInterval(schema: CraftingMachineTypes.dir_schema): number
 	local currentTime = workspace:GetServerTimeNow()
-	return math.floor(currentTime / 10800) -- 10800 seconds = 3 hours
+	local elapsedTime = currentTime - CRAFTING_EPOCH_START
+	return math.floor(elapsedTime / schema.RecipeResetTime)
 end
 
--- Track the current recipe interval
-local currentInterval = getCurrentInterval()
+-- Track the current recipe intervals per machine
+local currentIntervals: {[string]: number} = {}
 
 -- Generate difficulty scaler weighted towards 0.5
 -- Uses beta distribution-like approach with seed
@@ -50,11 +54,11 @@ local function generateDifficultyScaler(seed: number): number
 	return scaler
 end
 
--- Get all fish sorted by MoneyPerSecond
+-- Get all fish sorted by MoneyPerSecond (excluding Exclusive rarity)
 local function getFishByMoneyPerSecond(): {FishTypes.dir_schema}
 	local fishList = {}
 	for _, fishSchema in pairs(Directory.Fish) do
-		if fishSchema.MoneyPerSecond and fishSchema.MoneyPerSecond > 0 then
+		if fishSchema.MoneyPerSecond and fishSchema.MoneyPerSecond > 0 and fishSchema.Rarity._id ~= "Exclusive" then
 			table.insert(fishList, fishSchema)
 		end
 	end
@@ -66,8 +70,8 @@ local function getFishByMoneyPerSecond(): {FishTypes.dir_schema}
 	return fishList
 end
 
--- Find the 10 trailing fish before the target fish (by money per second)
-local function getTrailingFish(targetFishId: string): {FishTypes.dir_schema}
+-- Find the trailing fish before the target fish (by money per second)
+local function getTrailingFish(targetFishId: string, trailingAmount: number): {FishTypes.dir_schema}
 	local allFish = getFishByMoneyPerSecond()
 	local targetIndex = nil
 	
@@ -83,9 +87,9 @@ local function getTrailingFish(targetFishId: string): {FishTypes.dir_schema}
 		return {}
 	end
 	
-	-- Get 10 trailing fish (or as many as available)
+	-- Get trailing fish (or as many as available)
 	local trailingFish = {}
-	local startIndex = math.max(1, targetIndex - 10)
+	local startIndex = math.max(1, targetIndex - trailingAmount)
 	for i = startIndex, targetIndex - 1 do
 		table.insert(trailingFish, allFish[i])
 	end
@@ -106,19 +110,25 @@ local function selectIngredients(trailingFish: {FishTypes.dir_schema}, ingredien
 	-- 0 = easiest (lowest MPS), 1 = hardest (highest MPS)
 	local totalFish = #trailingFish
 	
+	-- Calculate the range of indices to select from based on difficulty
+	-- difficultyScaler 0 = bottom of list (indices 1 to ~40% of list)
+	-- difficultyScaler 1 = top of list (indices ~60% to 100% of list)
+	-- difficultyScaler 0.5 = middle of list (indices ~30% to 70% of list)
+	local rangeSize = math.max(math.ceil(totalFish * 0.6), ingredientCount + 2) -- At least 60% of list or enough for ingredients
+	local rangeStart = math.floor(difficultyScaler * (totalFish - rangeSize)) + 1
+	rangeStart = math.clamp(rangeStart, 1, totalFish - ingredientCount + 1)
+	local rangeEnd = math.min(rangeStart + rangeSize - 1, totalFish)
+	
 	for i = 1, ingredientCount do
 		local attempts = 0
 		local selectedIndex = nil
 		
-		-- Try to find an unused fish
-		while attempts < 100 do
-			-- Generate a random index weighted by difficulty
+		-- Try to find an unused fish within the difficulty range
+		while attempts < 200 do
+			-- Generate a random index within the difficulty-based range
 			local randomValue = seededRandom(seed + i * 100 + attempts)
-			
-			-- Weight the selection towards easier (low MPS) or harder (high MPS) fish
-			local weightedValue = randomValue * difficultyScaler
-			local index = math.floor(weightedValue * totalFish) + 1
-			index = math.clamp(index, 1, totalFish)
+			local index = rangeStart + math.floor(randomValue * (rangeEnd - rangeStart + 1))
+			index = math.clamp(index, rangeStart, rangeEnd)
 			
 			if not usedIndices[index] then
 				selectedIndex = index
@@ -129,8 +139,21 @@ local function selectIngredients(trailingFish: {FishTypes.dir_schema}, ingredien
 			attempts = attempts + 1
 		end
 		
+		-- If we couldn't find one in range, try any unused fish
+		if not selectedIndex then
+			for idx = 1, totalFish do
+				if not usedIndices[idx] then
+					selectedIndex = idx
+					usedIndices[idx] = true
+					break
+				end
+			end
+		end
+		
 		if selectedIndex then
 			table.insert(ingredients, trailingFish[selectedIndex])
+		else
+			warn(`[CraftingMachines] Failed to select ingredient {i}/{ingredientCount} - not enough unique fish in trailing pool`)
 		end
 	end
 	
@@ -151,12 +174,12 @@ local function generateResultFish(recipe: CraftingMachineTypes.recipe_data_schem
 		return nil
 	end
 	
-	-- Get all fish of this rarity
+	-- Get all fish of this rarity (excluding Exclusive)
 	local fishOfRarity = {}
 	local totalWeight = 0
 	
 	for _, fishSchema in pairs(Directory.Fish) do
-		if fishSchema.Rarity._id == recipe.RarityResult then
+		if fishSchema.Rarity._id == recipe.RarityResult and fishSchema.Rarity._id ~= "Exclusive" then
 			local weight = fishSchema.RarityWeight or 1
 			table.insert(fishOfRarity, {fish = fishSchema, weight = weight})
 			totalWeight = totalWeight + weight
@@ -203,7 +226,7 @@ function CraftingMachines.GetRecipeIngredients(craftingMachineId: string, recipe
 		return nil
 	end
 	
-	local currentInterval = getCurrentInterval()
+	local currentInterval = getCurrentInterval(schema)
 	local seed = currentInterval + recipeIndex
 	
 	-- Generate result fish
@@ -213,7 +236,8 @@ function CraftingMachines.GetRecipeIngredients(craftingMachineId: string, recipe
 	end
 	
 	-- Get trailing fish for ingredient selection
-	local trailingFish = getTrailingFish(resultFish.FishId)
+	local trailingAmount = recipe.TrailingFishAmount
+	local trailingFish = getTrailingFish(resultFish.FishId, trailingAmount)
 	if #trailingFish == 0 then
 		warn(`[CraftingMachines] No trailing fish found for {resultFish.FishId}`)
 		return nil
@@ -415,6 +439,17 @@ function CraftingMachines.Claim(player: Player, craftingMachineId: string, recip
 		return false
 	end
 	
+	-- Check if inventory is full
+	local inventorySize = save.PlotSave and save.PlotSave.Variables and save.PlotSave.Variables.InventorySize or 0
+	local currentInventoryCount = #save.Inventory
+	
+	if currentInventoryCount >= inventorySize then
+		Notifications.Message(player, "You need to make room in your inventory first!", {
+			Color = Color3.fromRGB(255, 0, 0),
+		})
+		return false
+	end
+	
 	local machineSlots = save.CraftingMachines[craftingMachineId]
 	if not machineSlots then
 		return false
@@ -495,17 +530,25 @@ local function broadcastRecipeUpdates(machineId: string)
 	Network.FireAll("CraftingMachines_RecipesUpdated", machineId, recipes)
 end
 
+-- Initialize current intervals for all machines
+for machineId, schema in pairs(Directory.CraftingMachines) do
+	currentIntervals[machineId] = getCurrentInterval(schema)
+end
+
 -- Check for interval changes and update recipes
 task.spawn(function()
 	while true do
-		task.wait(10) -- Check every 10 seconds
+		task.wait(1) -- Check every 10 seconds
 		
-		local newInterval = getCurrentInterval()
-		if newInterval ~= currentInterval then
-			currentInterval = newInterval
+		-- Check each machine individually
+		for machineId, schema in pairs(Directory.CraftingMachines) do
+			local newInterval = getCurrentInterval(schema)
+			local oldInterval = currentIntervals[machineId]
 			
-			-- Broadcast updated recipes for all machines
-			for machineId, _ in pairs(Directory.CraftingMachines) do
+			if newInterval ~= oldInterval then
+				currentIntervals[machineId] = newInterval
+				
+				-- Broadcast updated recipes for this machine
 				broadcastRecipeUpdates(machineId)
 			end
 		end

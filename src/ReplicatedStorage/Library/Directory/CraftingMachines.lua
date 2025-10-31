@@ -47,6 +47,7 @@ if game:GetService("RunService"):IsServer() and game:GetService("RunService"):Is
 				assert(type(recipe.CraftTime) == "number", `Recipe {i}: CraftTime must be number`)
 				assert(type(recipe.CraftCost) == "number", `Recipe {i}: CraftCost must be number`)
 				assert(type(recipe.RequiredIngredientAmount) == "number", `Recipe {i}: RequiredIngredientAmount must be number`)
+				assert(type(recipe.TrailingFishAmount) == "number", `Recipe {i}: TrailingFishAmount must be number`)
 			end
 		end)
 		if not success then

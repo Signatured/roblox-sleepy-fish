@@ -15,8 +15,10 @@ local Save = require(ReplicatedStorage.Library.Client.Save)
 local ButtonFX = require(ReplicatedStorage.Library.Client.GUIFX.ButtonFX)
 local Functions = require(ReplicatedStorage.Library.Functions)
 local NotificationCmds = require(ReplicatedStorage.Library.Client.NotificationCmds)
+local TagHook = require(ReplicatedStorage.Library.Functions.TagHook)
 
 local CRAFTING_MACHINE_ID = "Basic Crafting Machine"
+local CRAFTING_EPOCH_START = 1761930000
 
 local halloweenCraftingGui = GUI.HalloweenCrafting()
 local contentFrame = halloweenCraftingGui.Frame.MainFrame.Content
@@ -119,29 +121,49 @@ local function updateLeftFrame(recipeIndex: number)
 		craftingInProgressFrame.Visible = craftData.IsCrafting
 		
 		if craftData.IsCrafting then
-			local progressImageLabel = craftingInProgressFrame:FindFirstChild("ImageLabel")
-			local progressTitle = craftingInProgressFrame:FindFirstChild("Title")
-			local rarityColorFrame = craftingInProgressFrame:FindFirstChild("RarityColor")
-			
-			if progressImageLabel and progressImageLabel:IsA("ImageLabel") then
-				progressImageLabel.Image = icon
-			end
-			
-			if progressTitle and progressTitle:IsA("TextLabel") then
-				progressTitle.Text = fishSchema.DisplayName
-			end
-			
-			-- Set rarity color or gradient
-			if rarityColorFrame and fishSchema.Rarity then
-				local rarity = fishSchema.Rarity
+			-- Get the fish being crafted from save data (not current recipe)
+			local save = Save.Get()
+			if save and save.CraftingMachines and save.CraftingMachines[CRAFTING_MACHINE_ID] then
+				local recipeKey = tostring(recipeIndex)
+				local slot = save.CraftingMachines[CRAFTING_MACHINE_ID][recipeKey]
 				
-				if rarity._id == "God" or rarity._id == "Secret" or rarity._id == "Mythical" then
-					-- Use gradient for God/Secret/Mythical
-					setRarityGradient(rarityColorFrame, rarity)
-				else
-					-- Use solid color for other rarities
-					if rarityColorFrame:IsA("Frame") or rarityColorFrame:IsA("ImageLabel") or rarityColorFrame:IsA("ImageButton") then
-						rarityColorFrame.BackgroundColor3 = rarity.Color
+				if slot and slot.ResultFish then
+					local craftingFish = slot.ResultFish
+					local craftingFishSchema = Directory.Fish[craftingFish.FishId]
+					
+					if craftingFishSchema then
+						local progressImageLabel = craftingInProgressFrame:FindFirstChild("ImageLabel")
+						local progressTitle = craftingInProgressFrame:FindFirstChild("Title")
+						local rarityColorFrame = craftingInProgressFrame:FindFirstChild("RarityColor")
+						
+						-- Get the icon for the crafting fish
+						local craftingIcon = craftingFishSchema.Icon
+						if craftingFishSchema.MutationIcons and craftingFish.Mutation then
+							craftingIcon = craftingFishSchema.MutationIcons[craftingFish.Mutation] or craftingFishSchema.Icon
+						end
+						
+						if progressImageLabel and progressImageLabel:IsA("ImageLabel") then
+							progressImageLabel.Image = craftingIcon
+						end
+						
+						if progressTitle and progressTitle:IsA("TextLabel") then
+							progressTitle.Text = craftingFishSchema.DisplayName
+						end
+						
+						-- Set rarity color or gradient
+						if rarityColorFrame and craftingFishSchema.Rarity then
+							local rarity = craftingFishSchema.Rarity
+							
+							if rarity._id == "God" or rarity._id == "Secret" or rarity._id == "Mythical" then
+								-- Use gradient for God/Secret/Mythical
+								setRarityGradient(rarityColorFrame, rarity)
+							else
+								-- Use solid color for other rarities
+								if rarityColorFrame:IsA("Frame") or rarityColorFrame:IsA("ImageLabel") or rarityColorFrame:IsA("ImageButton") then
+									rarityColorFrame.BackgroundColor3 = rarity.Color
+								end
+							end
+						end
 					end
 				end
 			end
@@ -565,4 +587,63 @@ end)
 
 -- Initialize the GUI
 initialize()
+
+-- Set up HalloweenCraftingBillboard timers
+TagHook("HalloweenCraftingBillboard", function(instance: Instance)
+	if not instance:IsA("BillboardGui") and not instance:IsA("SurfaceGui") then
+		-- Try to find BillboardGui child
+		local billboardGui = instance:FindFirstChildOfClass("BillboardGui") or instance:FindFirstChildOfClass("SurfaceGui")
+		if not billboardGui then
+			return function() end
+		end
+		instance = billboardGui
+	end
+	
+	local refreshInLabel = instance:FindFirstChild("RefreshIn")
+	if not refreshInLabel or not refreshInLabel:IsA("TextLabel") then
+		warn("[HalloweenCrafting] RefreshIn TextLabel not found in billboard")
+		return function() end
+	end
+	
+	-- Get the crafting machine schema
+	local schema = Directory.CraftingMachines[CRAFTING_MACHINE_ID]
+	if not schema then
+		warn("[HalloweenCrafting] No schema found for billboard")
+		return function() end
+	end
+	
+	-- Function to calculate time until next refresh
+	local function getTimeUntilRefresh(): number
+		local currentTime = workspace:GetServerTimeNow()
+		local elapsedTime = currentTime - CRAFTING_EPOCH_START
+		local currentInterval = math.floor(elapsedTime / schema.RecipeResetTime)
+		local nextIntervalStart = CRAFTING_EPOCH_START + ((currentInterval + 1) * schema.RecipeResetTime)
+		local timeRemaining = nextIntervalStart - currentTime
+		return math.max(0, timeRemaining)
+	end
+	
+	-- Update the label
+	local function updateLabel()
+		local timeRemaining = getTimeUntilRefresh()
+		refreshInLabel.Text = `Refreshes in {Functions.FormatTime(timeRemaining)}`
+	end
+	
+	-- Initial update
+	updateLabel()
+	
+	-- Update every 0.5 seconds
+	local updateThread = task.spawn(function()
+		while true do
+			task.wait(0.5)
+			updateLabel()
+		end
+	end)
+	
+	-- Cleanup function
+	return function()
+		if updateThread then
+			task.cancel(updateThread)
+		end
+	end
+end)
 

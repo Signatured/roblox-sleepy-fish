@@ -4,31 +4,35 @@ local CraftingMachineTypes = require(game.ReplicatedStorage.Game.Library.Types.C
 
 return {
 	DisplayName = "Basic Crafting Machine",
-	RecipeResetTime = 10800, -- 3 hours in seconds
+	RecipeResetTime = 60,--10800, -- 3 hours in seconds
 	Recipes = {
 		{
 			RarityResult = "Epic",
-			CraftTime = 10,--60 * 5, -- 5 minutes
+			CraftTime = 60 * 5, -- 5 minutes
 			CraftCost = 50_000,
 			RequiredIngredientAmount = 4,
+			TrailingFishAmount = 7,
 		},
 		{
 			RarityResult = "Legendary",
 			CraftTime = 60 * 15, -- 15 minutes
 			CraftCost = 300_000,
 			RequiredIngredientAmount = 4,
+			TrailingFishAmount = 7,
 		},
 		{
 			RarityResult = "Mythical",
 			CraftTime = 60 * 30, -- 30 minutes
 			CraftCost = 50_000_000,
 			RequiredIngredientAmount = 4,
+			TrailingFishAmount = 8,
 		},
 		{
 			RarityResult = "God",
 			CraftTime = 60 * 45, -- 45 minutes
 			CraftCost = 750_000_000,
 			RequiredIngredientAmount = 4,
+			TrailingFishAmount = 9,
 		},
 		{
 			FishResult = {
@@ -39,6 +43,7 @@ return {
 			CraftTime = 60 * 60 * 1.5, -- 1.5 hours
 			CraftCost = 5_000_000_000,
 			RequiredIngredientAmount = 4,
+			TrailingFishAmount = 10,
 		},
 	}
 }::CraftingMachineTypes.raw_dir

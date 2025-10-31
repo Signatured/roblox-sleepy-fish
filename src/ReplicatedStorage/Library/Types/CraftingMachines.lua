@@ -17,6 +17,7 @@ export type recipe_data_schema = {
 	CraftTime: number,
 	CraftCost: number,
 	RequiredIngredientAmount: number,
+	TrailingFishAmount: number,
 }
 
 export type recipe_ingredients_schema = {

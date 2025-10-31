@@ -68,6 +68,9 @@ local function sortFishByMps(): {FishTypes.dir_schema}
         if dir.Rarity and dir.Rarity._id == "Exclusive" then
             continue
         end
+        if dir.SpecialItemFish then
+            continue
+        end
         table.insert(items, dir)
     end
     table.sort(items, function(a, b)

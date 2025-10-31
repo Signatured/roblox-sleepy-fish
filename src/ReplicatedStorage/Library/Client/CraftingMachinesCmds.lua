@@ -12,6 +12,7 @@ local Save = require(ReplicatedStorage.Library.Client.Save)
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
 local CraftingMachineTypes = require(ReplicatedStorage.Game.Library.Types.CraftingMachines)
 local Event = require(ReplicatedStorage.Library.Modules.Event)
+local NotificationCmds = require(ReplicatedStorage.Library.Client.NotificationCmds)
 
 local CraftingMachinesCmds = {}
 
@@ -146,6 +147,20 @@ function CraftingMachinesCmds.Claim(craftingMachineIdOrDir: string | CraftingMac
 	-- Check if ready to claim
 	if not CraftingMachinesCmds.IsRecipeReady(craftingMachineIdOrDir, recipeIndex) then
 		return false
+	end
+	
+	-- Check if inventory is full
+	local save = Save.Get()
+	if save then
+		local inventorySize = save.PlotSave and save.PlotSave.Variables and save.PlotSave.Variables.InventorySize or 0
+		local currentInventoryCount = #save.Inventory
+		
+		if currentInventoryCount >= inventorySize then
+			NotificationCmds.Message("You need to make room in your inventory first!", {
+				Color = Color3.fromRGB(255, 0, 0),
+			})
+			return false 
+		end
 	end
 	
 	-- Get crafting machine ID
