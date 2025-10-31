@@ -47,7 +47,7 @@ local preChaseState = {
     timePosition = 0,
 }
 
--- Spooky event music state
+-- Haunted event music state
 local isEventMusicActive = false
 local eventMusicIndex = 1
 local preEventState = {
@@ -219,7 +219,7 @@ local function PlayEventMusic(active: boolean)
         musicSound.Volume = defaultVolume
         musicSound:Play()
         
-        print("[MusicManager] Started Spooky event music")
+        print("[MusicManager] Started Haunted event music")
     else
         -- If event music isn't active and no stop is scheduled, nothing to do
         if not isEventMusicActive and not eventStopping then return end
@@ -272,7 +272,7 @@ local function PlayEventMusic(active: boolean)
                 musicSound:Play()
             end
 
-            print("[MusicManager] Stopped Spooky event music")
+            print("[MusicManager] Stopped Haunted event music")
         end)
     end
 end
@@ -345,7 +345,7 @@ local function init()
 		end
 	end)
 	
-	-- Spooky event music toggle, checked periodically
+	-- Haunted event music toggle, checked periodically
 	task.spawn(function()
 		-- Wait for MutationEventCmds to be available
 		local MutationEventCmds: any = nil
@@ -360,10 +360,10 @@ local function init()
 			end
 		end
 		
-		-- Check IsSpookyActive status every second
+		-- Check IsHauntedActive status every second
 		while true do
-			local isSpookyActive = MutationEventCmds.IsSpookyActive()
-			if isSpookyActive then
+			local isHauntedActive = MutationEventCmds.IsHauntedActive()
+			if isHauntedActive then
 				if not isEventMusicActive then
 					PlayEventMusic(true)
 				end

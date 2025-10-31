@@ -624,10 +624,10 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
         -- Use the provided mutation override
         mutation = mutationOverride
     elseif not schema.LuckyBlockId and not schema.SpecialItemFish then -- Lucky Block fish never have mutations
-        -- Check if Spooky event is active and apply Spooky mutation
+        -- Check if Haunted event is active and apply Haunted mutation
         local isEventActive, eventId = MutationEvent.GetCurrentStatus()
-        if isEventActive and eventId == "Spooky" then
-            mutation = "Spooky"
+        if isEventActive and eventId == "Haunted" then
+            mutation = "Haunted"
         end
     end
 
@@ -765,12 +765,12 @@ local function spawnOne(into: BasePart, backdate: number?, positionOverride: CFr
         fishType = "Normal"
     end
 
-    -- Check if Spooky event is active and apply Bloodfish mutation
+    -- Check if Haunted event is active and apply Bloodfish mutation
     local mutation: string? = nil
     if not schema.LuckyBlockId and not schema.SpecialItemFish then -- Lucky Block fish never have mutations
         local isEventActive, eventId = MutationEvent.GetCurrentStatus()
-        if isEventActive and eventId == "Spooky" then
-            mutation = "Spooky"
+        if isEventActive and eventId == "Haunted" then
+            mutation = "Haunted"
         end
     end
 

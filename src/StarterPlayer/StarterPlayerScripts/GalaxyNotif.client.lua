@@ -88,7 +88,7 @@ end
 
 -- Initialize according to current status
 do
-	local isActive = MutationEventCmds.IsSpookyActive()
+	local isActive = MutationEventCmds.IsHauntedActive()
 	if isActive then
 		setVisible(true)
 		setTransparency(MIN_TRANSPARENCY)
@@ -101,10 +101,10 @@ end
 
 -- Poll for changes every second
 task.spawn(function()
-	local wasActive = MutationEventCmds.IsSpookyActive()
+	local wasActive = MutationEventCmds.IsHauntedActive()
 	while true do
 		task.wait(1)
-		local isActive = MutationEventCmds.IsSpookyActive()
+		local isActive = MutationEventCmds.IsHauntedActive()
 		if isActive ~= wasActive then
 			if isActive then
 				handleEventStarted()

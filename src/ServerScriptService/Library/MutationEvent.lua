@@ -12,7 +12,7 @@ local MutationEventDirectory = require(ReplicatedStorage.Game.Library.Directory.
 local MutationEvent = {}
 
 -- Configuration
-local CURRENT_EVENT_ID = "Spooky" -- Directory ID of the current mutation event
+local CURRENT_EVENT_ID = "Haunted" -- Directory ID of the current mutation event
 local EST_OFFSET = -5 * 3600 -- EST is UTC-5 (in seconds)
 
 -- Debug Configuration

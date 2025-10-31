@@ -18,6 +18,7 @@ export type CountsByType = {
     Bloodfish: number,
     Galaxy: number,
     Spooky: number,
+    Haunted: number,
 }
 
 local ExistCount = {}
@@ -27,13 +28,13 @@ local lastPersisted: {[string]: CountsByType} = {}
 local cache: {[string]: CountsByType} = {}
 
 local function emptyCounts(): CountsByType
-    return { Normal = 0, Shiny = 0, Gold = 0, Rainbow = 0, Bloodfish = 0, Galaxy = 0, Spooky = 0 }
+    return { Normal = 0, Shiny = 0, Gold = 0, Rainbow = 0, Bloodfish = 0, Galaxy = 0, Spooky = 0, Haunted = 0 }
 end
 
 local function deepCopyCounts(src: {[string]: CountsByType}): {[string]: CountsByType}
     local dest: {[string]: CountsByType} = {}
     for k, v in pairs(src) do
-        dest[k] = { Normal = v.Normal or 0, Shiny = v.Shiny or 0, Gold = v.Gold or 0, Rainbow = v.Rainbow or 0, Bloodfish = v.Bloodfish or 0, Galaxy = v.Galaxy or 0, Spooky = v.Spooky or 0 }
+        dest[k] = { Normal = v.Normal or 0, Shiny = v.Shiny or 0, Gold = v.Gold or 0, Rainbow = v.Rainbow or 0, Bloodfish = v.Bloodfish or 0, Galaxy = v.Galaxy or 0, Spooky = v.Spooky or 0, Haunted = v.Haunted or 0 }
     end
     return dest
 end
@@ -46,6 +47,7 @@ local function _addCounts(a: CountsByType, b: CountsByType)
     a.Bloodfish += b.Bloodfish or 0
     a.Galaxy += b.Galaxy or 0
     a.Spooky += b.Spooky or 0
+    a.Haunted += b.Haunted or 0
 end
 
 local function readFromDataStore(): {[string]: CountsByType}
@@ -66,6 +68,7 @@ local function readFromDataStore(): {[string]: CountsByType}
                 c.Bloodfish = tonumber((counts :: any).Bloodfish) or 0
                 c.Galaxy = tonumber((counts :: any).Galaxy) or 0
                 c.Spooky = tonumber((counts :: any).Spooky) or 0
+                c.Haunted = tonumber((counts :: any).Haunted) or 0
                 normalized[fishId] = c
             end
         end
@@ -80,7 +83,7 @@ local function getDeltas(): {[string]: CountsByType}
     local deltas: {[string]: CountsByType} = {}
     for fishId, nowCounts in pairs(cache) do
         local prev = lastPersisted[fishId] or emptyCounts()
-        local d: CountsByType = { Normal = 0, Shiny = 0, Gold = 0, Rainbow = 0, Bloodfish = 0, Galaxy = 0, Spooky = 0 }
+        local d: CountsByType = { Normal = 0, Shiny = 0, Gold = 0, Rainbow = 0, Bloodfish = 0, Galaxy = 0, Spooky = 0, Haunted = 0 }
         d.Normal = (nowCounts.Normal or 0) - (prev.Normal or 0)
         d.Shiny = (nowCounts.Shiny or 0) - (prev.Shiny or 0)
         d.Gold = (nowCounts.Gold or 0) - (prev.Gold or 0)
@@ -88,7 +91,8 @@ local function getDeltas(): {[string]: CountsByType}
         d.Bloodfish = (nowCounts.Bloodfish or 0) - (prev.Bloodfish or 0)
         d.Galaxy = (nowCounts.Galaxy or 0) - (prev.Galaxy or 0)
         d.Spooky = (nowCounts.Spooky or 0) - (prev.Spooky or 0)
-        if d.Normal ~= 0 or d.Shiny ~= 0 or d.Gold ~= 0 or d.Rainbow ~= 0 or d.Bloodfish ~= 0 or d.Galaxy ~= 0 or d.Spooky ~= 0 then
+        d.Haunted = (nowCounts.Haunted or 0) - (prev.Haunted or 0)
+        if d.Normal ~= 0 or d.Shiny ~= 0 or d.Gold ~= 0 or d.Rainbow ~= 0 or d.Bloodfish ~= 0 or d.Galaxy ~= 0 or d.Spooky ~= 0 or d.Haunted ~= 0 then
             deltas[fishId] = d
         end
     end
@@ -115,6 +119,7 @@ local function refreshCacheFromStoreOnce()
         counts.Bloodfish = math.max(0, counts.Bloodfish + delta.Bloodfish)
         counts.Galaxy = math.max(0, counts.Galaxy + delta.Galaxy)
         counts.Spooky = math.max(0, counts.Spooky + delta.Spooky)
+        counts.Haunted = math.max(0, counts.Haunted + delta.Haunted)
         cache[fishId] = counts
     end
 end
@@ -125,7 +130,7 @@ local function persistDeltas()
     local deltas = getDeltas()
     local hasDelta = false
     for _, d in pairs(deltas) do
-        if (d.Normal or 0) ~= 0 or (d.Shiny or 0) ~= 0 or (d.Gold or 0) ~= 0 or (d.Rainbow or 0) ~= 0 or (d.Bloodfish or 0) ~= 0 or (d.Galaxy or 0) ~= 0 or (d.Spooky or 0) ~= 0 then
+        if (d.Normal or 0) ~= 0 or (d.Shiny or 0) ~= 0 or (d.Gold or 0) ~= 0 or (d.Rainbow or 0) ~= 0 or (d.Bloodfish or 0) ~= 0 or (d.Galaxy or 0) ~= 0 or (d.Spooky or 0) ~= 0 or (d.Haunted or 0) ~= 0 then
             hasDelta = true
             break
         end
@@ -152,6 +157,7 @@ local function persistDeltas()
                             Bloodfish = tonumber((counts :: any).Bloodfish) or 0,
                             Galaxy = tonumber((counts :: any).Galaxy) or 0,
                             Spooky = tonumber((counts :: any).Spooky) or 0,
+                            Haunted = tonumber((counts :: any).Haunted) or 0,
                         }
                     end
                 end
@@ -169,6 +175,7 @@ local function persistDeltas()
                 base.Bloodfish = math.max(0, (base.Bloodfish or 0) + (d.Bloodfish or 0))
                 base.Galaxy = math.max(0, (base.Galaxy or 0) + (d.Galaxy or 0))
                 base.Spooky = math.max(0, (base.Spooky or 0) + (d.Spooky or 0))
+                base.Haunted = math.max(0, (base.Haunted or 0) + (d.Haunted or 0))
                 current[fishId] = base
             end
             return current
@@ -239,6 +246,16 @@ function ExistCount.IncrementSpookyCount(fishId: string)
         counts.Spooky = math.max(0, counts.Spooky + 1)
     end)
 end
+
+function ExistCount.IncrementHauntedCount(fishId: string)
+    task.spawn(function()
+        local counts = cache[fishId]
+        if not counts then counts = emptyCounts(); cache[fishId] = counts end
+        
+        counts.Haunted = math.max(0, counts.Haunted + 1)
+    end)
+end
+
 function ExistCount.IncrementMutationCount(fishId: string, mutation: string?)
     if not mutation then return end
     local mutationDir = Directory.Mutations[mutation]
@@ -259,7 +276,7 @@ end
 function ExistCount.GetById(fishId: string): CountsByType
     local c = cache[fishId]
     if not c then return emptyCounts() end
-    return { Normal = c.Normal or 0, Shiny = c.Shiny or 0, Gold = c.Gold or 0, Rainbow = c.Rainbow or 0, Bloodfish = c.Bloodfish or 0, Galaxy = c.Galaxy or 0, Spooky = c.Spooky or 0 }
+    return { Normal = c.Normal or 0, Shiny = c.Shiny or 0, Gold = c.Gold or 0, Rainbow = c.Rainbow or 0, Bloodfish = c.Bloodfish or 0, Galaxy = c.Galaxy or 0, Spooky = c.Spooky or 0, Haunted = c.Haunted or 0 }
 end
 
 function ExistCount.GetByIdAndType(fishId: string, fishType: FishTypes.fish_type): number
@@ -291,6 +308,12 @@ function ExistCount.GetSpookyCount(fishId: string): number
     return c.Spooky or 0
 end
 
+function ExistCount.GetHauntedCount(fishId: string): number
+    local c = cache[fishId]
+    if not c then return 0 end
+    return c.Haunted or 0
+end
+
 function ExistCount.GetMutationCount(fishId: string, mutation: string): number
     local c = cache[fishId]
     if not c then return 0 end
@@ -320,6 +343,10 @@ end)
 
 Network.Invoked("ExistCount_GetSpookyCount", function(_player: Player, fishId: string)
     return ExistCount.GetSpookyCount(fishId)
+end)
+
+Network.Invoked("ExistCount_GetHauntedCount", function(_player: Player, fishId: string)
+    return ExistCount.GetHauntedCount(fishId)
 end)
 
 Network.Invoked("ExistCount_GetMutationCount", function(_player: Player, fishId: string, mutation: string)

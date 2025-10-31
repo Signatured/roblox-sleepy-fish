@@ -4,7 +4,7 @@ local SpinnyWheelTypes = require(game.ReplicatedStorage.Game.Library.Types.Spinn
 local Functions = require(game.ReplicatedStorage.Library.Functions)
 
 return {
-	DisplayName = "Spooky Wheel",
+	DisplayName = "Haunted Wheel",
 	Description = "",
 	Rewards = {
 		{
@@ -12,7 +12,7 @@ return {
 			Weight = 1,
 			DisplayChance = "1%",
 			Icon = "rbxassetid://122931667882291",
-			Title1 = "Spooky",
+			Title1 = "Haunted",
 			Title2 = "Squid",
 			Title3 = "$1.6k/s",
 		},
@@ -69,21 +69,21 @@ return {
 			local Index = require(game.ServerScriptService.Game.Library.Index)
 	
 			local data = Fish.Give(player, {
-				FishId = "Firefly Squid",
+				FishId = "Ancient Sea Dragon",
 				Type = "Normal",
-				Mutation = "Spooky"
+				Mutation = "Haunted"
 			})
 	
 			if data then
 				Fish.ForceHoldFish(player, data)
 				ExistCount.IncrementCount(data.FishId, data.Type)
-				if data.Mutation == "Spooky" then
+				if data.Mutation == "Haunted" then
 					ExistCount.IncrementMutationCount(data.FishId, data.Mutation)
 				end
 				Index.Add(player, data.FishId, data.Type, data.Mutation)
 			end
 
-			Notifications.Message(player, `You won a Spooky Firefly Squid!`, {
+			Notifications.Message(player, `You won a Haunted Ancient Sea Dragon!`, {
 				Rainbow = true,
 				Time = 8,
 			})

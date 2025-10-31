@@ -34,14 +34,14 @@ local function getESTTime(): number
 end
 
 -- Event effect instances
-local spookyPortal: BasePart? = nil
+local hauntedPortal: BasePart? = nil
 local sky: Instance? = nil
 local colorCorrection: ColorCorrectionEffect? = nil
-local spookyParticles: BasePart? = nil
+local hauntedParticles: BasePart? = nil
 
 -- Event state tracking
-local isSpookyRunning = false
-local isSpookyStarting = false
+local isHauntedRunning = false
+local isHauntedStarting = false
 
 -- Event color storage for parts
 local originalColors: {[BasePart]: Color3} = {}
@@ -50,14 +50,14 @@ local originalColors: {[BasePart]: Color3} = {}
 local eventGuis: {SurfaceGui} = {}
 
 local function updateEventGuis()
-    -- Always show Spooky event status
-    local eventData = Directory.MutationEvents["Spooky"]
+    -- Always show Haunted event status
+    local eventData = Directory.MutationEvents["Haunted"]
     if not eventData then return end
     
     local now = getESTTime()
     local text = ""
     
-    if isEventActive and currentEventId == "Spooky" and eventEndTime then
+    if isEventActive and currentEventId == "Haunted" and eventEndTime then
         local timeRemaining = math.max(0, eventEndTime - now)
         text = `{eventData.DisplayName} Event ending in {Functions.FormatTime(timeRemaining)}`
     elseif nextEventTime then
@@ -90,21 +90,21 @@ local function setParticlesEnabled(parent: Instance, enabled: boolean)
 end
 
 
-local function startSpookyEvent()
+local function startHauntedEvent()
     -- Prevent multiple starts
-    if isSpookyRunning or isSpookyStarting then 
-        warn("[MutationEvent] Spooky event already running or starting, ignoring duplicate start")
+    if isHauntedRunning or isHauntedStarting then 
+        warn("[MutationEvent] Haunted event already running or starting, ignoring duplicate start")
         return 
     end
     
-    local eventData = Directory.MutationEvents["Spooky"]
+    local eventData = Directory.MutationEvents["Haunted"]
     if not eventData then return end
     
-    isSpookyStarting = true
-    isSpookyRunning = true
+    isHauntedStarting = true
+    isHauntedRunning = true
     
     -- Send notification
-    NotificationCmds.Message("Something spooky is arriving...", {
+    NotificationCmds.Message("Beware! The Haunted are coming!", {
         Color = eventData.Color,
         Time = 10,
         Sound = "rbxassetid://119969791895244"
@@ -113,16 +113,16 @@ local function startSpookyEvent()
     task.wait(3)
     
     -- Clone and setup Black Hole
-    local eventFolder = Assets:FindFirstChild("Spooky")
-    local spookyPortalTemplate = eventFolder and eventFolder:FindFirstChild("SpookyPortal")
-    if spookyPortalTemplate and spookyPortalTemplate:IsA("BasePart") then
-        spookyPortal = spookyPortalTemplate:Clone() :: BasePart
-        if spookyPortal then
-            spookyPortal.Parent = DEBRIS
+    local eventFolder = Assets:FindFirstChild("Haunted")
+    local hauntedPortalTemplate = eventFolder and eventFolder:FindFirstChild("HauntedPortal")
+    if hauntedPortalTemplate and hauntedPortalTemplate:IsA("BasePart") then
+        hauntedPortal = hauntedPortalTemplate:Clone() :: BasePart
+        if hauntedPortal then
+            hauntedPortal.Parent = DEBRIS
 
-            Audio.Play("rbxassetid://111689316568748", spookyPortal, 1, 1.5, 450)
+            Audio.Play("rbxassetid://111689316568748", hauntedPortal, 1, 1.5, 450)
 
-            -- local sound = spookyPortal:FindFirstChild("Sound")::Sound?
+            -- local sound = hauntedPortal:FindFirstChild("Sound")::Sound?
             -- if sound then
             --     sound.Playing = true
             -- end
@@ -132,8 +132,8 @@ local function startSpookyEvent()
     -- task.wait(3)
     
     -- Clone sky
-    local spookyFolder2 = Assets:FindFirstChild("Spooky")
-    local skyTemplate = spookyFolder2 and spookyFolder2:FindFirstChild("SpookySky")
+    local hauntedFolder2 = Assets:FindFirstChild("Haunted")
+    local skyTemplate = hauntedFolder2 and hauntedFolder2:FindFirstChild("HauntedSky")
     if skyTemplate then
         sky = skyTemplate:Clone()
         if sky then
@@ -142,8 +142,8 @@ local function startSpookyEvent()
     end
     
     -- Change colors of parts with EventColor attribute
-    local spookyData = Directory.MutationEvents["Spooky"]
-    if spookyData then
+    local hauntedData = Directory.MutationEvents["Haunted"]
+    if hauntedData then
         local THINGS = workspace:FindFirstChild("__THINGS")
         if THINGS then
             for _, obj in ipairs(THINGS:GetDescendants()) do
@@ -151,10 +151,10 @@ local function startSpookyEvent()
                     local part = obj :: BasePart
                     -- Store original color
                     originalColors[part] = part.Color
-                    -- Tween to spooky color
+                    -- Tween to haunted color
                     local tween = TweenService:Create(part,
                         TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                        {Color = spookyData.Color}
+                        {Color = hauntedData.Color}
                     )
                     tween:Play()
                 end
@@ -172,43 +172,43 @@ local function startSpookyEvent()
         tween:Play()
     end
     
-    -- Clone SpookyParticles
-    local spookyParticlesTemplate = spookyFolder2 and spookyFolder2:FindFirstChild("SpookyParticles")
+    -- Clone HauntedParticles
+    local hauntedParticlesTemplate = hauntedFolder2 and hauntedFolder2:FindFirstChild("HauntedParticles")
     
-    if spookyParticlesTemplate and spookyParticlesTemplate:IsA("BasePart") then
-        spookyParticles = spookyParticlesTemplate:Clone() :: BasePart
-        if spookyParticles then
-            spookyParticles.Parent = DEBRIS
+    if hauntedParticlesTemplate and hauntedParticlesTemplate:IsA("BasePart") then
+        hauntedParticles = hauntedParticlesTemplate:Clone() :: BasePart
+        if hauntedParticles then
+            hauntedParticles.Parent = DEBRIS
         end
     end
     
     -- Mark startup as complete
-    isSpookyStarting = false
+    isHauntedStarting = false
 end
 
-local function endSpookyEvent()
+local function endHauntedEvent()
     -- Prevent ending if not running
-    if not isSpookyRunning then 
-        warn("[MutationEvent] Spooky event not running, ignoring end request")
+    if not isHauntedRunning then 
+        warn("[MutationEvent] Haunted event not running, ignoring end request")
         return 
     end
     
     -- Wait for startup process to complete if it's still running
-    while isSpookyStarting do
+    while isHauntedStarting do
         task.wait(0.1)
     end
     
     -- Turn on whirlpool particles for 3 seconds
-    if spookyPortal then
-        Audio.Play("rbxassetid://111689316568748", spookyPortal, 1, 1.5, 450)
+    if hauntedPortal then
+        Audio.Play("rbxassetid://111689316568748", hauntedPortal, 1, 1.5, 450)
         
         task.wait(6)
-        setParticlesEnabled(spookyPortal, false)
+        setParticlesEnabled(hauntedPortal, false)
     end
     
-    -- Turn off particles for SpookyParticles
-    if spookyParticles then
-        setParticlesEnabled(spookyParticles, false)
+    -- Turn off particles for HauntedParticles
+    if hauntedParticles then
+        setParticlesEnabled(hauntedParticles, false)
     end
     
     -- Remove sky
@@ -241,25 +241,25 @@ local function endSpookyEvent()
     end
     
     -- Turn off whirlpool particles again
-    if spookyPortal then
-        setParticlesEnabled(spookyPortal, false)
+    if hauntedPortal then
+        setParticlesEnabled(hauntedPortal, false)
     end
     
     task.wait(3)
     
     -- Destroy all cloned parts
-    if spookyPortal then
-        spookyPortal:Destroy()
-        spookyPortal = nil
+    if hauntedPortal then
+        hauntedPortal:Destroy()
+        hauntedPortal = nil
     end
-    if spookyParticles then
-        spookyParticles:Destroy()
-        spookyParticles = nil
+    if hauntedParticles then
+        hauntedParticles:Destroy()
+        hauntedParticles = nil
     end
     
     -- Reset event state
-    isSpookyRunning = false
-    isSpookyStarting = false
+    isHauntedRunning = false
+    isHauntedStarting = false
 end
 
 -- Network event handlers
@@ -269,16 +269,16 @@ Network.Fired("MutationEvent_Start", function(eventId: string, startTime: number
     _eventStartTime = startTime
     eventEndTime = endTime
     
-    if eventId == "Spooky" then
-        task.spawn(startSpookyEvent)
+    if eventId == "Haunted" then
+        task.spawn(startHauntedEvent)
     end
     
     updateEventGuis()
 end)
 
 Network.Fired("MutationEvent_End", function(eventId: string)
-    if eventId == "Spooky" then
-        task.spawn(endSpookyEvent)
+    if eventId == "Haunted" then
+        task.spawn(endHauntedEvent)
     end
     
     isEventActive = false
@@ -304,8 +304,8 @@ Network.Fired("MutationEvent_Status", function(active: boolean, eventId: string?
     nextEventTime = nextTime
     
     -- If event is currently active, start it immediately
-    if active and eventId == "Spooky" then
-        task.spawn(startSpookyEvent)
+    if active and eventId == "Haunted" then
+        task.spawn(startHauntedEvent)
     end
     
     updateEventGuis()
@@ -319,8 +319,8 @@ TagHook("EventGui", function(gui: SurfaceGui)
     
     table.insert(eventGuis, gui)
     
-    -- Initialize with default Spooky display
-    local eventData = Directory.MutationEvents["Spooky"]
+    -- Initialize with default Haunted display
+    local eventData = Directory.MutationEvents["Haunted"]
     if eventData then
         local frame = gui:FindFirstChild("Frame")
         local event = frame and frame:FindFirstChild("Event")
@@ -345,12 +345,12 @@ TagHook("EventGui", function(gui: SurfaceGui)
 end)
 
 --[[
-    Public API to check if Spooky event is currently active.
+    Public API to check if Haunted event is currently active.
     
-    @return boolean - Whether Spooky event is active
+    @return boolean - Whether Haunted event is active
 ]]
-function MutationEventCmds.IsSpookyActive(): boolean
-    return isEventActive and currentEventId == "Spooky"
+function MutationEventCmds.IsHauntedActive(): boolean
+    return isEventActive and currentEventId == "Haunted"
 end
 
 --[[
