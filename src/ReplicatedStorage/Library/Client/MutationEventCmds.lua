@@ -335,6 +335,15 @@ Network.Fired("MutationEvent_Status", function(active: boolean, eventId: string?
     updateEventGuis()
 end)
 
+Network.Fired("MutationEvent_UpdateEndTime", function(eventId: string, newEndTime: number)
+    -- Update the end time for the current event
+    if isEventActive and currentEventId == eventId then
+        eventEndTime = newEndTime
+        updateEventGuis()
+        print("[MutationEvent] End time updated to", newEndTime)
+    end
+end)
+
 -- Setup EventGui using TagHook
 TagHook("EventGui", function(gui: SurfaceGui)
     if not gui:IsA("SurfaceGui") then

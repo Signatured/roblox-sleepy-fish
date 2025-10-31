@@ -6,6 +6,8 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local RunService = game:GetService("RunService")
 
 local Network = require(ServerScriptService.Library.Network)
+local FFlags = require(ServerScriptService.Library.FFlags)
+local Signal = require(ReplicatedStorage.Library.Signal)
 local _Directory = require(ReplicatedStorage.Game.Library.Directory)
 local MutationEventDirectory = require(ReplicatedStorage.Game.Library.Directory.MutationEvents)
 
@@ -30,6 +32,13 @@ local function getESTTime(): number
 end
 
 local serverBootTime = getESTTime() -- Track when server started
+
+local function getEventDuration(eventData: any): number
+	if FFlags.GetBoolean(FFlags.Keys.MutationEvent_EnableOverride) then
+		return FFlags.GetNumber(FFlags.Keys.MutationEvent_DurationOverride)
+	end
+	return eventData.Duration
+end
 
 local function calculateNextEventTime(): number
     local eventData = MutationEventDirectory[CURRENT_EVENT_ID]
@@ -92,7 +101,7 @@ local function updateEventState()
         -- Start event
         currentEvent = eventData
         eventStartTime = now
-        eventEndTime = now + eventData.Duration
+        eventEndTime = now + getEventDuration(eventData)
         
         -- Calculate next event after this one
         nextEventTime = (nextEventTime :: number) + eventData.Interval
@@ -132,6 +141,36 @@ Network.Fired("MutationEvent_GetStatus", function(player: Player)
     Network.Fire(player, "MutationEvent_Status", isActive, eventId, startTime, endTime, nextTime)
 end)
 
+-- Listen for FFlag changes to update duration dynamically
+Signal.Fired("FFlags Changed"):Connect(function(changedFlags: {[string]: any})
+    -- Check if the mutation event duration override flags changed
+    local overrideChanged = changedFlags.MutationEvent_EnableOverride ~= nil
+    local durationChanged = changedFlags.MutationEvent_DurationOverride ~= nil
+    
+    if (overrideChanged or durationChanged) and currentEvent then
+        -- Recalculate the end time for the active event
+        local eventData = MutationEventDirectory[CURRENT_EVENT_ID]
+        if eventData and eventStartTime then
+            local newDuration = getEventDuration(eventData)
+            local newEndTime = eventStartTime + newDuration
+            
+            -- Only update if the end time actually changed
+            if newEndTime ~= eventEndTime then
+                eventEndTime = newEndTime
+                
+                -- Notify all clients about the updated end time
+                for _, player in ipairs(Players:GetPlayers()) do
+                    if player:GetAttribute("Loaded") then
+                        Network.Fire(player, "MutationEvent_UpdateEndTime", CURRENT_EVENT_ID, eventEndTime)
+                    end
+                end
+                
+                print("[MutationEvent] Duration override changed - updated end time to", eventEndTime)
+            end
+        end
+    end
+end)
+
 -- Main update loop
 RunService.Heartbeat:Connect(function()
     updateEventState()
@@ -154,7 +193,7 @@ task.spawn(function()
     if DEBUG_MODE then
         local debugStartTime = serverBootTime + DEBUG_START_DELAY
         local interval = eventData.Interval
-        local duration = eventData.Duration
+        local duration = getEventDuration(eventData)
         
         -- Find the most recent event start time
         local recentEventStart = debugStartTime
@@ -183,7 +222,7 @@ task.spawn(function()
     else
         -- Normal mode: check if we're in an active event window
         local interval = eventData.Interval
-        local duration = eventData.Duration
+        local duration = getEventDuration(eventData)
         
         -- Events start at 11am EST (11 * 3600 seconds from midnight)
         local elevenAMToday = math.floor(now / 86400) * 86400 + 11 * 3600

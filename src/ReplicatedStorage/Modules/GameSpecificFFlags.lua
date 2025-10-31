@@ -33,6 +33,10 @@ module.Raw = {
     TrickOrTreatMythicalWeight = { Default = 1, Type = "number" },
     TrickOrTreatGodWeight = { Default = 0.25, Type = "number" },
     TrickOrTreatSecretWeight = { Default = 0.05, Type = "number" },
+
+    -- Mutation Event
+    MutationEvent_EnableOverride = { Default = true, Type = "boolean" },
+    MutationEvent_DurationOverride = { Default = 60 * 15, Type = "number" },
 }
 
 -- Optionally extend per-game admin access for the FFlags UI.
