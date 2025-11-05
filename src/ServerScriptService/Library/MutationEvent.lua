@@ -66,15 +66,15 @@ local function calculateNextEventTime(): number
         end
     end
 
-    -- Normal mode: events start at 11am EST
+    -- Normal mode: events start at 12pm EST
     local now = getESTTime()
     local interval = eventData.Interval
     
-    -- Events start at 11am EST (11 * 3600 seconds from midnight)
-    local elevenAMToday = math.floor(now / 86400) * 86400 + 11 * 3600
+    -- Events start at 12pm EST (12 * 3600 seconds from midnight)
+    local twelvePMToday = math.floor(now / 86400) * 86400 + 12 * 3600
     
-    -- If it's past 11am today, start from 11am today, otherwise start from 11am yesterday
-    local baseTime = now >= elevenAMToday and elevenAMToday or (elevenAMToday - 86400)
+    -- If it's past 12pm today, start from 12pm today, otherwise start from 12pm yesterday
+    local baseTime = now >= twelvePMToday and twelvePMToday or (twelvePMToday - 86400)
     
     -- Find the next event time based on interval
     local nextTime = baseTime
@@ -224,11 +224,11 @@ task.spawn(function()
         local interval = eventData.Interval
         local duration = getEventDuration(eventData)
         
-        -- Events start at 11am EST (11 * 3600 seconds from midnight)
-        local elevenAMToday = math.floor(now / 86400) * 86400 + 11 * 3600
+        -- Events start at 12pm EST (12 * 3600 seconds from midnight)
+        local twelvePMToday = math.floor(now / 86400) * 86400 + 12 * 3600
         
-        -- If it's past 11am today, start from 11am today, otherwise start from 11am yesterday
-        local baseTime = now >= elevenAMToday and elevenAMToday or (elevenAMToday - 86400)
+        -- If it's past 12pm today, start from 12pm today, otherwise start from 12pm yesterday
+        local baseTime = now >= twelvePMToday and twelvePMToday or (twelvePMToday - 86400)
         
         -- Find the most recent event start time
         local recentEventStart = baseTime

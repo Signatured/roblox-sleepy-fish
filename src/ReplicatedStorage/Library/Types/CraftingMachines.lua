@@ -9,6 +9,7 @@ export type raw_dir = {
 	DisplayName: string,
 	RecipeResetTime: number,
 	Recipes: {recipe_data_schema},
+	Disabled: boolean?,
 }
 
 export type recipe_data_schema = {

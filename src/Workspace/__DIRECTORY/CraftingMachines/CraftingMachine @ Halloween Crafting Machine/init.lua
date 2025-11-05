@@ -45,6 +45,7 @@ return {
 			RequiredIngredientAmount = 4,
 			TrailingFishAmount = 10,
 		},
-	}
+	},
+	Disabled = true,
 }::CraftingMachineTypes.raw_dir
 

@@ -17,6 +17,7 @@ local Fish = require(ServerScriptService.Game.Library.Fish)
 local Notifications = require(ServerScriptService.Library.Notifications)
 local Functions = require(ReplicatedStorage.Library.Functions)
 local FFlags = require(ServerScriptService.Library.FFlags)
+local Signal = require(ReplicatedStorage.Library.Signal)
 
 local ServerPlot = require(ServerScriptService.Plot.ServerPlot)
 
@@ -277,6 +278,11 @@ function CraftingMachines.CanCraft(player: Player, craftingMachineId: string, re
 		return false
 	end
 	
+	-- Check if the crafting machine is disabled
+	if schema.Disabled then
+		return false
+	end
+	
 	local recipe = schema.Recipes[recipeIndex]
 	if not recipe then
 		return false
@@ -325,6 +331,19 @@ end
 
 -- Craft a recipe
 function CraftingMachines.Craft(player: Player, craftingMachineId: string, recipeIndex: number): boolean
+	local schema = Directory.CraftingMachines[craftingMachineId]
+	if not schema then
+		return false
+	end
+	
+	-- Check if the crafting machine is disabled
+	if schema.Disabled then
+		Notifications.Message(player, "This crafting machine is currently disabled!", {
+			Color = Color3.fromRGB(255, 0, 0),
+		})
+		return false
+	end
+	
 	-- Check if crafting is allowed for Halloween Crafting Machine
 	if craftingMachineId == "Halloween Crafting Machine" then
 		if not FFlags.GetBoolean(FFlags.Keys.HalloweenCrafting_AllowCrafting) then
@@ -344,7 +363,6 @@ function CraftingMachines.Craft(player: Player, craftingMachineId: string, recip
 		return false
 	end
 	
-	local schema = Directory.CraftingMachines[craftingMachineId]
 	local recipe = schema.Recipes[recipeIndex]
 	local recipeData = CraftingMachines.GetRecipeIngredients(craftingMachineId, recipeIndex)
 	
@@ -442,6 +460,19 @@ end
 
 -- Claim a completed recipe
 function CraftingMachines.Claim(player: Player, craftingMachineId: string, recipeIndex: number): boolean
+	local schema = Directory.CraftingMachines[craftingMachineId]
+	if not schema then
+		return false
+	end
+	
+	-- Check if the crafting machine is disabled
+	if schema.Disabled then
+		Notifications.Message(player, "This crafting machine is currently disabled!", {
+			Color = Color3.fromRGB(255, 0, 0),
+		})
+		return false
+	end
+	
 	-- Check if claiming is allowed for Halloween Crafting Machine
 	if craftingMachineId == "Halloween Crafting Machine" then
 		if not FFlags.GetBoolean(FFlags.Keys.HalloweenCrafting_AllowClaiming) then
@@ -573,6 +604,49 @@ task.spawn(function()
 				
 				-- Broadcast updated recipes for this machine
 				broadcastRecipeUpdates(machineId)
+			end
+		end
+	end
+end)
+
+-- Handle cleaning up disabled crafting machines when player logs in
+Signal.Fired("PlayerInitialized"):Connect(function(player: Player)
+	task.wait(5) -- Wait 5 seconds after player is fully loaded
+	
+	local save = Saving.Get(player)
+	if not save or not save.CraftingMachines then
+		return
+	end
+	
+	-- Check each crafting machine in the player's save
+	for craftingMachineId, machineSlots in pairs(save.CraftingMachines) do
+		local schema = Directory.CraftingMachines[craftingMachineId]
+		
+		-- If the directory entry is disabled, force complete all crafts
+		if schema and schema.Disabled then
+			local completedAny = false
+			
+			-- Iterate through all slots in this machine
+			for recipeKey, slotData in pairs(machineSlots) do
+				if not slotData then
+					continue
+				end
+				
+				-- Give the result fish regardless of timer
+				local fishData = Fish.Give(player, slotData.ResultFish)
+				
+				if fishData then
+					completedAny = true
+				end
+			end
+			
+			-- Clear the entire machine from the save
+			save.CraftingMachines[craftingMachineId] = nil
+			
+			if completedAny then
+				Notifications.Message(player, `Your {schema.DisplayName} crafts have been completed and given to you!`, {
+					Color = Color3.fromRGB(255, 150, 0),
+				})
 			end
 		end
 	end
