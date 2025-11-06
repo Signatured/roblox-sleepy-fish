@@ -41,6 +41,9 @@ local partyBillboards: {BillboardGui} = {}
 local partyEventStartTime = 0
 local partyEventDuration = 300
 
+-- Party GUI surface guis tracking
+local partyGuis: {SurfaceGui} = {}
+
 -- Update party machine billboard
 local function updatePartyBillboard(billboard: BillboardGui)
 	local pointsLabel = billboard:FindFirstChild("Points")
@@ -76,6 +79,73 @@ local function updatePartyBillboard(billboard: BillboardGui)
 	end
 end
 
+-- Update party GUI surface gui
+local function updatePartyGui(surfaceGui: SurfaceGui)
+	local frame = surfaceGui:FindFirstChild("Frame")
+	if not frame or not frame:IsA("Frame") then
+		return
+	end
+	
+	-- Update event text
+	local eventFrame = frame:FindFirstChild("Event")
+	if eventFrame and eventFrame:IsA("Frame") then
+		local textLabel = eventFrame:FindFirstChild("TextLabel")
+		if textLabel and textLabel:IsA("TextLabel") then
+			local isAdminAbuse = FFlags.Get(FFlags.Keys.AdminAbuseEvent_Party) == true
+			local isPartyActive = AdminAbuseEventCmds.IsActive("Party")
+			
+			if isPartyActive then
+				if isAdminAbuse then
+					-- Admin abuse party active
+					textLabel.Text = `<font color="#ffef0e">Party Event</font> is currently active!`
+				else
+					-- Party machine started the event, show countdown
+					local currentTime = workspace:GetServerTimeNow()
+					local timeElapsed = currentTime - partyEventStartTime
+					local timeRemaining = math.max(0, partyEventDuration - timeElapsed)
+					
+					local minutes = math.floor(timeRemaining / 60)
+					local seconds = math.floor(timeRemaining % 60)
+					textLabel.Text = string.format(`<font color="#ffef0e">Party Event</font> ends in %d:%02d!`, minutes, seconds)
+				end
+			else
+				-- Party not active
+				textLabel.Text = `<font color="#ffef0e">Party Event</font> start's when goal is reached!`
+			end
+			textLabel.RichText = true
+		end
+	end
+	
+	-- Update progress bar
+	local progressBarFrame = frame:FindFirstChild("ProgressBar")
+	if progressBarFrame and progressBarFrame:IsA("Frame") then
+		local progressFrame = progressBarFrame:FindFirstChild("Progress")
+		if progressFrame and progressFrame:IsA("Frame") then
+			local barFrame = progressFrame:FindFirstChild("Bar")
+			local progressTextLabel = progressFrame:FindFirstChild("TextLabel")
+			
+			if barFrame and barFrame:IsA("Frame") then
+				local currentPoints = PartyMachineCmds.GetCurrentPoints()
+				local goalPoints = PartyMachineCmds.GetPointGoal()
+				
+				-- Calculate progress (0 to 1)
+				local progress = 0
+				if goalPoints > 0 then
+					progress = math.clamp(currentPoints / goalPoints, 0, 1)
+				end
+				
+				-- Update bar size
+				barFrame.Size = UDim2.new(progress, 0, 1, 0)
+				
+				-- Update text label
+				if progressTextLabel and progressTextLabel:IsA("TextLabel") then
+					progressTextLabel.Text = `{Functions.Commas(currentPoints)}/{Functions.Commas(goalPoints)}`
+				end
+			end
+		end
+	end
+end
+
 local function updateProgressBar()
 	local currentPoints = PartyMachineCmds.GetCurrentPoints()
 	local goalPoints = PartyMachineCmds.GetPointGoal()
@@ -90,7 +160,7 @@ local function updateProgressBar()
 	barFrame.Size = UDim2.new(progress, 0, 1, 0)
 	
 	-- Update text label
-	progressTextLabel.Text = `{Functions.NumberShorten(currentPoints)}/{Functions.NumberShorten(goalPoints)}`
+	progressTextLabel.Text = `{Functions.Commas(currentPoints)}/{Functions.Commas(goalPoints)}`
 end
 
 local function getPointsForFish(fishData: any): number
@@ -157,7 +227,7 @@ local function createItem(fishData: any)
 	local priceLabel = item:FindFirstChild("Price")
 	local pointAmount = getPointsForFish(fishData)
 	if priceLabel and priceLabel:IsA("TextLabel") then
-		priceLabel.Text = Functions.NumberShorten(pointAmount) .. " Points"
+		priceLabel.Text = Functions.Commas(pointAmount) .. " Points"
 	end
 
 	-- Background gradient by rarity
@@ -286,6 +356,13 @@ end
 -- These fire when the server updates points
 Network.Fired("PartyMachine_PointsUpdated", function(_newPoints: number)
 	updateProgressBar()
+	
+	-- Update all party guis
+	for _, surfaceGui in ipairs(partyGuis) do
+		if surfaceGui and surfaceGui.Parent then
+			updatePartyGui(surfaceGui)
+		end
+	end
 end)
 
 Network.Fired("PartyMachine_EventStarted", function()
@@ -294,6 +371,13 @@ end)
 
 Network.Fired("PartyMachine_EventEnded", function()
 	updateProgressBar()
+	
+	-- Update all party guis when event ends
+	for _, surfaceGui in ipairs(partyGuis) do
+		if surfaceGui and surfaceGui.Parent then
+			updatePartyGui(surfaceGui)
+		end
+	end
 end)
 
 -- Reactive: re-render when inventory changes
@@ -401,19 +485,50 @@ Network.Fired("PartyMachine_EventStarted", function()
 	local durationValue = FFlags.Get(FFlags.Keys.PartyEventDuration)
 	partyEventDuration = typeof(durationValue) == "number" and durationValue or 300
 	
-	-- Update all billboards immediately
+	-- Update all billboards and guis immediately
 	for _, billboard in ipairs(partyBillboards) do
 		if billboard and billboard.Parent then
 			updatePartyBillboard(billboard)
 		end
 	end
+	
+	for _, surfaceGui in ipairs(partyGuis) do
+		if surfaceGui and surfaceGui.Parent then
+			updatePartyGui(surfaceGui)
+		end
+	end
 end)
 
--- Update billboards regularly
+-- Setup TagHook for PartyGui
+Functions.TagHook("PartyGui", function(inst: Instance)
+	if not inst or not inst:IsA("SurfaceGui") then
+		return function() end
+	end
+	
+	local surfaceGui = inst :: SurfaceGui
+	table.insert(partyGuis, surfaceGui)
+	updatePartyGui(surfaceGui)
+	
+	-- Cleanup function
+	return function()
+		local index = table.find(partyGuis, surfaceGui)
+		if index then
+			table.remove(partyGuis, index)
+		end
+	end
+end)
+
+-- Update billboards and guis regularly
 RunService.RenderStepped:Connect(function()
 	for _, billboard in ipairs(partyBillboards) do
 		if billboard and billboard.Parent then
 			updatePartyBillboard(billboard)
+		end
+	end
+	
+	for _, surfaceGui in ipairs(partyGuis) do
+		if surfaceGui and surfaceGui.Parent then
+			updatePartyGui(surfaceGui)
 		end
 	end
 end)
