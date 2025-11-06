@@ -7,7 +7,7 @@ return {
     DisplayName = "Secret",
     Rarity = Rarity.Secret,
     Loot = {
-        ["Vampire Sea Dragon"] = 60,
+        ["Koi Samurai"] = 60,
         ["Void Whale"] = 25,
         ["Spineblade"] = 10,
         ["The Seeker"] = 5,
