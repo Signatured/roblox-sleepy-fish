@@ -36,7 +36,7 @@ local function getFishType(fishType: string): (string?, Color3?)
 	return nil
 end
 
--- Setup billboard for temporary fish
+-- Setup billboard for temporary fish with Party trait
 local function setupTempBillboard(model: Model, fishId: string, fishType: string, mutation: string?): BillboardGui?
 	local primaryPart = model.PrimaryPart
 	if not primaryPart then return nil end
@@ -48,6 +48,7 @@ local function setupTempBillboard(model: Model, fishId: string, fishType: string
 	
 	local billboard = Assets.FishPedestalGui:Clone()::BillboardGui
 	billboard.StudsOffsetWorldSpace = Vector3.new(0, billboardOffset, 0)
+	billboard.AlwaysOnTop = true
 	billboard.Parent = primaryPart
 	
 	-- Update the billboard with visual data
@@ -57,6 +58,7 @@ local function setupTempBillboard(model: Model, fishId: string, fishType: string
 	local level = frame:WaitForChild("Level")::TextLabel
 	local fishTypeLabel = frame:WaitForChild("FishType")::TextLabel
 	local mutationLabel = frame:WaitForChild("Mutation")::TextLabel
+	local traitsFrame = frame:WaitForChild("Traits")::Frame
 	
 	-- Hide money and level info during animation
 	local moneyPerSecond = frame:FindFirstChild("MoneyPerSecond")
@@ -93,6 +95,31 @@ local function setupTempBillboard(model: Model, fishId: string, fishType: string
 		end
 	else
 		mutationLabel.Visible = false
+	end
+	
+	-- Show Party trait
+	local template = traitsFrame:FindFirstChild("Template")
+	if template and template:IsA("ImageLabel") then
+		-- Clear existing trait icons (except template)
+		for _, child in ipairs(traitsFrame:GetChildren()) do
+			if child:IsA("ImageLabel") and child ~= template then
+				child:Destroy()
+			end
+		end
+		
+		local partyTrait = Directory.Traits["Party"]
+		if partyTrait then
+			traitsFrame.Visible = true
+			
+			local icon = template:Clone()
+			icon.Name = "Party"
+			icon.Image = partyTrait.Icon
+			icon.Visible = true
+			icon.LayoutOrder = 1
+			icon.Parent = traitsFrame
+		else
+			traitsFrame.Visible = false
+		end
 	end
 	
 	return billboard
@@ -369,6 +396,12 @@ local function handlePartyFishSpawn(spawnData: any?)
 				
 				tempFishModel.Parent = parent
 				
+				-- Apply Party trait visual effect
+				local partyTrait = Directory.Traits["Party"]
+				if partyTrait and partyTrait.ApplyToModel then
+					partyTrait.ApplyToModel(tempFishModel)
+				end
+				
 				-- Create billboard for this fish
 				setupTempBillboard(tempFishModel, visual.FishId, visual.Type, visual.Mutation)
 				
@@ -430,6 +463,12 @@ local function handlePartyFishSpawn(spawnData: any?)
 		end
 		
 		displayFish.Parent = parent
+		
+		-- Apply Party trait visual effect
+		local partyTrait = Directory.Traits["Party"]
+		if partyTrait and partyTrait.ApplyToModel then
+			partyTrait.ApplyToModel(displayFish)
+		end
 		
 		-- Create billboard for final fish
 		setupTempBillboard(displayFish, fishData.FishId, fishData.Type or "Normal", fishData.Mutation)
@@ -604,7 +643,6 @@ function module.OnStart()
 	
 	-- Register handler for party fish spawns
 	AdminAbuseEventCmds.Fired("Party", "FishSpawn", function(data: any?)
-		print("here1")
 		handlePartyFishSpawn(data)
 	end)
 end
