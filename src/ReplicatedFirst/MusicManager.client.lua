@@ -61,6 +61,10 @@ local preEventState = {
 local eventStopping = false
 local eventStopToken = 0
 
+-- Admin abuse event music override
+local AdminAbuseEventCmds: any = nil
+local AdminAbuseEventsDirectory: any = nil
+
 -- Preload chase music at script load so it's ready instantly when triggered
 task.spawn(function()
     if #CHASE_MUSIC_IDS == 0 then return end
@@ -99,14 +103,48 @@ local function setRandomTrack()
     musicSound.SoundId = MUSIC_IDS[idx]
 end
 
+-- Check for active admin abuse event music override
+local function getActiveMusicOverride(): {string}?
+	if not AdminAbuseEventCmds or not AdminAbuseEventsDirectory then return nil end
+	
+	local activeEvents = AdminAbuseEventCmds.GetActiveEvents()
+	for _, eventId in ipairs(activeEvents) do
+		local eventData = AdminAbuseEventsDirectory[eventId]
+		if eventData and eventData.MusicOverride then
+			local override = eventData.MusicOverride
+			if typeof(override) == "table" and #override > 0 then
+				return override
+			end
+		end
+	end
+	
+	return nil
+end
+
 local function setEventTrack()
-    if #EVENT_MUSIC_IDS == 0 then return end
-    musicSound.SoundId = EVENT_MUSIC_IDS[eventMusicIndex]
+	-- Check for admin abuse event music override first
+	local musicOverride = getActiveMusicOverride()
+	if musicOverride then
+		musicSound.SoundId = musicOverride[eventMusicIndex]
+		return
+	end
+	
+	-- Fall back to Haunted event music
+	if #EVENT_MUSIC_IDS == 0 then return end
+	musicSound.SoundId = EVENT_MUSIC_IDS[eventMusicIndex]
 end
 
 local function nextEventTrack()
-    if #EVENT_MUSIC_IDS == 0 then return end
-    eventMusicIndex = (eventMusicIndex % #EVENT_MUSIC_IDS) + 1
+	-- Check for admin abuse event music override first
+	local musicOverride = getActiveMusicOverride()
+	if musicOverride then
+		eventMusicIndex = (eventMusicIndex % #musicOverride) + 1
+		return
+	end
+	
+	-- Fall back to Haunted event music
+	if #EVENT_MUSIC_IDS == 0 then return end
+	eventMusicIndex = (eventMusicIndex % #EVENT_MUSIC_IDS) + 1
 end
 
 local function updateMusicState()
@@ -219,7 +257,12 @@ local function PlayEventMusic(active: boolean)
         musicSound.Volume = defaultVolume
         musicSound:Play()
         
-        print("[MusicManager] Started Haunted event music")
+        local musicOverride = getActiveMusicOverride()
+        if musicOverride then
+            print("[MusicManager] Started admin abuse event music override")
+        else
+            print("[MusicManager] Started Haunted event music")
+        end
     else
         -- If event music isn't active and no stop is scheduled, nothing to do
         if not isEventMusicActive and not eventStopping then return end
@@ -272,7 +315,7 @@ local function PlayEventMusic(active: boolean)
                 musicSound:Play()
             end
 
-            print("[MusicManager] Stopped Haunted event music")
+            print("[MusicManager] Stopped event music")
         end)
     end
 end
@@ -312,6 +355,33 @@ local function init()
 				updateMusicState()
 			end
 		end
+		
+		-- Load AdminAbuseEventCmds and Directory for music override detection
+		task.spawn(function()
+			-- Load AdminAbuseEventCmds
+			while not AdminAbuseEventCmds do
+				local ok, lib = pcall(function()
+					return require(ReplicatedStorage.Game.Library.Client.AdminAbuseEventCmds)
+				end)
+				if ok then
+					AdminAbuseEventCmds = lib
+				else
+					task.wait(1)
+				end
+			end
+			
+			-- Load AdminAbuseEventsDirectory
+			while not AdminAbuseEventsDirectory do
+				local ok, dir = pcall(function()
+					return require(ReplicatedStorage.Game.Library.Directory.AdminAbuseEvents)
+				end)
+				if ok then
+					AdminAbuseEventsDirectory = dir
+				else
+					task.wait(1)
+				end
+			end
+		end)
 	end)
 
 	musicSound.Ended:Connect(function()
@@ -345,7 +415,7 @@ local function init()
 		end
 	end)
 	
-	-- Haunted event music toggle, checked periodically
+	-- Haunted event and admin abuse event music toggle, checked periodically
 	task.spawn(function()
 		-- Wait for MutationEventCmds to be available
 		local MutationEventCmds: any = nil
@@ -360,10 +430,13 @@ local function init()
 			end
 		end
 		
-		-- Check IsHauntedActive status every second
+		-- Check music override and Haunted status every second
 		while true do
+			local hasActiveMusicOverride = getActiveMusicOverride() ~= nil
 			local isHauntedActive = MutationEventCmds.IsHauntedActive()
-			if isHauntedActive then
+			
+			-- Admin abuse event music override takes highest priority
+			if hasActiveMusicOverride or isHauntedActive then
 				if not isEventMusicActive then
 					PlayEventMusic(true)
 				end

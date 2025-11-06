@@ -7,9 +7,9 @@ return {
     DisplayName = "Haunted Serpent",
     Icon = "rbxassetid://126720375076900",
     MutationIcons = {
-        Bloodfish = "rbxassetid://126720375076900",
-        Galaxy = "rbxassetid://126720375076900",
-        Spooky = "rbxassetid://126720375076900",
+        Bloodfish = "rbxassetid://91657947060140",
+        Galaxy = "rbxassetid://110004498070196",
+        Spooky = "rbxassetid://94055399095481",
         Haunted = "rbxassetid://134763674643025",
     },
     Rarity = Rarity.God,

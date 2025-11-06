@@ -245,6 +245,11 @@ local function spawnPartyFish()
 		local traits = { Party = true }
 		FishGenerator.ForceSpawnSpecificFish(fishSchema._id, fishType, mutation, false, traits, finalSpawnCFrame)
 		print(`[Party Server] Fish spawned: {fishSchema._id}`)
+		
+		-- Tell clients to play fireworks at the fish position
+		AdminAbuseEvents.Fire("Party", "PlayFireworks", {
+			Position = finalSpawnCFrame.Position,
+		})
 	end)
 end
 

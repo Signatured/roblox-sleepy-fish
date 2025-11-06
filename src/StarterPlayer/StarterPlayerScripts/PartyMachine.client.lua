@@ -171,8 +171,8 @@ local function getPointsForFish(fishData: any): number
 	local rarityId = dir.Rarity and dir.Rarity._id
 	if not rarityId then return 0 end
 	
-	-- Exclusive fish can't be submitted
-	if rarityId == "Exclusive" then return 0 end
+	-- Exclusive fish and SpecialItemFish can't be submitted
+	if rarityId == "Exclusive" or dir.SpecialItemFish then return 0 end
 	
 	-- Get points from FFlags
 	local flagKey = `PartyPoints_{rarityId}`
@@ -197,6 +197,9 @@ end
 local function createItem(fishData: any)
 	local dir = Directory.Fish[fishData.FishId]
 	if not dir then return end
+	
+	-- Skip SpecialItemFish
+	if (dir.Rarity and dir.Rarity._id == "Exclusive") or dir.SpecialItemFish then return end
 
 	local item = template:Clone()
 	item.Name = "PartyMachineItem"
@@ -340,12 +343,13 @@ function render()
 	for _, fishData in ipairs(inv) do
 		local dir = Directory.Fish[fishData.FishId]
 		local isExclusive = dir and dir.Rarity and dir.Rarity._id == "Exclusive"
-		if dir and not isExclusive then
+		local isSpecialItem = dir and dir.SpecialItemFish
+		if dir and not isExclusive and not isSpecialItem then
 			total += getPointsForFish(fishData)
 		end
 	end
 	if inventoryValueLabel and inventoryValueLabel:IsA("TextLabel") then
-		inventoryValueLabel.Text = "Inventory Value: " .. Functions.NumberShorten(total) .. " Points"
+		inventoryValueLabel.Text = "Inventory Value: " .. Functions.Commas(total) .. " Points"
 	end
 	
 	-- Update progress bar
@@ -425,7 +429,7 @@ if submitAllButton and submitAllButton:IsA("GuiButton") then
 		
 		for _, entry in ipairs(save.Inventory) do
 			local dir = Directory.Fish[entry.FishId]
-			if dir and not (dir.Rarity and dir.Rarity._id == "Exclusive") then
+			if dir and not (dir.Rarity and dir.Rarity._id == "Exclusive") and not dir.SpecialItemFish then
 				local rarityId = dir.Rarity and dir.Rarity._id
 				local priority = dir.Rarity and dir.Rarity.Priority or 0
 				

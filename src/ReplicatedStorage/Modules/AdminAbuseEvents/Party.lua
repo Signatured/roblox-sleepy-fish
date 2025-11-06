@@ -15,6 +15,7 @@ local AdminAbuseEventCmds = require(ReplicatedStorage.Game.Library.Client.AdminA
 local Functions = require(ReplicatedStorage.Library.Functions)
 local Audio = require(ReplicatedStorage.Library.Audio)
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
+local Fireworks = require(ReplicatedStorage.Library.Client.WorldFX.Fireworks)
 
 local Assets = ReplicatedStorage.Assets
 
@@ -23,6 +24,8 @@ local module = {}
 -- Shared state for this event
 local cannons: {[number]: Model} = {}
 local _isActive = false
+local grassParts: {BasePart} = {}
+local grassOriginalColors: {[BasePart]: Color3} = {}
 
 -- Helper function to get fish type display
 local function getFishType(fishType: string): (string?, Color3?)
@@ -255,6 +258,12 @@ local function spawnProjectile(startAttachment: Attachment, targetPosition: Vect
 		if alpha >= 1 then
 			-- Animation complete
 			connection:Disconnect()
+			
+			-- Play instant firework explosion at target position
+			task.spawn(function()
+				Fireworks.PlayExplosion(targetPosition)
+			end)
+			
 			projectile:Destroy()
 		else
 			-- Update position using Bezier curve
@@ -554,6 +563,29 @@ function module.OnStart()
 		Audio.Play("rbxassetid://116222140946445", (spawnParts[1] :: BasePart).Position, 1, 1, 150)
 	end
 	
+	-- Setup TagHook to listen for Grass parts
+	Functions.TagHook("Grass", function(inst: Instance)
+		if inst and inst:IsA("BasePart") then
+			local part = inst :: BasePart
+			table.insert(grassParts, part)
+			
+			-- Store original color if not already stored
+			if not grassOriginalColors[part] then
+				grassOriginalColors[part] = part.Color
+			end
+		end
+		
+		-- Cleanup function
+		return function()
+			if inst:IsA("BasePart") then
+				local index = table.find(grassParts, inst)
+				if index then
+					table.remove(grassParts, index)
+				end
+			end
+		end
+	end)
+	
 	-- Setup TagHook to listen for PartyCannon models
 	Functions.TagHook("PartyCannon", function(inst: Instance)
 		if inst and inst:IsA("Model") then
@@ -655,10 +687,55 @@ function module.OnStart()
 	AdminAbuseEventCmds.Fired("Party", "FishSpawn", function(data: any?)
 		handlePartyFishSpawn(data)
 	end)
+	
+	-- Register handler for fireworks
+	AdminAbuseEventCmds.Fired("Party", "PlayFireworks", function(data: any?)
+		if typeof(data) ~= "table" then
+			return
+		end
+		
+		local fireworkData = data :: {
+			Position: Vector3?,
+		}
+		
+		if not fireworkData.Position then
+			warn("[Party Client] Invalid firework data")
+			return
+		end
+		
+		-- Spawn 3 fireworks with 0.5 second delays
+		task.spawn(function()
+			for i = 1, 7 do
+				task.spawn(function()
+					Fireworks.SpawnFirework(fireworkData.Position, 10, false)
+				end)
+				if i < 7 then
+					task.wait(0.5)
+				end
+			end
+		end)
+	end)
 end
 
 function module.RenderStepped(delta: number, time: number)
-	-- No continuous rendering needed for this event
+	if not _isActive then
+		return
+	end
+	
+	-- Rainbow cycle grass parts over 10 seconds
+	local rainbowCycleDuration = 10
+	local currentTime = workspace:GetServerTimeNow()
+	local cycleProgress = (currentTime % rainbowCycleDuration) / rainbowCycleDuration
+	
+	-- Calculate rainbow color using HSV (hue cycles from 0 to 1)
+	local rainbowColor = Color3.fromHSV(cycleProgress, 1, 1)
+	
+	-- Apply rainbow color to all grass parts
+	for _, part in ipairs(grassParts) do
+		if part and part.Parent then
+			part.Color = rainbowColor
+		end
+	end
 end
 
 function module.OnStop()
@@ -675,6 +752,19 @@ function module.OnStop()
 	if #spawnParts > 0 and spawnParts[1]:IsA("BasePart") then
 		Audio.Play("rbxassetid://135729759317677", (spawnParts[1] :: BasePart).Position, 1, 1, 150)
 	end
+	
+	-- Restore original grass colors
+	for _, part in ipairs(grassParts) do
+		if part and part.Parent then
+			local originalColor = grassOriginalColors[part]
+			if originalColor then
+				part.Color = originalColor
+			end
+		end
+	end
+	
+	-- Clear grass parts list (keep original colors stored for next event)
+	grassParts = {}
 	
 	-- Clear cannons
 	cannons = {}

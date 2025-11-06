@@ -102,9 +102,9 @@ function PartyMachine.SubmitPoints(player: Player, fishUids: {string}): (boolean
 			return false, "Something went wrong!", nil
 		end
 		
-		-- Check if fish is Exclusive rarity
+		-- Check if fish is Exclusive rarity or SpecialItemFish
 		local fishSchema = Directory.Fish[fishData.FishId]
-		if fishSchema and fishSchema.Rarity._id == "Exclusive" then
+		if fishSchema and (fishSchema.Rarity._id == "Exclusive" or fishSchema.SpecialItemFish) then
 			return false, "Something went wrong!", nil
 		end
 		

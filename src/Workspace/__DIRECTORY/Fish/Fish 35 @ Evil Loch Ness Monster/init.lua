@@ -7,9 +7,9 @@ return {
     DisplayName = "Evil Loch Ness Monster",
     Icon = "rbxassetid://70416191994449",
     MutationIcons = {
-        Bloodfish = "rbxassetid://70416191994449",
-        Galaxy = "rbxassetid://70416191994449",
-        Spooky = "rbxassetid://70416191994449",
+        Bloodfish = "rbxassetid://132484094867459",
+        Galaxy = "rbxassetid://107173792145881",
+        Spooky = "rbxassetid://135541451000695",
         Haunted = "rbxassetid://102444887889439",
     },
     Rarity = Rarity.Secret,

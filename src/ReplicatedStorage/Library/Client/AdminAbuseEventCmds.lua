@@ -167,6 +167,15 @@ function module.GetActiveEvents(): { string }
 	return result
 end
 
+-- Get the client module for an active event (for music override, etc)
+function module.GetActiveEventModule(eventId: string): AdminAbuseEventsTypes.EventModule?
+	local activeEvent = activeEvents[eventId]
+	if activeEvent and activeEvent.ClientModule then
+		return activeEvent.ClientModule
+	end
+	return nil
+end
+
 -- Listen for server network events
 Network.Fired("AdminAbuseEvent_Start", function(eventId: string, startTime: number)
 	startEvent(eventId, startTime)

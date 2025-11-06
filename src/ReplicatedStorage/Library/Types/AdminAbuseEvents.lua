@@ -17,6 +17,7 @@ export type raw_dir = {
     Icon: string,
     ServerModule: string,
     ClientModule: string,
+    MusicOverride: {string}?,
 }
 
 export type dir_schema = raw_dir & DirectoryTypes.dir_schema

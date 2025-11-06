@@ -43,6 +43,10 @@ if game:GetService("RunService"):IsServer() and game:GetService("RunService"):Is
             assert(type(dir.Icon) == "string")
             assert(type(dir.ServerModule) == "string")
             assert(type(dir.ClientModule) == "string")
+            -- MusicOverride is optional
+            if dir.MusicOverride ~= nil then
+                assert(type(dir.MusicOverride) == "table", "MusicOverride must be a table")
+            end
         end)
         if not success then
             warn("[Directory Validator]", script.Name, dir._script, tostring(reason))
