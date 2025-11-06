@@ -3,9 +3,9 @@
 local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
 
 return {
-	ProductId = 3438958707,
+	ProductId = 3449599262,
 	DisplayName = "[OP] Exclusive The Blood Moon",
-	Icon = "rbxassetid://82803321939240",
+	Icon = "rbxassetid://93529278578197",
 	Description = "Fish is 200% as strong as your best fish!",
 	OneTimePurchase = false,
 	ClientTest = function(player: Player)

@@ -26,6 +26,7 @@ local cannons: {[number]: Model} = {}
 local _isActive = false
 local grassParts: {BasePart} = {}
 local grassOriginalColors: {[BasePart]: Color3} = {}
+local worldFX: Model? = nil
 
 -- Helper function to get fish type display
 local function getFishType(fishType: string): (string?, Color3?)
@@ -563,6 +564,25 @@ function module.OnStart()
 		Audio.Play("rbxassetid://116222140946445", (spawnParts[1] :: BasePart).Position, 1, 1, 150)
 	end
 	
+	-- Spawn WorldFX
+	local adminEvents = Assets:FindFirstChild("AdminEvents")
+	if adminEvents then
+		local party = adminEvents:FindFirstChild("Party")
+		if party then
+			local worldFXTemplate = party:FindFirstChild("WorldFX")
+			if worldFXTemplate and worldFXTemplate:IsA("BasePart") then
+				local clonedFX = worldFXTemplate:Clone()
+				
+				-- Find or create __DEBRIS folder
+				local debris = Workspace:WaitForChild("__DEBRIS")
+				
+				clonedFX.Parent = debris
+				worldFX = clonedFX
+				print("[Party Client] Spawned WorldFX")
+			end
+		end
+	end
+	
 	-- Setup TagHook to listen for Grass parts
 	Functions.TagHook("Grass", function(inst: Instance)
 		if inst and inst:IsA("BasePart") then
@@ -765,6 +785,24 @@ function module.OnStop()
 	
 	-- Clear grass parts list (keep original colors stored for next event)
 	grassParts = {}
+	
+	-- Remove WorldFX (disable particles first, then remove after 3 seconds)
+	if worldFX and worldFX.Parent then
+		-- Disable all particle emitters
+		for _, descendant in ipairs(worldFX:GetDescendants()) do
+			if descendant:IsA("ParticleEmitter") then
+				(descendant :: ParticleEmitter).Enabled = false
+			end
+		end
+		
+		-- Destroy the WorldFX after 3 seconds
+		task.delay(3, function()
+			if worldFX then
+				worldFX:Destroy()
+				worldFX = nil
+			end
+		end)
+	end
 	
 	-- Clear cannons
 	cannons = {}

@@ -5,12 +5,12 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "The Blood Moon",
-    Icon = "rbxassetid://114385688262048",
+    Icon = "rbxassetid://93529278578197",
     MutationIcons = {
-        Bloodfish = "rbxassetid://79007910712218",
-        Galaxy = "rbxassetid://101923213586939",
-        Spooky = "rbxassetid://101142318868075",
-        Haunted = "rbxassetid://129478307940153",
+        Bloodfish = "rbxassetid://93529278578197",
+        Galaxy = "rbxassetid://93529278578197",
+        Spooky = "rbxassetid://93529278578197",
+        Haunted = "rbxassetid://93529278578197",
     },
     Rarity = Rarity.Exclusive,
     MoneyPerSecond = 150,
