@@ -21,6 +21,7 @@ return {
     IndexOffset = -12,
     IndexPositionOffset = Vector3.new(-5, 1, 0),
     IndexRotationOffset = Vector3.new(0, math.rad(90), 0),
+    DisableSpawn = true,
 }::FishTypes.raw_dir
 
 
