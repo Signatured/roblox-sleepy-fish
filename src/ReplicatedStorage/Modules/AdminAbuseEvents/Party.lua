@@ -234,6 +234,9 @@ local function spawnProjectile(startAttachment: Attachment, targetPosition: Vect
 	-- Get start position from attachment
 	local startPosition = startAttachment.WorldPosition
 	
+	-- Play cannon ammo spawn sound
+	Audio.Play("rbxassetid://104359364272503", startPosition, 1, 1, 150)
+	
 	-- Calculate Bezier mid point (middle of two positions + 50 Y)
 	local midPosition = (startPosition + targetPosition) / 2
 	midPosition = Vector3.new(midPosition.X, midPosition.Y + 50, midPosition.Z)
@@ -545,6 +548,12 @@ function module.OnStart()
 		Sound = "rbxassetid://96756442780379"
 	})
 	
+	-- Play party start sound at PartyFishSpawn part
+	local spawnParts = CollectionService:GetTagged("PartyFishSpawn")
+	if #spawnParts > 0 and spawnParts[1]:IsA("BasePart") then
+		Audio.Play("rbxassetid://116222140946445", (spawnParts[1] :: BasePart).Position, 1, 1, 150)
+	end
+	
 	-- Setup TagHook to listen for PartyCannon models
 	Functions.TagHook("PartyCannon", function(inst: Instance)
 		if inst and inst:IsA("Model") then
@@ -660,6 +669,12 @@ function module.OnStop()
 		Color = Color3.fromRGB(255, 100, 255),
 		Time = 8,
 	})
+	
+	-- Play party end sound at PartyFishSpawn part
+	local spawnParts = CollectionService:GetTagged("PartyFishSpawn")
+	if #spawnParts > 0 and spawnParts[1]:IsA("BasePart") then
+		Audio.Play("rbxassetid://135729759317677", (spawnParts[1] :: BasePart).Position, 1, 1, 150)
+	end
 	
 	-- Clear cannons
 	cannons = {}

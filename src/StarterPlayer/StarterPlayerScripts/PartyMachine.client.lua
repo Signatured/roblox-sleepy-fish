@@ -2,6 +2,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local GUI = require(ReplicatedStorage.Game.Library.Client.GUI)
 local Save = require(ReplicatedStorage.Library.Client.Save)
@@ -14,6 +15,7 @@ local NotificationCmds = require(ReplicatedStorage.Library.Client.NotificationCm
 local PartyMachineCmds = require(ReplicatedStorage.Game.Library.Client.PartyMachineCmds)
 local FFlags = require(ReplicatedStorage.Library.Client.FFlags)
 local Network = require(ReplicatedStorage.Library.Client.Network)
+local AdminAbuseEventCmds = require(ReplicatedStorage.Game.Library.Client.AdminAbuseEventCmds)
 
 local _player = Players.LocalPlayer
 local partyMachineGui = GUI.PartyMachine()
@@ -33,6 +35,46 @@ local progressTextLabel = progressFrame:WaitForChild("TextLabel")
 -- Footer controls
 local submitAllButton = content:FindFirstChild("SellAll")
 local inventoryValueLabel = content:FindFirstChild("InventoryValue")
+
+-- Party machine billboard tracking
+local partyBillboards: {BillboardGui} = {}
+local partyEventStartTime = 0
+local partyEventDuration = 300
+
+-- Update party machine billboard
+local function updatePartyBillboard(billboard: BillboardGui)
+	local pointsLabel = billboard:FindFirstChild("Points")
+	if not pointsLabel or not pointsLabel:IsA("TextLabel") then
+		return
+	end
+	
+	-- Check if admin abuse party is forced on
+	local isAdminAbuse = FFlags.Get(FFlags.Keys.AdminAbuseEvent_Party) == true
+	local isPartyActive = AdminAbuseEventCmds.IsActive("Party")
+	
+	if isPartyActive then
+		if isAdminAbuse then
+			-- Admin abuse party active
+			pointsLabel.Text = "Admin Abuse Party active now!"
+		else
+			-- Party machine started the event, show countdown
+			local currentTime = workspace:GetServerTimeNow()
+			local timeElapsed = currentTime - partyEventStartTime
+			local timeRemaining = math.max(0, partyEventDuration - timeElapsed)
+			
+			local minutes = math.floor(timeRemaining / 60)
+			local seconds = math.floor(timeRemaining % 60)
+			pointsLabel.Text = string.format("Party ends in %d:%02d!", minutes, seconds)
+		end
+	else
+		-- Party not active, show points needed
+		local currentPoints = PartyMachineCmds.GetCurrentPoints()
+		local goal = PartyMachineCmds.GetPointGoal()
+		local pointsNeeded = math.max(0, goal - currentPoints)
+		
+		pointsLabel.Text = `Party in {Functions.Commas(pointsNeeded)} more points!`
+	end
+end
 
 local function updateProgressBar()
 	local currentPoints = PartyMachineCmds.GetCurrentPoints()
@@ -333,4 +375,46 @@ if submitAllButton and submitAllButton:IsA("GuiButton") then
 		end)
 	end)
 end
+
+-- Setup TagHook for PartyMachineBillboard
+Functions.TagHook("PartyMachineBillboard", function(inst: Instance)
+	if not inst or not inst:IsA("BillboardGui") then
+		return function() end
+	end
+	
+	local billboard = inst :: BillboardGui
+	table.insert(partyBillboards, billboard)
+	updatePartyBillboard(billboard)
+	
+	-- Cleanup function
+	return function()
+		local index = table.find(partyBillboards, billboard)
+		if index then
+			table.remove(partyBillboards, index)
+		end
+	end
+end)
+
+-- Listen for party start to track event start time
+Network.Fired("PartyMachine_EventStarted", function()
+	partyEventStartTime = workspace:GetServerTimeNow()
+	local durationValue = FFlags.Get(FFlags.Keys.PartyEventDuration)
+	partyEventDuration = typeof(durationValue) == "number" and durationValue or 300
+	
+	-- Update all billboards immediately
+	for _, billboard in ipairs(partyBillboards) do
+		if billboard and billboard.Parent then
+			updatePartyBillboard(billboard)
+		end
+	end
+end)
+
+-- Update billboards regularly
+RunService.RenderStepped:Connect(function()
+	for _, billboard in ipairs(partyBillboards) do
+		if billboard and billboard.Parent then
+			updatePartyBillboard(billboard)
+		end
+	end
+end)
 
