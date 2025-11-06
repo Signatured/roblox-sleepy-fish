@@ -542,6 +542,7 @@ function module.OnStart()
 	NotificationCmds.Message("Let's party! 🎉", {
 		Color = Color3.fromRGB(255, 100, 255),
 		Time = 8,
+		Sound = "rbxassetid://96756442780379"
 	})
 	
 	-- Setup TagHook to listen for PartyCannon models

@@ -7,6 +7,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
+local CollectionService = game:GetService("CollectionService")
 
 local FishGenerator = require(ServerScriptService.Game.Library.FishGenerator)
 local AdminAbuseEvents = require(ServerScriptService.Game.Library.AdminAbuseEvents)
@@ -16,6 +17,7 @@ local FFlags = require(ServerScriptService.Library.FFlags)
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
 local Functions = require(ReplicatedStorage.Library.Functions)
 local MutationEvent = require(ServerScriptService.Game.Library.MutationEvent)
+local Audio = require(ReplicatedStorage.Library.Audio)
 
 local module = {}
 
@@ -207,6 +209,20 @@ local function spawnPartyFish()
 		})
 	end
 	
+	-- Find PartyFishSpawn part to play sound at
+	local spawnParts = CollectionService:GetTagged("PartyFishSpawn")
+	local soundPosition = finalSpawnCFrame.Position -- Fallback to fish position
+	if #spawnParts > 0 and spawnParts[1]:IsA("BasePart") then
+		soundPosition = (spawnParts[1] :: BasePart).Position
+	end
+	
+	-- Play pre-animation sound to all clients at the PartyFishSpawn location
+	Audio.Play("rbxassetid://119218265790569", soundPosition, 1, 1, 150)
+	
+	-- Wait 3 seconds before starting the visual animation
+	local preAnimationDelay = 3
+	task.wait(preAnimationDelay)
+	
 	-- Notify all clients to play animation
 	local currentTime = workspace:GetServerTimeNow()
 	local serverSpawnDelay = FFlags.GetNumber(FFlags.Keys.PartyFishSpawn_ServerSpawnDelay)
@@ -223,7 +239,7 @@ local function spawnPartyFish()
 	
 	print(`[Party Server] Spawning party fish: {fishSchema._id} ({rarityId}, {fishType})`)
 	
-	-- Schedule actual fish spawn on server
+	-- Schedule actual fish spawn on server (total delay is serverSpawnDelay, not including the preAnimationDelay we already waited)
 	task.delay(serverSpawnDelay, function()
 		-- Spawn the fish with Party trait at the exact position
 		local traits = { Party = true }
@@ -250,8 +266,8 @@ function module.Heartbeat(delta: number, time: number)
 		fishSpawnTimer -= delta
 		
 		if fishSpawnTimer <= 0 then
-			-- Spawn a party fish
-			spawnPartyFish()
+			-- Spawn a party fish asynchronously (so the 3 second delay doesn't block the heartbeat)
+			task.spawn(spawnPartyFish)
 			
 			-- Reset timer to interval
 			fishSpawnTimer = FFlags.GetNumber(FFlags.Keys.PartyFishSpawn_Interval)

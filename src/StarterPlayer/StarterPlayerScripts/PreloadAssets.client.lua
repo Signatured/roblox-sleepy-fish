@@ -43,9 +43,18 @@ local preloadSounds = {
     "rbxassetid://122398964277913", -- door close
     "rbxassetid://83210828687333", -- spawn haunted house fish
 
-    "rbxassetid://105973271745899", -- craft sound
-    "rbxassetid://86764609074639", -- electricity loop
-    "rbxassetid://108578182800070", -- successful craft sound
+    -- Halloween crafting machine
+    -- "rbxassetid://105973271745899", -- craft sound
+    -- "rbxassetid://86764609074639", -- electricity loop
+    -- "rbxassetid://108578182800070", -- successful craft sound
+
+    "rbxassetid://138247726051800", -- Party Machine idle during event
+    "rbxassetid://135729759317677", -- Party Machine power down
+    "rbxassetid://116222140946445 ", -- Party Machine power up
+    "rbxassetid://104359364272503", -- Party cannon shoot
+    "rbxassetid://72111030447267", -- Party machine give fish
+    "rbxassetid://96756442780379", -- Party Admin abuse event started
+    "rbxassetid://119218265790569", -- Fish about to spawn sound
 }
 
 Audio.PreloadSounds(preloadSounds)

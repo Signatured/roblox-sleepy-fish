@@ -142,7 +142,8 @@ function PartyMachineCmds.SubmitPoints(fishUids: {string})
 	else
 		if pointsAdded then
 			NotificationCmds.Message(`You added {pointsAdded} points to the party machine!`, {
-				Color = Color3.fromRGB(0, 255, 0)
+				Color = Color3.fromRGB(0, 255, 0),
+                Sound = "rbxassetid://72111030447267"
 			})
 		end
 	end
