@@ -177,6 +177,36 @@ local function spawnPartyFish()
 	local yaw = math.rad(math.random(0, 359))
 	local finalSpawnCFrame = CFrame.new(spawnCFrame.Position) * CFrame.Angles(0, yaw, 0)
 	
+	-- Generate visual data for client animation (20 random fish to cycle through)
+	local visualData = {}
+	local numVisuals = 20
+	
+	-- Get all fish for random cycling (exclude SpecialItemFish)
+	local allFish = {}
+	for fishId, schema in pairs(Directory.Fish) do
+		if schema.Rarity and not schema.Rarity.PreventSpawning and not schema.SpecialItemFish and not schema.DisableSpawn then
+			table.insert(allFish, fishId)
+		end
+	end
+	
+	-- Generate random visual data
+	local lastFishId = nil
+	for i = 1, numVisuals do
+		local randomFishId
+		repeat
+			randomFishId = allFish[math.random(1, #allFish)]
+		until randomFishId ~= lastFishId or #allFish == 1
+		lastFishId = randomFishId
+		
+		local randomType = Functions.Lottery(typeChances)
+		
+		table.insert(visualData, {
+			FishId = randomFishId,
+			Type = randomType,
+			Mutation = nil,
+		})
+	end
+	
 	-- Notify all clients to play animation
 	local currentTime = workspace:GetServerTimeNow()
 	local serverSpawnDelay = FFlags.GetNumber(FFlags.Keys.PartyFishSpawn_ServerSpawnDelay)
@@ -188,6 +218,7 @@ local function spawnPartyFish()
 		Position = finalSpawnCFrame.Position,
 		Orientation = Vector3.new(0, math.deg(yaw), 0),
 		SpawnTime = currentTime + serverSpawnDelay,
+		VisualData = visualData,
 	})
 	
 	print(`[Party Server] Spawning party fish: {fishSchema._id} ({rarityId}, {fishType})`)

@@ -260,9 +260,10 @@ local function handlePartyFishSpawn(spawnData: any?)
 		Position: Vector3?,
 		Orientation: Vector3?,
 		SpawnTime: number?,
+		VisualData: {{FishId: string, Type: string, Mutation: string?}}?,
 	}
 	
-	if not fishData.FishId or not fishData.Position or not fishData.SpawnTime then
+	if not fishData.FishId or not fishData.Position or not fishData.SpawnTime or not fishData.VisualData then
 		warn("[Party Client] Invalid fish spawn data")
 		return
 	end
@@ -297,42 +298,9 @@ local function handlePartyFishSpawn(spawnData: any?)
 	
 	-- Animation parameters
 	local animationDuration = 3 -- seconds total for cycling
-	local numVisuals = 20 -- Number of random fish to cycle through before revealing final
 	
-	-- Generate visual data (random fish to cycle through)
-	local visualData = {}
-	local typeChances = {
-		Normal = 70,
-		Shiny = 20,
-		Gold = 8,
-		Rainbow = 2,
-	}
-	
-	-- Get all fish for random cycling (exclude SpecialItemFish)
-	local allFish = {}
-	for fishId, schema in pairs(Directory.Fish) do
-		if schema.Rarity and not schema.Rarity.PreventSpawning and not schema.SpecialItemFish then
-			table.insert(allFish, fishId)
-		end
-	end
-	
-	-- Generate random visual data
-	local lastFishId = nil
-	for i = 1, numVisuals do
-		local randomFishId
-		repeat
-			randomFishId = allFish[math.random(1, #allFish)]
-		until randomFishId ~= lastFishId or #allFish == 1
-		lastFishId = randomFishId
-		
-		local randomType = Functions.Lottery(typeChances)
-		
-		table.insert(visualData, {
-			FishId = randomFishId,
-			Type = randomType,
-			Mutation = nil,
-		})
-	end
+	-- Use visual data from server
+	local visualData = assert(fishData.VisualData, "VisualData is required")
 	
 	-- Calculate variable intervals (fast start, slow end)
 	local intervals = {}

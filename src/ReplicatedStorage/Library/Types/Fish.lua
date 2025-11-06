@@ -25,6 +25,7 @@ export type raw_dir = {
     LuckyBlockId: string?,
     SpecialItemFish: boolean?,
     OverrideSellPrice: number?,
+    DisableSpawn: boolean?,
 }
 
 export type fish_type = "Normal" | "Shiny" | "Gold" | "Rainbow"
