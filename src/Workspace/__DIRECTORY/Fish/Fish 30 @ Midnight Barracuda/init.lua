@@ -5,12 +5,12 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Midnight Barracuda",
-    Icon = "rbxassetid://126720375076900",
+    Icon = "rbxassetid://139219899406336",
     MutationIcons = {
-        Bloodfish = "rbxassetid://126720375076900",
-        Galaxy = "rbxassetid://126720375076900",
-        Spooky = "rbxassetid://126720375076900",
-        Haunted = "rbxassetid://134763674643025",
+        Bloodfish = "rbxassetid://139219899406336",
+        Galaxy = "rbxassetid://139219899406336",
+        Spooky = "rbxassetid://139219899406336",
+        Haunted = "rbxassetid://139219899406336",
     },
     Rarity = Rarity.God,
     MoneyPerSecond = 637,

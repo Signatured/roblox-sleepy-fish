@@ -5,12 +5,12 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Rave Turtle",
-    Icon = "rbxassetid://74298369722425",
+    Icon = "rbxassetid://70545770243718",
     MutationIcons = {
-        Bloodfish = "rbxassetid://138465378317929",
-        Galaxy = "rbxassetid://97469201117682",
-        Spooky = "rbxassetid://86894127565074",
-        Haunted = "rbxassetid://114483417764665",
+        Bloodfish = "rbxassetid://70545770243718",
+        Galaxy = "rbxassetid://70545770243718",
+        Spooky = "rbxassetid://70545770243718",
+        Haunted = "rbxassetid://70545770243718",
     },
     Rarity = Rarity.Mythical,
     MoneyPerSecond = 170,
