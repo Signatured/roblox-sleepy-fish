@@ -71,6 +71,9 @@ local function sortFishByMps(): {FishTypes.dir_schema}
         if dir.SpecialItemFish then
             continue
         end
+        if dir.DisableSpawn then
+            continue
+        end
         table.insert(items, dir)
     end
     table.sort(items, function(a, b)
@@ -195,7 +198,7 @@ local function realRender()
         clone:SetAttribute("SwayAmplitude", 0.25)
         clone:SetAttribute("RollMaxDeg", 5)
         clone:SetAttribute("YawMaxDeg", 5)
-        clone:AddTag("SwimmingFish")
+        -- Don't add SwimmingFish tag here - will be added on hover
 
         if not hasSeen then
             for _, inst in ipairs(clone:GetDescendants()) do
@@ -309,6 +312,31 @@ local function realRender()
             local modelTemplate = dir._script and dir._script:FindFirstChild("Model")
             if modelTemplate and modelTemplate:IsA("Model") then
                 renderIntoViewport(viewport, modelTemplate, dir, hasSeen)
+                
+                -- Add hover detection for fish animation
+                card.MouseEnter:Connect(function()
+                    -- Find the fish clone in the viewport and add the SwimmingFish tag
+                    local container = viewport:FindFirstChild("ViewportWorld")
+                    if container then
+                        for _, child in ipairs(container:GetChildren()) do
+                            if child:IsA("Model") then
+                                child:AddTag("SwimmingFish")
+                            end
+                        end
+                    end
+                end)
+                
+                card.MouseLeave:Connect(function()
+                    -- Find the fish clone in the viewport and remove the SwimmingFish tag
+                    local container = viewport:FindFirstChild("ViewportWorld")
+                    if container then
+                        for _, child in ipairs(container:GetChildren()) do
+                            if child:IsA("Model") then
+                                child:RemoveTag("SwimmingFish")
+                            end
+                        end
+                    end
+                end)
             end
         end
         card.Parent = itemsFrame
