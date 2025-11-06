@@ -8,16 +8,95 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+local CollectionService = game:GetService("CollectionService")
 
 local NotificationCmds = require(ReplicatedStorage.Library.Client.NotificationCmds)
 local AdminAbuseEventCmds = require(ReplicatedStorage.Game.Library.Client.AdminAbuseEventCmds)
 local Functions = require(ReplicatedStorage.Library.Functions)
+local Audio = require(ReplicatedStorage.Library.Audio)
+local Directory = require(ReplicatedStorage.Game.Library.Directory)
+
+local Assets = ReplicatedStorage.Assets
 
 local module = {}
 
 -- Shared state for this event
 local cannons: {[number]: Model} = {}
 local _isActive = false
+
+-- Helper function to get fish type display
+local function getFishType(fishType: string): (string?, Color3?)
+	if fishType == "Shiny" then
+		return "Shiny", Color3.fromRGB(255, 255, 255)
+	elseif fishType == "Gold" then
+		return "Gold", Color3.fromRGB(255, 215, 0)
+	elseif fishType == "Rainbow" then
+		return "Rainbow"
+	end
+	return nil
+end
+
+-- Setup billboard for temporary fish
+local function setupTempBillboard(model: Model, fishId: string, fishType: string, mutation: string?): BillboardGui?
+	local primaryPart = model.PrimaryPart
+	if not primaryPart then return nil end
+	
+	local fishDir = Directory.Fish[fishId]
+	if not fishDir then return nil end
+	
+	local billboardOffset = fishDir.BillboardOffset
+	
+	local billboard = Assets.FishPedestalGui:Clone()::BillboardGui
+	billboard.StudsOffsetWorldSpace = Vector3.new(0, billboardOffset, 0)
+	billboard.Parent = primaryPart
+	
+	-- Update the billboard with visual data
+	local frame = billboard:WaitForChild("Frame")::Frame
+	local displayName = frame:WaitForChild("DisplayName")::TextLabel
+	local rarity = frame:WaitForChild("Rarity")::TextLabel
+	local level = frame:WaitForChild("Level")::TextLabel
+	local fishTypeLabel = frame:WaitForChild("FishType")::TextLabel
+	local mutationLabel = frame:WaitForChild("Mutation")::TextLabel
+	
+	-- Hide money and level info during animation
+	local moneyPerSecond = frame:FindFirstChild("MoneyPerSecond")
+	if moneyPerSecond then moneyPerSecond:Destroy() end
+	local money = frame:FindFirstChild("Money")
+	if money then money:Destroy() end
+	local offlineEarnings = frame:FindFirstChild("OfflineEarnings")
+	if offlineEarnings then offlineEarnings:Destroy() end
+	level.Visible = false
+	
+	displayName.Text = fishDir.DisplayName
+	rarity.Text = fishDir.Rarity.DisplayName
+	rarity.TextColor3 = fishDir.Rarity.Color
+	
+	-- Show fish type
+	local typeName, typeColor = getFishType(fishType)
+	if typeName then
+		fishTypeLabel.Text = typeName
+		fishTypeLabel.TextColor3 = typeColor or Color3.fromRGB(255, 255, 255)
+		fishTypeLabel.Visible = true
+	else
+		fishTypeLabel.Visible = false
+	end
+	
+	-- Show mutation if present
+	if mutation then
+		local mutationDir = Directory.Mutations[mutation]
+		if mutationDir then
+			mutationLabel.Text = mutationDir.DisplayName
+			mutationLabel.TextColor3 = mutationDir.Color
+			mutationLabel.Visible = true
+		else
+			mutationLabel.Visible = false
+		end
+	else
+		mutationLabel.Visible = false
+	end
+	
+	return billboard
+end
 
 -- Setup a party cannon when it's found
 local function setupCannon(cannonModel: Model)
@@ -168,6 +247,287 @@ local function spawnProjectile(startAttachment: Attachment, targetPosition: Vect
 	end)
 end
 
+-- Handle party fish spawn animation
+local function handlePartyFishSpawn(spawnData: any?)
+	if typeof(spawnData) ~= "table" then
+		return
+	end
+	
+	local fishData = spawnData :: {
+		FishId: string?,
+		Type: string?,
+		Mutation: string?,
+		Position: Vector3?,
+		Orientation: Vector3?,
+		SpawnTime: number?,
+	}
+	
+	if not fishData.FishId or not fishData.Position or not fishData.SpawnTime then
+		warn("[Party Client] Invalid fish spawn data")
+		return
+	end
+	
+	-- Find PartyFishSpawn tagged part
+	local spawnParts = CollectionService:GetTagged("PartyFishSpawn")
+	if #spawnParts == 0 then
+		warn("[Party Client] No PartyFishSpawn part found, skipping animation")
+		return
+	end
+	
+	local spawnPart = spawnParts[1]
+	if not spawnPart:IsA("BasePart") then
+		warn("[Party Client] PartyFishSpawn is not a BasePart")
+		return
+	end
+	
+	-- Get final fish schema
+	local finalFishSchema = Directory.Fish[fishData.FishId]
+	if not finalFishSchema then
+		warn("[Party Client] Fish schema not found:", fishData.FishId)
+		return
+	end
+	
+	-- Find or create __DEBRIS folder
+	local debris = Workspace:FindFirstChild("__DEBRIS")
+	if not debris then
+		debris = Instance.new("Folder")
+		debris.Name = "__DEBRIS"
+		debris.Parent = Workspace
+	end
+	
+	-- Animation parameters
+	local animationDuration = 3 -- seconds total for cycling
+	local numVisuals = 20 -- Number of random fish to cycle through before revealing final
+	
+	-- Generate visual data (random fish to cycle through)
+	local visualData = {}
+	local typeChances = {
+		Normal = 70,
+		Shiny = 20,
+		Gold = 8,
+		Rainbow = 2,
+	}
+	
+	-- Get all fish for random cycling (exclude SpecialItemFish)
+	local allFish = {}
+	for fishId, schema in pairs(Directory.Fish) do
+		if schema.Rarity and not schema.Rarity.PreventSpawning and not schema.SpecialItemFish then
+			table.insert(allFish, fishId)
+		end
+	end
+	
+	-- Generate random visual data
+	local lastFishId = nil
+	for i = 1, numVisuals do
+		local randomFishId
+		repeat
+			randomFishId = allFish[math.random(1, #allFish)]
+		until randomFishId ~= lastFishId or #allFish == 1
+		lastFishId = randomFishId
+		
+		local randomType = Functions.Lottery(typeChances)
+		
+		table.insert(visualData, {
+			FishId = randomFishId,
+			Type = randomType,
+			Mutation = nil,
+		})
+	end
+	
+	-- Calculate variable intervals (fast start, slow end)
+	local intervals = {}
+	local totalWeight = 0
+	
+	for i = 1, #visualData do
+		local progress = (i - 1) / (#visualData - 1) -- 0 to 1
+		local weight = math.exp(progress * 3.5) -- Exponential curve
+		intervals[i] = weight
+		totalWeight = totalWeight + weight
+	end
+	
+	-- Normalize intervals
+	for i = 1, #visualData do
+		intervals[i] = (intervals[i] / totalWeight) * animationDuration
+	end
+	
+	task.spawn(function()
+		local currentDisplayFish: Model? = nil
+		
+		-- Cycle through visual data
+		for i, visual in ipairs(visualData) do
+			-- Clean up previous fish
+			if currentDisplayFish then
+				currentDisplayFish:Destroy()
+				currentDisplayFish = nil
+			end
+			
+			-- Create temporary fish model for this visual
+			local fishDir = Directory.Fish[visual.FishId]
+			if fishDir and fishDir._script then
+				local tempFishModel = fishDir._script:WaitForChild("Model"):Clone() :: Model
+				
+				-- Apply fish type styling
+				local swimmingFishFolder = Workspace:WaitForChild("__THINGS"):WaitForChild("SwimmingFish")
+				local parent = swimmingFishFolder
+				
+				if visual.Type == "Shiny" then
+					parent = swimmingFishFolder:WaitForChild("Shiny")
+				elseif visual.Type == "Rainbow" then
+					parent = swimmingFishFolder:WaitForChild("Rainbow")
+				elseif visual.Type == "Gold" then
+					parent = swimmingFishFolder:WaitForChild("Gold")
+				end
+				
+				-- Apply mutation if present
+				if visual.Mutation then
+					local mutationDir = Directory.Mutations[visual.Mutation]
+					if mutationDir then
+						mutationDir.ApplyToModel(tempFishModel)
+					end
+				end
+				
+				-- Position the temporary model at the spawn part position
+				tempFishModel:PivotTo(spawnPart.CFrame)
+				tempFishModel:SetAttribute("_TempAnimation", true)
+				tempFishModel:SetAttribute("PartyFishSpawn", true)
+				tempFishModel:AddTag("SwimmingFish")
+				
+				-- Make fish anchored
+				for _, descendant in ipairs(tempFishModel:GetDescendants()) do
+					if descendant:IsA("BasePart") then
+						descendant.Anchored = true
+					end
+				end
+				
+				tempFishModel.Parent = parent
+				
+				-- Create billboard for this fish
+				setupTempBillboard(tempFishModel, visual.FishId, visual.Type, visual.Mutation)
+				
+				currentDisplayFish = tempFishModel
+				
+				-- Play reveal sound
+				Audio.Play("rbxassetid://73644741132942", spawnPart.Position, 1, 0.5, 150)
+			end
+			
+			-- Wait for interval
+			task.wait(intervals[i])
+		end
+		
+		-- Clean up last visual fish
+		if currentDisplayFish then
+			currentDisplayFish:Destroy()
+		end
+		
+		-- Create final display fish
+		local finalFishModelTemplate = finalFishSchema._script:FindFirstChild("Model")
+		if not finalFishModelTemplate or not finalFishModelTemplate:IsA("Model") then
+			warn("[Party Client] Final fish model not found:", fishData.FishId)
+			return
+		end
+		
+		local displayFish = finalFishModelTemplate:Clone() :: Model
+		
+		-- Apply fish type styling
+		local swimmingFishFolder = Workspace:WaitForChild("__THINGS"):WaitForChild("SwimmingFish")
+		local parent = swimmingFishFolder
+		
+		if fishData.Type == "Shiny" then
+			parent = swimmingFishFolder:WaitForChild("Shiny")
+		elseif fishData.Type == "Rainbow" then
+			parent = swimmingFishFolder:WaitForChild("Rainbow")
+		elseif fishData.Type == "Gold" then
+			parent = swimmingFishFolder:WaitForChild("Gold")
+		end
+		
+		-- Apply mutation if present
+		if fishData.Mutation then
+			local mutationDir = Directory.Mutations[fishData.Mutation]
+			if mutationDir then
+				mutationDir.ApplyToModel(displayFish)
+			end
+		end
+		
+		-- Position the display fish at the spawn part position
+		displayFish:PivotTo(spawnPart.CFrame)
+		displayFish:SetAttribute("_TempAnimation", true)
+		displayFish:SetAttribute("PartyFishSpawn", true)
+		displayFish:AddTag("SwimmingFish")
+		
+		-- Make fish anchored
+		for _, descendant in ipairs(displayFish:GetDescendants()) do
+			if descendant:IsA("BasePart") then
+				descendant.Anchored = true
+			end
+		end
+		
+		displayFish.Parent = parent
+		
+		-- Create billboard for final fish
+		setupTempBillboard(displayFish, fishData.FishId, fishData.Type or "Normal", fishData.Mutation)
+		
+		-- Play final reveal sounds
+		Audio.Play("rbxassetid://78632974820364", spawnPart.Position, 1, 1, 150)
+		Audio.Play("rbxassetid://81968496022483", spawnPart.Position, 1, 1, 150)
+		
+		-- Wait 2 seconds before flying
+		task.wait(2)
+		
+		-- Calculate timing for Bezier curve flight
+		local currentTime = workspace:GetServerTimeNow()
+		local timeUntilSpawn = fishData.SpawnTime - currentTime
+		
+		if timeUntilSpawn <= 0 then
+			warn("[Party Client] Fish spawn time already passed, destroying immediately")
+			displayFish:Destroy()
+			return
+		end
+		
+		-- Remove SwimmingFish tag before flying
+		displayFish:RemoveTag("SwimmingFish")
+		
+		-- Fly fish to target position using Bezier curve
+		local startPosition = displayFish:GetPivot().Position
+		local targetPosition = fishData.Position
+		
+		-- Use Y = 130 as bezier midpoint Y
+		local midPosition = (startPosition + targetPosition) / 2
+		midPosition = Vector3.new(midPosition.X, 130, midPosition.Z)
+		
+		-- Create Bezier curve function
+		local bezierFunc, _ = Functions.Bezier(startPosition, midPosition, targetPosition)
+		
+		-- Animate the fish
+		local elapsed = 0
+		local connection: RBXScriptConnection
+		
+		connection = RunService.RenderStepped:Connect(function(delta)
+			elapsed += delta
+			local alpha = math.min(elapsed / timeUntilSpawn, 1)
+			
+			if alpha >= 1 then
+				-- Animation complete, destroy display fish
+				connection:Disconnect()
+				displayFish:Destroy()
+			else
+				-- Update position using Bezier curve
+				local currentPosition = bezierFunc(alpha)
+				
+				-- Calculate direction by looking ahead on the curve
+				local nextAlpha = math.min(alpha + 0.01, 1)
+				local nextPosition = bezierFunc(nextAlpha)
+				local direction = (nextPosition - currentPosition).Unit
+				
+				-- Create CFrame that looks in the direction of movement
+				local yaw = math.rad(fishData.Orientation and fishData.Orientation.Y or 0)
+				local orientedCFrame = CFrame.new(currentPosition) * CFrame.Angles(0, yaw, 0) * CFrame.lookAt(Vector3.zero, direction)
+				
+				displayFish:PivotTo(orientedCFrame)
+			end
+		end)
+	end)
+end
+
 function module.OnStart()
 	print("[Party Client] Event started")
 	_isActive = true
@@ -272,6 +632,12 @@ function module.OnStart()
 				end)
 			end
 		end
+	end)
+	
+	-- Register handler for party fish spawns
+	AdminAbuseEventCmds.Fired("Party", "FishSpawn", function(data: any?)
+		print("here1")
+		handlePartyFishSpawn(data)
 	end)
 end
 

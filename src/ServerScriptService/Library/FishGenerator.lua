@@ -991,7 +991,7 @@ function FishGen.ForceSpawnRandomType(rarityId: string, player: Player?, fishTyp
     spawnForcedByRarity(rarityId, player, fishTypeOverride, mutation, traits)
 end
 
-function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutation: string?, adminSpawned: boolean?, traits: {[string]: boolean}?)
+function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutation: string?, adminSpawned: boolean?, traits: {[string]: boolean}?, positionOverride: CFrame?)
     local schema = Directory.Fish[fishId]
     if not schema then return end
     local fishModelTemplate = schema._script:WaitForChild("Model")
@@ -1040,10 +1040,15 @@ function FishGen.ForceSpawnSpecificFish(fishId: string, fishType: string?, mutat
     }
     uidToFish[uid] = fishInstance
 
-    local into = chooseSpawnPart()
-    local cf = randomPointIn(into)
-    local yaw = math.rad(math.random(0, 359))
-    local spawnCFrame = CFrame.new(cf.Position) * CFrame.Angles(0, yaw, 0)
+    local spawnCFrame: CFrame
+    if positionOverride then
+        spawnCFrame = positionOverride
+    else
+        local into = chooseSpawnPart()
+        local cf = randomPointIn(into)
+        local yaw = math.rad(math.random(0, 359))
+        spawnCFrame = CFrame.new(cf.Position) * CFrame.Angles(0, yaw, 0)
+    end
     fishInstance.Model:PivotTo(spawnCFrame)
     setModelAnchored(fishInstance.Model, true)
     fishInstance.Model.Name = fishData.FishId

@@ -22,6 +22,18 @@ module.Raw = {
     AdminAbuseEvent_Party = { Default = false, Type = "boolean" },
     PartyCannonChance = { Default = 0.25, Type = "number" },
 
+    -- Party Fish Spawn System
+    PartyFishSpawn_Enabled = { Default = true, Type = "boolean" },
+    PartyFishSpawn_Interval = { Default = 20, Type = "number" }, -- Spawn fish every 20 seconds
+    PartyFishSpawn_InitialDelay = { Default = 5, Type = "number" }, -- Wait 5 seconds before first spawn
+    PartyFishSpawn_ServerSpawnDelay = { Default = 12, Type = "number" }, -- Server spawns fish 12 seconds after client notification
+    PartyFishSpawn_RareWeight = { Default = 50.7, Type = "number" },
+    PartyFishSpawn_EpicWeight = { Default = 45, Type = "number" },
+    PartyFishSpawn_LegendaryWeight = { Default = 3, Type = "number" },
+    PartyFishSpawn_MythicalWeight = { Default = 1, Type = "number" },
+    PartyFishSpawn_GodWeight = { Default = 0.25, Type = "number" },
+    PartyFishSpawn_SecretWeight = { Default = 0.05, Type = "number" },
+
     -- Party Machine
     PartyPointGoal = { Default = 1000, Type = "number" },
     PartyEventDuration = { Default = 300, Type = "number" }, -- 5 minutes in seconds
