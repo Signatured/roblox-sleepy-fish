@@ -29,7 +29,6 @@ local MutationEvent = require(ServerScriptService.Game.Library.MutationEvent)
 local Mutations = require(ServerScriptService.Game.Library.Mutations)
 local Traits = require(ServerScriptService.Game.Library.Traits)
 local Analytics = require(ServerScriptService.Library.Analytics)
-local FFlags = require(ServerScriptService.Library.FFlags)
 
 local THINGS = workspace:WaitForChild("__THINGS")
 local ROOT = THINGS:WaitForChild("SwimmingFish")
@@ -46,7 +45,7 @@ local HARD_RATIO = 0.6
 local HARD_COUNT = math.floor(TOTAL_FISH * HARD_RATIO)
 local EASY_COUNT = TOTAL_FISH - HARD_COUNT
 
-local DESPAWN_SECONDS = 90
+local DESPAWN_SECONDS = SharedGameSettings.DespawnTime
 
 local typeChances = {
     ["Normal"] = 79,
@@ -741,18 +740,18 @@ local function spawnOne(into: BasePart, backdate: number?, positionOverride: CFr
     if not schema then return end
 
     -- Special halloween code
-    local pumpkinSpawnChance = FFlags.GetNumber(FFlags.Keys.PumpkinSpawnChance)
-    if not owner and math.random() < pumpkinSpawnChance then
-        local pumpkinLottery = {
-            ["Common Pumpkin"] = FFlags.GetNumber(FFlags.Keys.PumpkinCommonWeight),
-            ["Epic Pumpkin"] = FFlags.GetNumber(FFlags.Keys.PumpkinEpicWeight),
-            ["Mythical Pumpkin"] = FFlags.GetNumber(FFlags.Keys.PumpkinMythicalWeight),
-        }
+    -- local pumpkinSpawnChance = FFlags.GetNumber(FFlags.Keys.PumpkinSpawnChance)
+    -- if not owner and math.random() < pumpkinSpawnChance then
+    --     local pumpkinLottery = {
+    --         ["Common Pumpkin"] = FFlags.GetNumber(FFlags.Keys.PumpkinCommonWeight),
+    --         ["Epic Pumpkin"] = FFlags.GetNumber(FFlags.Keys.PumpkinEpicWeight),
+    --         ["Mythical Pumpkin"] = FFlags.GetNumber(FFlags.Keys.PumpkinMythicalWeight),
+    --     }
 
-        schema = Directory.Fish[Functions.Lottery(pumpkinLottery)]
-        if not schema then return end
-        rarityId = schema.Rarity._id
-    end
+    --     schema = Directory.Fish[Functions.Lottery(pumpkinLottery)]
+    --     if not schema then return end
+    --     rarityId = schema.Rarity._id
+    -- end
 
     local fishModelTemplate = schema._script:WaitForChild("Model")
     if not fishModelTemplate or not fishModelTemplate:IsA("Model") then return end

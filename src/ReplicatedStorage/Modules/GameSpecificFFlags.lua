@@ -19,6 +19,20 @@ module.Raw = {
     -- Admin Abuse Events
     AdminAbuseEvent_Lightning = { Default = false, Type = "boolean" },
     LightningChance = { Default = 0.15, Type = "number" },
+    AdminAbuseEvent_Party = { Default = false, Type = "boolean" },
+    PartyCannonChance = { Default = 0.25, Type = "number" },
+
+    -- Party Machine
+    PartyPointGoal = { Default = 1000, Type = "number" },
+    PartyEventDuration = { Default = 300, Type = "number" }, -- 5 minutes in seconds
+    PartyPoints_Common = { Default = 3, Type = "number" },
+    PartyPoints_Uncommon = { Default = 5, Type = "number" },
+    PartyPoints_Rare = { Default = 15, Type = "number" },
+    PartyPoints_Epic = { Default = 25, Type = "number" },
+    PartyPoints_Legendary = { Default = 40, Type = "number" },
+    PartyPoints_Mythical = { Default = 125, Type = "number" },
+    PartyPoints_God = { Default = 750, Type = "number" },
+    PartyPoints_Secret = { Default = 1_000, Type = "number" },
 
     -- Pumpkin Spawn System
     PumpkinSpawnChance = { Default = 0.01, Type = "number" },

@@ -478,18 +478,18 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, upgradeFrame: F
         -- Check if this is a SpecialItemFish
         local fishSchema = Directory.Fish[currentFishData.FishId]
         if fishSchema and fishSchema.SpecialItemFish then
-            local pumpkins = {
-                ["Common Pumpkin"] = true,
-                ["Epic Pumpkin"] = true,
-                ["Mythical Pumpkin"] = true,
-            }
+            -- local pumpkins = {
+            --     ["Common Pumpkin"] = true,
+            --     ["Epic Pumpkin"] = true,
+            --     ["Mythical Pumpkin"] = true,
+            -- }
 
-            if pumpkins[fishSchema._id] then
-                NotificationCmds.Message("You cannot place this, use it for Halloween Quests!", {
-                    Color = Color3.fromRGB(255, 0, 0),
-                })
-                return
-            end
+            -- if pumpkins[fishSchema._id] then
+            --     NotificationCmds.Message("You cannot place this, use it for Halloween Quests!", {
+            --         Color = Color3.fromRGB(255, 0, 0),
+            --     })
+            --     return
+            -- end
 
             NotificationCmds.Message("You cannot place this!", {
                 Color = Color3.fromRGB(255, 0, 0),

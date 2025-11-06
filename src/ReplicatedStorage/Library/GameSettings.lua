@@ -16,7 +16,9 @@ local Settings = {
         ["Shiny"] = 1.5,
         ["Gold"] = 2,
         ["Rainbow"] = 3,
-    }
+    },
+
+    DespawnTime = 90,
 }
 
 return Settings
