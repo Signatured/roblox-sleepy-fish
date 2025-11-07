@@ -248,6 +248,18 @@ local function spawnProjectile(startAttachment: Attachment, targetPosition: Vect
 	-- Create Bezier curve function
 	local bezierFunc, _ = Functions.Bezier(startPosition, midPosition, targetPosition)
 	
+	-- Collect all parts that can be colored
+	local colorableParts: {BasePart} = {}
+	if projectile:IsA("BasePart") then
+		table.insert(colorableParts, projectile)
+	else
+		for _, descendant in ipairs(projectile:GetDescendants()) do
+			if descendant:IsA("BasePart") then
+				table.insert(colorableParts, descendant)
+			end
+		end
+	end
+	
 	-- Animate the projectile
 	local elapsed = 0
 	local connection: RBXScriptConnection
@@ -255,6 +267,18 @@ local function spawnProjectile(startAttachment: Attachment, targetPosition: Vect
 	connection = RunService.RenderStepped:Connect(function(delta)
 		elapsed += delta
 		local alpha = math.min(elapsed / travelDuration, 1)
+		
+		-- Rainbow effect with 3 second cycle
+		local rainbowCycleDuration = 3
+		local cycleProgress = (elapsed % rainbowCycleDuration) / rainbowCycleDuration
+		local rainbowColor = Color3.fromHSV(cycleProgress, 1, 1)
+		
+		-- Apply rainbow color to all colorable parts
+		for _, part in ipairs(colorableParts) do
+			if part and part.Parent then
+				part.Color = rainbowColor
+			end
+		end
 		
 		if alpha >= 1 then
 			-- Animation complete

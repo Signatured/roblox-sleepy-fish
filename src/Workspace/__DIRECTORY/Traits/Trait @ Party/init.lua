@@ -3,7 +3,7 @@
 return {
     DisplayName = "Party",
     Color = Color3.fromRGB(252, 255, 100),
-    Icon = "rbxassetid://82161148402581",
+    Icon = "rbxassetid://134009325983115",
     TraitEarningsMultiplier = 1.2,
     ApplyToModel = function(model: Model)
         local defaultScale = Vector3.new(5.565, 2.443, 2.823)

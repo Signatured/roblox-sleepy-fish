@@ -15,7 +15,7 @@ return {
     Rarity = Rarity.Mythical,
     MoneyPerSecond = 235,
     BaseUpgradeCost = 6000,
-    BillboardOffset = 7,
+    BillboardOffset = 9,
     RarityWeight = 12,
     IndexRotationOffset = Vector3.new(0, math.rad(-180), 0),
     IndexOffset = 1.5,
