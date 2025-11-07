@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GUI = require(ReplicatedStorage.Game.Library.Client.GUI)
+local GUIFX = require(ReplicatedStorage.Library.Client.GUIFX)
 local Network = require(ReplicatedStorage.Library.Client.Network)
 
 local localPlayer = Players.LocalPlayer
@@ -22,7 +23,13 @@ end
 
 local function setup()
     local dropGui = GUI.DropButton()
+    while not dropGui do
+        task.wait(0.3)
+        dropGui = GUI.DropButton()
+    end
     local button = findFirstButton(dropGui)
+
+    GUIFX.ButtonFX(button :: GuiButton)
 
     local function isCarrying(): boolean
         local carryingId = localPlayer:GetAttribute("CarryingFishId")
