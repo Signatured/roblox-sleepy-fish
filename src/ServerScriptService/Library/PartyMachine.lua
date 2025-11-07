@@ -88,6 +88,11 @@ function PartyMachine.SubmitPoints(player: Player, fishUids: {string}): (boolean
 		return false, "The party is already in progress!", nil
 	end
 	
+	-- Check if admin abuse Party event is active
+	if AdminAbuseEvents.IsActive("Party") then
+		return false, "The party is already in progress!", nil
+	end
+	
 	-- Get player save
 	local save = Saving.Get(player)
 	if not save then

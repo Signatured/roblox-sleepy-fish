@@ -44,8 +44,6 @@ return {
                 weld.Parent = model.PrimaryPart
 
                 hatModel.Parent = model
-
-                print("Added party hat")
             end
 
 			vfxBox:SetAttribute("PartyAdded", true)

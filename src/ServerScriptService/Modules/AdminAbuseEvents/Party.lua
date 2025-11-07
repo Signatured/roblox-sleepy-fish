@@ -236,15 +236,12 @@ local function spawnPartyFish()
 		SpawnTime = currentTime + serverSpawnDelay,
 		VisualData = visualData,
 	})
-	
-	print(`[Party Server] Spawning party fish: {fishSchema._id} ({rarityId}, {fishType})`)
-	
+		
 	-- Schedule actual fish spawn on server (total delay is serverSpawnDelay, not including the preAnimationDelay we already waited)
 	task.delay(serverSpawnDelay, function()
 		-- Spawn the fish with Party trait at the exact position
 		local traits = { Party = true }
 		FishGenerator.ForceSpawnSpecificFish(fishSchema._id, fishType, mutation, false, traits, finalSpawnCFrame)
-		print(`[Party Server] Fish spawned: {fishSchema._id}`)
 		
 		-- Tell clients to play fireworks at the fish position
 		AdminAbuseEvents.Fire("Party", "PlayFireworks", {
@@ -351,10 +348,7 @@ function module.Heartbeat(delta: number, time: number)
 				-- Check if fish is still active before applying trait
 				local currentActiveFish = FishGenerator.GetAllActive()
 				if currentActiveFish[targetUID] then
-					local success = FishGenerator.AddTrait(targetUID, "Party")
-					if success then
-						print(`[Party Server] Applied Party trait to fish {targetUID}`)
-					end
+					FishGenerator.AddTrait(targetUID, "Party")
 				else
 					print(`[Party Server] Fish {targetUID} no longer active, skipping trait`)
 				end

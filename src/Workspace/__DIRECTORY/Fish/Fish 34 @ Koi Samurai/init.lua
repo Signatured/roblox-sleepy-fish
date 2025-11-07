@@ -3,7 +3,6 @@
 local FishTypes = require(game.ReplicatedStorage.Game.Library.Types.Fish)
 local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
-warn("setup koi samurai")
 return {
     DisplayName = "Koi Samurai",
     Icon = "rbxassetid://81394421163062",

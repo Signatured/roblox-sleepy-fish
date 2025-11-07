@@ -15,7 +15,7 @@ return {
     Rarity = Rarity.Exclusive,
     MoneyPerSecond = 150,
     BaseUpgradeCost = 10000,
-    BillboardOffset = 11,
+    BillboardOffset = 15,
     PedestalOffset = -2,
     RarityWeight = 0,
     -- IndexOffset = 8,
