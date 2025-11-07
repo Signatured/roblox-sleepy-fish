@@ -6,12 +6,12 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 warn("setup koi samurai")
 return {
     DisplayName = "Koi Samurai",
-    Icon = "rbxassetid://136331765901242",
+    Icon = "rbxassetid://81394421163062",
     MutationIcons = {
-        Bloodfish = "rbxassetid://128846023869033",
-        Galaxy = "rbxassetid://79744275232524",
-        Spooky = "rbxassetid://87725796467052",
-        Haunted = "rbxassetid://72126453847268",
+        Bloodfish = "rbxassetid://120104632306078",
+        Galaxy = "rbxassetid://96810967015031",
+        Spooky = "rbxassetid://85223897277664",
+        Haunted = "rbxassetid://130698641740936",
     },
     Rarity = Rarity.Secret,
     MoneyPerSecond = 960,
