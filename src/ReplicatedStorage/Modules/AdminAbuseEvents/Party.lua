@@ -27,6 +27,7 @@ local _isActive = false
 local grassParts: {BasePart} = {}
 local grassOriginalColors: {[BasePart]: Color3} = {}
 local worldFX: Model? = nil
+local partyMusic: Sound? = nil
 
 -- Helper function to get fish type display
 local function getFishType(fishType: string): (string?, Color3?)
@@ -586,6 +587,18 @@ function module.OnStart()
 	local spawnParts = CollectionService:GetTagged("PartyFishSpawn")
 	if #spawnParts > 0 and spawnParts[1]:IsA("BasePart") then
 		Audio.Play("rbxassetid://116222140946445", (spawnParts[1] :: BasePart).Position, 1, 1, 150)
+		
+		-- Create and play looped party music
+		local spawnPart = spawnParts[1] :: BasePart
+		local music = Instance.new("Sound")
+		music.SoundId = "rbxassetid://138247726051800"
+		music.Looped = true
+		music.Volume = 1
+		music.RollOffMaxDistance = 150
+		music.Parent = spawnPart
+		music:Play()
+		partyMusic = music
+		print("[Party Client] Started party music")
 	end
 	
 	-- Spawn WorldFX
@@ -795,6 +808,13 @@ function module.OnStop()
 	local spawnParts = CollectionService:GetTagged("PartyFishSpawn")
 	if #spawnParts > 0 and spawnParts[1]:IsA("BasePart") then
 		Audio.Play("rbxassetid://135729759317677", (spawnParts[1] :: BasePart).Position, 1, 1, 150)
+	end
+	
+	-- Destroy party music
+	if partyMusic then
+		partyMusic:Destroy()
+		partyMusic = nil
+		print("[Party Client] Stopped party music")
 	end
 	
 	-- Restore original grass colors
