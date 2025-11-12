@@ -41,7 +41,8 @@ export type Fish = {
 }
 
 module.FloorPrices = {
-    [1] = 500_000_000,
+    [1] = 500_000_000,  -- Floor 2
+    [2] = 10_000_000_000,  -- Floor 3
 }
 
 return module

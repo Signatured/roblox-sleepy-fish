@@ -12,17 +12,36 @@ local PlotTypes = require(game.ReplicatedStorage.Game.Library.Types.Plots)
 -- Configurable bounce tween settings
 local BUTTON_TWEEN_TOTAL_TIME = 0.3 -- seconds for full down-and-up cycle
 local BUTTON_TWEEN_DEPTH = 0.2 -- studs to move down
-local FLOOR_ID = 1
-local FLOOR_NAME = "Floor 2"
+
+-- Floor configurations
+type FloorConfig = {
+	ButtonName: string,
+	FloorId: number,
+	FloorName: string,
+}
+
+local FLOOR_CONFIGS: {FloorConfig} = {
+	{
+		ButtonName = "SecondFloorButton",
+		FloorId = 1,
+		FloorName = "Floor 2",
+	},
+	{
+		ButtonName = "ThirdFloorButton",
+		FloorId = 2,
+		FloorName = "Floor 3",
+	},
+}
 
 type ButtonData = {
 	plot: ClientPlot.Type,
 	button: BasePart,
 	model: Model,
 	extraFloorsConnection: any?,
+	config: FloorConfig,
 }
 
-local activeButtons: { [ClientPlot.Type]: ButtonData } = {}
+local activeButtons: { [ClientPlot.Type]: {ButtonData} } = {}
 
 local function playButtonBounce(buttonPart: BasePart)
 	if not buttonPart or not buttonPart.Parent then
@@ -55,12 +74,7 @@ local function playButtonBounce(buttonPart: BasePart)
 	end)
 end
 
-local function destroyButton(plot: ClientPlot.Type)
-	local buttonData = activeButtons[plot]
-	if not buttonData then
-		return
-	end
-
+local function destroyButton(buttonData: ButtonData)
 	-- Disconnect ExtraFloors listener
 	if buttonData.extraFloorsConnection then
 		pcall(function()
@@ -73,57 +87,79 @@ local function destroyButton(plot: ClientPlot.Type)
 	if buttonData.model and buttonData.model.Parent then
 		buttonData.model:Destroy()
 	end
-
-	activeButtons[plot] = nil
 end
 
-local function setupButton(plot: ClientPlot.Type)
-	local model = plot:YieldModel()
-	local secondFloorButton = model:FindFirstChild("SecondFloorButton")
+local function removeButtonFromActive(plot: ClientPlot.Type, buttonData: ButtonData)
+	if not activeButtons[plot] then
+		return
+	end
+	
+	for i, data in ipairs(activeButtons[plot]) do
+		if data == buttonData then
+			table.remove(activeButtons[plot], i)
+			break
+		end
+	end
+	
+	if #activeButtons[plot] == 0 then
+		activeButtons[plot] = nil
+	end
+end
 
-	if not secondFloorButton or not secondFloorButton:IsA("Model") then
+local function setupButton(plot: ClientPlot.Type, config: FloorConfig)
+	local model = plot:YieldModel()
+	local floorButtonModel = model:FindFirstChild(config.ButtonName)
+
+	if not floorButtonModel or not floorButtonModel:IsA("Model") then
 		return
 	end
 
 	-- If this isn't the local player's plot, destroy the button
 	if not plot:IsLocal() then
-		secondFloorButton:Destroy()
+		floorButtonModel:Destroy()
 		return
 	end
 
 	-- If player already has the floor, destroy the button
 	local extraFloors = plot:Save("ExtraFloors") or 0
-	if extraFloors >= FLOOR_ID then
-		secondFloorButton:Destroy()
+	if extraFloors >= config.FloorId then
+		floorButtonModel:Destroy()
 		return
 	end
 
-	local button = secondFloorButton:FindFirstChild("Button")
+	local button = floorButtonModel:FindFirstChild("Button")
 
 	if not button or not button:IsA("BasePart") then
 		return
 	end
 
 	-- Check if button is already set up
-	if button:GetAttribute("_SecondFloorButtonSetup") then
+	local setupAttrName = "_" .. config.ButtonName .. "Setup"
+	if button:GetAttribute(setupAttrName) then
 		return
 	end
 
-	button:SetAttribute("_SecondFloorButtonSetup", true)
+	button:SetAttribute(setupAttrName, true)
 
 	-- Store button data
 	local buttonData: ButtonData = {
 		plot = plot,
 		button = button,
-		model = secondFloorButton,
+		model = floorButtonModel,
 		extraFloorsConnection = nil,
+		config = config,
 	}
-	activeButtons[plot] = buttonData
+	
+	if not activeButtons[plot] then
+		activeButtons[plot] = {}
+	end
+	table.insert(activeButtons[plot], buttonData)
 
 	-- Set up touch detection
 	local touchingParts: { [BasePart]: boolean } = {}
 	local lastActivationTime = 0
 	local DEBOUNCE_TIME = 1
+	local activeAttrName = "_" .. config.ButtonName .. "Active"
 	
 	button.Touched:Connect(function(other: BasePart)
 		local character = LocalPlayer and LocalPlayer.Character
@@ -143,7 +179,7 @@ local function setupButton(plot: ClientPlot.Type)
 		if not touchingParts[other] then
 			touchingParts[other] = true
 		end
-		if button:GetAttribute("_SecondFloorButtonActive") ~= true then
+		if button:GetAttribute(activeAttrName) ~= true then
 			-- Check debounce
 			local currentTime = workspace:GetServerTimeNow()
 			if currentTime - lastActivationTime < DEBOUNCE_TIME then
@@ -152,13 +188,13 @@ local function setupButton(plot: ClientPlot.Type)
 			lastActivationTime = currentTime
 			
 			-- Set active immediately to debounce before any yields
-			button:SetAttribute("_SecondFloorButtonActive", true)
+			button:SetAttribute(activeAttrName, true)
 
 			-- Play button bounce animation
 			playButtonBounce(button)
 
 			-- Get the floor price
-			local price = PlotTypes.FloorPrices[FLOOR_ID]
+			local price = PlotTypes.FloorPrices[config.FloorId]
 			if not price then
 				return
 			end
@@ -166,25 +202,25 @@ local function setupButton(plot: ClientPlot.Type)
 			-- Check if player can afford
 			local playerMoney = plot:Save("Money") or 0
 			if playerMoney < price then
-				NotificationCmds.Message("You don't have enough money to buy " .. FLOOR_NAME .. "!", {
+				NotificationCmds.Message("You don't have enough money to buy " .. config.FloorName .. "!", {
                     Color = Color3.fromRGB(255, 0, 0),
                 })
 				return
 			end
 
 			-- Prompt player for confirmation
-			local confirmed = Message.new(string.format("Would you like to buy %s for $%s?", FLOOR_NAME, Functions.NumberShorten(price)), true)
+			local confirmed = Message.new(string.format("Would you like to buy %s for $%s?", config.FloorName, Functions.NumberShorten(price)), true)
 
 			if confirmed then
 				-- Purchase the floor
-				local success, errorMsg = plot:Invoke("PurchaseExtraFloor", FLOOR_ID)
+				local success, errorMsg = plot:Invoke("PurchaseExtraFloor", config.FloorId)
 				if success then
 					-- Button will be destroyed by the ExtraFloors listener
-					NotificationCmds.Message("Successfully purchased " .. FLOOR_NAME .. "!", {
+					NotificationCmds.Message("Successfully purchased " .. config.FloorName .. "!", {
                         Color = Color3.fromRGB(0, 255, 0),
                     })
 				else
-					NotificationCmds.Message(errorMsg or "Failed to purchase " .. FLOOR_NAME .. "!", {
+					NotificationCmds.Message(errorMsg or "Failed to purchase " .. config.FloorName .. "!", {
                         Color = Color3.fromRGB(255, 0, 0),
                     })
 				end
@@ -215,20 +251,23 @@ local function setupButton(plot: ClientPlot.Type)
 			break
 		end
 		if not any then
-			button:SetAttribute("_SecondFloorButtonActive", false)
+			button:SetAttribute(activeAttrName, false)
 		end
 	end)
 
 	-- Listen for ExtraFloors updates
 	buttonData.extraFloorsConnection = plot:SaveUpdated("ExtraFloors"):Connect(function(value: number)
-		if value >= FLOOR_ID then
-			destroyButton(plot)
+		if value >= config.FloorId then
+			destroyButton(buttonData)
+			removeButtonFromActive(plot, buttonData)
 		end
 	end)
 end
 
 -- Listen for plot creation
 ClientPlot.OnAllAndCreated(function(plot: ClientPlot.Type)
-	setupButton(plot)
+	for _, config in ipairs(FLOOR_CONFIGS) do
+		setupButton(plot, config)
+	end
 end)
 

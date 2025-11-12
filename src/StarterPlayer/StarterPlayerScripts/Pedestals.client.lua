@@ -23,6 +23,7 @@ local LuckyBlockTypes = require(game.ReplicatedStorage.Game.Library.Types.LuckyB
 local MutationCmds = require(game.ReplicatedStorage.Game.Library.Client.MutationCmds)
 local TraitCmds = require(game.ReplicatedStorage.Game.Library.Client.TraitCmds)
 local Message = require(game.ReplicatedStorage.Library.Client.Message)
+local PedestalHelper = require(game.ReplicatedStorage.Game.Library.Directory.PedestalHelper)
 
 -- Upgrade button images
 local UPGRADE_IMAGE_GREEN = "rbxassetid://85004105467436"
@@ -134,13 +135,11 @@ type PedestalModel = {
 
 local pedestalModels: {[ClientPlot.Type]: {[number]: PedestalModel}} = {}
 
--- Get the number of accessible pedestals based on ExtraFloors
+-- Get the number of accessible pedestals based on ExtraFloors and PedestalGroupsUnlocked
 local function GetAccessiblePedestalCount(plot: ClientPlot.Type): number
 	local extraFloors = plot:Save("ExtraFloors")
-	if not extraFloors or extraFloors == 0 then
-		return GameSettings.DefaultPedestalCount
-	end
-	return GameSettings.ExtraFloorPedestalCounts[extraFloors] or GameSettings.DefaultPedestalCount
+	local pedestalGroupsUnlocked = plot:Save("PedestalGroupsUnlocked")
+	return PedestalHelper.GetAccessiblePedestalCount(extraFloors, pedestalGroupsUnlocked)
 end
 
 -- Store original parents for pedestals so we can restore them
@@ -1488,6 +1487,17 @@ function plotCreated(plot: ClientPlot.Type)
 
     -- Listen for ExtraFloors changes and update pedestal visibility
     plot:SaveUpdated("ExtraFloors"):Connect(function(_value: number?)
+        UpdatePedestalVisibility(plot)
+        -- Update all pedestals after visibility changes
+        if pedestalInstances[plot] then
+            for _, child in pairs(pedestalInstances[plot]) do
+                UpdatePedestal(plot, child)
+            end
+        end
+    end)
+
+    -- Listen for PedestalGroupsUnlocked changes and update pedestal visibility
+    plot:SaveUpdated("PedestalGroupsUnlocked"):Connect(function(_value: number?)
         UpdatePedestalVisibility(plot)
         -- Update all pedestals after visibility changes
         if pedestalInstances[plot] then
