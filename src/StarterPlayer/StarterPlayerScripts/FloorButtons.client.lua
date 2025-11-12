@@ -106,6 +106,27 @@ local function removeButtonFromActive(plot: ClientPlot.Type, buttonData: ButtonD
 	end
 end
 
+local function updateButtonVisibility(plot: ClientPlot.Type, buttonData: ButtonData)
+	local extraFloors = plot:Save("ExtraFloors") or 0
+	
+	-- Destroy button if player already has this floor
+	if extraFloors >= buttonData.config.FloorId then
+		destroyButton(buttonData)
+		removeButtonFromActive(plot, buttonData)
+		return
+	end
+	
+	-- Hide button if player hasn't unlocked the prerequisite floor yet
+	-- For example, Floor 3 (id=2) requires Floor 2 (ExtraFloors >= 1)
+	local canBuy = extraFloors >= (buttonData.config.FloorId - 1)
+	
+	if canBuy and not buttonData.model.Parent then
+		buttonData.model.Parent = plot:YieldModel()
+	elseif not canBuy and buttonData.model.Parent then
+		buttonData.model.Parent = nil
+	end
+end
+
 local function setupButton(plot: ClientPlot.Type, config: FloorConfig)
 	local model = plot:YieldModel()
 	local floorButtonModel = model:FindFirstChild(config.ButtonName)
@@ -116,13 +137,6 @@ local function setupButton(plot: ClientPlot.Type, config: FloorConfig)
 
 	-- If this isn't the local player's plot, destroy the button
 	if not plot:IsLocal() then
-		floorButtonModel:Destroy()
-		return
-	end
-
-	-- If player already has the floor, destroy the button
-	local extraFloors = plot:Save("ExtraFloors") or 0
-	if extraFloors >= config.FloorId then
 		floorButtonModel:Destroy()
 		return
 	end
@@ -154,6 +168,9 @@ local function setupButton(plot: ClientPlot.Type, config: FloorConfig)
 		activeButtons[plot] = {}
 	end
 	table.insert(activeButtons[plot], buttonData)
+	
+	-- Set initial visibility
+	updateButtonVisibility(plot, buttonData)
 
 	-- Set up touch detection
 	local touchingParts: { [BasePart]: boolean } = {}
@@ -255,12 +272,9 @@ local function setupButton(plot: ClientPlot.Type, config: FloorConfig)
 		end
 	end)
 
-	-- Listen for ExtraFloors updates
-	buttonData.extraFloorsConnection = plot:SaveUpdated("ExtraFloors"):Connect(function(value: number)
-		if value >= config.FloorId then
-			destroyButton(buttonData)
-			removeButtonFromActive(plot, buttonData)
-		end
+	-- Listen for ExtraFloors updates to show/hide button based on prerequisites
+	buttonData.extraFloorsConnection = plot:SaveUpdated("ExtraFloors"):Connect(function(_value: number)
+		updateButtonVisibility(plot, buttonData)
 	end)
 end
 

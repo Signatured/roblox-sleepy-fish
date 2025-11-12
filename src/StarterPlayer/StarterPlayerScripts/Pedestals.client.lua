@@ -451,6 +451,15 @@ local function SetupButtons(plot: ClientPlot.Type, model: Model, upgradeFrame: F
     local placeButton = placeFrame:WaitForChild("Button")::GuiButton
     ButtonFX(placeButton)
     placeButton.Activated:Connect(function()
+        -- Check if player has access to this pedestal
+        local accessibleCount = GetAccessiblePedestalCount(plot)
+        if pedestalId > accessibleCount then
+            NotificationCmds.Message("You don't have access to this pedestal yet!", {
+                Color = Color3.fromRGB(255, 0, 0),
+            })
+            return
+        end
+
         -- Check if there's a fish on this pedestal and if it's a lucky block
         local fish = plot:Save("Fish")::{[string]: PlotTypes.Fish}
         local fishData = fish[tostring(pedestalId)]
@@ -1149,6 +1158,15 @@ function UpdatePedestal(plot: ClientPlot.Type, model: Model)
                 local created = SetupProximity("Place", 0, Enum.KeyCode.E, sellAttachment)
                 created.Name = "PlacePrompt"
                 created.Triggered:Connect(function(_player: Player)
+                    -- Check if player has access to this pedestal
+                    local accessibleCount = GetAccessiblePedestalCount(plot)
+                    if pedestalId > accessibleCount then
+                        NotificationCmds.Message("You don't have access to this pedestal yet!", {
+                            Color = Color3.fromRGB(255, 0, 0),
+                        })
+                        return
+                    end
+
                     local fishData = FishCmds.GetCurrentFishData()
                     if not fishData then
                         NotificationCmds.Message("Equip a fish to place it!", {
