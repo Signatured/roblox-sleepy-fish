@@ -15,9 +15,9 @@ local ExistCountCmds = require(ReplicatedStorage.Game.Library.Client.ExistCountC
 local SELECTED_IMG = "rbxassetid://85004105467436"
 local UNSELECTED_IMG = "rbxassetid://72752195568291"
 
-local currentCategory: FishTypes.fish_type | "BloodMoon" | "Galaxy" | "Spooky" | "Haunted" = "Normal"
+local currentCategory: FishTypes.fish_type | "BloodMoon" | "Galaxy" | "Spooky" | "Haunted" | "YingYang" = "Normal"
 
-local categories = {"Normal","Gold","Rainbow","Shiny","BloodMoon","Galaxy","Spooky","Haunted"}
+local categories = {"Normal","Gold","Rainbow","Shiny","BloodMoon","Galaxy","Spooky","Haunted","YingYang"}
 
 local resolutionSettings = {
 	{
@@ -85,7 +85,7 @@ end
 local function setCategoryButtons(root: Instance, onCategoryChanged: () -> ())
     local side = root:FindFirstChild("SideFrame")
     if not side or not side:IsA("Frame") then return end
-    local function wire(buttonName: string, cat: FishTypes.fish_type | "BloodMoon" | "Galaxy" | "Spooky" | "Haunted")
+    local function wire(buttonName: string, cat: FishTypes.fish_type | "BloodMoon" | "Galaxy" | "Spooky" | "Haunted" | "YingYang")
         local btn = side:FindFirstChild(buttonName)
         if btn and btn:IsA("ImageButton") then
             ButtonFX(btn)
@@ -114,6 +114,7 @@ local function setCategoryButtons(root: Instance, onCategoryChanged: () -> ())
     wire("Galaxy","Galaxy")
     wire("Spooky","Spooky")
     wire("Haunted","Haunted")
+    wire("YingYang","YingYang")
 end
 
 local function realRender()
@@ -223,6 +224,7 @@ local function realRender()
             elseif currentCategory == "Galaxy" then hasSeen = entry.Galaxy == true
             elseif currentCategory == "Spooky" then hasSeen = entry.Spooky == true
             elseif currentCategory == "Haunted" then hasSeen = entry.Haunted == true
+            elseif currentCategory == "YingYang" then hasSeen = entry.YingYang == true
             end
         end
         local countVal = 0

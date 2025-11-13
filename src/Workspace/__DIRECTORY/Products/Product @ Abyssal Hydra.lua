@@ -45,7 +45,7 @@ return {
 
 		local mutation: string? = nil
 		if math.random() <= 0.1 then
-			mutation = "Haunted"
+			mutation = "YingYang"
 		end
 
 		local data = Fish.Give(player, {

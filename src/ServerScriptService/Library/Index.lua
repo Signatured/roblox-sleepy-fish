@@ -16,6 +16,7 @@ export type IndexData = {
 	Galaxy: boolean?,
 	Spooky: boolean?,
 	Haunted: boolean?,
+	YingYang: boolean?,
 }
 
 local Index = {}
@@ -40,7 +41,7 @@ end
 local function ensureEntry(map: {[string]: IndexData}, fishId: string): IndexData
 	local entry = map[fishId]
 	if not entry then
-		entry = { Normal = false, Shiny = false, Gold = false, Rainbow = false, BloodMoon = false, Galaxy = false, Spooky = false, Haunted = false }
+		entry = { Normal = false, Shiny = false, Gold = false, Rainbow = false, BloodMoon = false, Galaxy = false, Spooky = false, Haunted = false, YingYang = false }
 		map[fishId] = entry
 	else
 		-- Ensure backward compatibility - add BloodMoon field if it doesn't exist
@@ -58,6 +59,10 @@ local function ensureEntry(map: {[string]: IndexData}, fishId: string): IndexDat
 		-- Ensure backward compatibility - add Haunted field if it doesn't exist
 		if entry.Haunted == nil then
 			entry.Haunted = false
+		end
+		-- Ensure backward compatibility - add YingYang field if it doesn't exist
+		if entry.YingYang == nil then
+			entry.YingYang = false
 		end
 	end
 	return entry
@@ -94,7 +99,7 @@ end
 
 local function entryComplete(entry: IndexData?): boolean
 	if not entry then return false end
-	return entry.Normal == true and entry.Shiny == true and entry.Gold == true and entry.Rainbow == true and entry.BloodMoon == true and entry.Galaxy == true and entry.Spooky == true and entry.Haunted == true
+	return entry.Normal == true and entry.Shiny == true and entry.Gold == true and entry.Rainbow == true and entry.BloodMoon == true and entry.Galaxy == true and entry.Spooky == true and entry.Haunted == true and entry.YingYang == true
 end
 
 function Index.IsCompleted(player: Player): boolean
@@ -188,6 +193,24 @@ function Index.HasHaunted(player: Player, fishId: string): boolean
 end
 
 --[[
+	Checks if a player has caught a specific fish with the YingYang mutation during YingYang events.
+	
+	@param player - The player to check
+	@param fishId - The fish ID to check for YingYang variant
+	@return boolean - Whether the player has the YingYang variant of this fish
+]]
+function Index.HasYingYang(player: Player, fishId: string): boolean
+	local save = Saving.Get(player)
+	if not save then return false end
+
+	local map = save.Index :: any
+	if type(map) ~= "table" then return false end
+	
+	local entry = map[fishId]
+	return entry and entry.YingYang == true or false
+end
+
+--[[
 	Gets the total count of fish species that have been caught with BloodMoon mutation.
 	
 	@param player - The player to check
@@ -269,6 +292,28 @@ function Index.GetHauntedCount(player: Player): number
 	local count = 0
 	for fishId, entry in pairs(map) do
 		if entry and entry.Haunted == true then
+			count += 1
+		end
+	end
+	return count
+end
+
+--[[
+	Gets the total count of fish species that have been caught with YingYang mutation.
+	
+	@param player - The player to check
+	@return number - Count of fish species with YingYang variant caught
+]]
+function Index.GetYingYangCount(player: Player): number
+	local save = Saving.Get(player)
+	if not save then return 0 end
+
+	local map = save.Index :: any
+	if type(map) ~= "table" then return 0 end
+	
+	local count = 0
+	for fishId, entry in pairs(map) do
+		if entry and entry.YingYang == true then
 			count += 1
 		end
 	end

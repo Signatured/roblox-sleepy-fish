@@ -164,12 +164,12 @@ local function spawnPartyFish()
 	-- Choose fish type (Normal, Shiny, Gold, Rainbow)
 	local fishType = Functions.Lottery(typeChances)
 	
-	-- Determine mutation (check if Haunted event is active)
+	-- Determine mutation (check if YingYang event is active)
 	local mutation: string? = nil
 	if not fishSchema.LuckyBlockId and not fishSchema.SpecialItemFish then
 		local isEventActive, eventId = MutationEvent.GetCurrentStatus()
-		if isEventActive and eventId == "Haunted" then
-			mutation = "Haunted"
+		if isEventActive and eventId == "YingYang" then
+			mutation = "YingYang"
 		end
 	end
 	

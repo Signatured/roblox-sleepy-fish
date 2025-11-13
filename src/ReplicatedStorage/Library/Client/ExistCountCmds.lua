@@ -13,6 +13,7 @@ export type CountsByType = {
     Galaxy: number,
     Spooky: number,
     Haunted: number,
+    YingYang: number,
 }
 
 local ExistCountCmds = {}
@@ -38,6 +39,7 @@ function ExistCountCmds.GetByIdAndType(fishId: string, fishType: string): number
     elseif fishType == "Galaxy" then return localVal.Galaxy
     elseif fishType == "Spooky" then return localVal.Spooky
     elseif fishType == "Haunted" then return localVal.Haunted
+    elseif fishType == "YingYang" then return localVal.YingYang
     end
     return 0
 end

@@ -34,14 +34,14 @@ local function getESTTime(): number
 end
 
 -- Event effect instances
-local hauntedPortal: BasePart? = nil
+local yingYangPortal: BasePart? = nil
 local sky: Instance? = nil
 local colorCorrection: ColorCorrectionEffect? = nil
-local hauntedParticles: BasePart? = nil
+local yingYangParticles: BasePart? = nil
 
 -- Event state tracking
-local isHauntedRunning = false
-local isHauntedStarting = false
+local isYingYangRunning = false
+local isYingYangStarting = false
 
 -- Event color storage for parts
 local originalColors: {[BasePart]: Color3} = {}
@@ -50,14 +50,14 @@ local originalColors: {[BasePart]: Color3} = {}
 local eventGuis: {SurfaceGui} = {}
 
 local function updateEventGuis()
-    -- Always show Haunted event status
-    local eventData = Directory.MutationEvents["Haunted"]
+    -- Always show YingYang event status
+    local eventData = Directory.MutationEvents["YingYang"]
     if not eventData then return end
     
     local now = getESTTime()
     local text = ""
     
-    if isEventActive and currentEventId == "Haunted" and eventEndTime then
+    if isEventActive and currentEventId == "YingYang" and eventEndTime then
         local timeRemaining = math.max(0, eventEndTime - now)
         text = `{eventData.DisplayName} Event ending in {Functions.FormatTime(timeRemaining)}`
     elseif nextEventTime then
@@ -90,21 +90,21 @@ local function setParticlesEnabled(parent: Instance, enabled: boolean)
 end
 
 
-local function startHauntedEvent()
+local function startYingYangEvent()
     -- Prevent multiple starts
-    if isHauntedRunning or isHauntedStarting then 
-        warn("[MutationEvent] Haunted event already running or starting, ignoring duplicate start")
+    if isYingYangRunning or isYingYangStarting then 
+        warn("[MutationEvent] YingYang event already running or starting, ignoring duplicate start")
         return 
     end
     
-    local eventData = Directory.MutationEvents["Haunted"]
+    local eventData = Directory.MutationEvents["YingYang"]
     if not eventData then return end
     
-    isHauntedStarting = true
-    isHauntedRunning = true
+    isYingYangStarting = true
+    isYingYangRunning = true
     
     -- Send notification
-    NotificationCmds.Message("Beware! The Haunted are coming!", {
+    NotificationCmds.Message("Balance shifts... the Ying Yang awakens!", {
         Color = eventData.Color,
         Time = 10,
         Sound = "rbxassetid://125840884527985"
@@ -113,16 +113,16 @@ local function startHauntedEvent()
     task.wait(3)
     
     -- Clone and setup Black Hole
-    local eventFolder = Assets:FindFirstChild("Haunted")
-    local hauntedPortalTemplate = eventFolder and eventFolder:FindFirstChild("HauntedPortal")
-    if hauntedPortalTemplate and hauntedPortalTemplate:IsA("BasePart") then
-        hauntedPortal = hauntedPortalTemplate:Clone() :: BasePart
-        if hauntedPortal then
-            hauntedPortal.Parent = DEBRIS
+    local eventFolder = Assets:FindFirstChild("YingYang")
+    local yingYangPortalTemplate = eventFolder and eventFolder:FindFirstChild("YingYangPortal")
+    if yingYangPortalTemplate and yingYangPortalTemplate:IsA("BasePart") then
+        yingYangPortal = yingYangPortalTemplate:Clone() :: BasePart
+        if yingYangPortal then
+            yingYangPortal.Parent = DEBRIS
 
-            Audio.Play("rbxassetid://111689316568748", hauntedPortal, 1, 1.5, 450)
+            Audio.Play("rbxassetid://111689316568748", yingYangPortal, 1, 1.5, 450)
 
-            -- local sound = hauntedPortal:FindFirstChild("Sound")::Sound?
+            -- local sound = yingYangPortal:FindFirstChild("Sound")::Sound?
             -- if sound then
             --     sound.Playing = true
             -- end
@@ -132,8 +132,8 @@ local function startHauntedEvent()
     -- task.wait(3)
     
     -- Clone sky
-    local hauntedFolder2 = Assets:FindFirstChild("Haunted")
-    local skyTemplate = hauntedFolder2 and hauntedFolder2:FindFirstChild("HauntedSky")
+    local yingYangFolder2 = Assets:FindFirstChild("YingYang")
+    local skyTemplate = yingYangFolder2 and yingYangFolder2:FindFirstChild("YingYangSky")
     if skyTemplate then
         sky = skyTemplate:Clone()
         if sky then
@@ -142,8 +142,8 @@ local function startHauntedEvent()
     end
     
     -- Change colors of parts with EventColor attribute
-    local hauntedData = Directory.MutationEvents["Haunted"]
-    if hauntedData then
+    local yingYangData = Directory.MutationEvents["YingYang"]
+    if yingYangData then
         local THINGS = workspace:FindFirstChild("__THINGS")
         if THINGS then
             for _, obj in ipairs(THINGS:GetDescendants()) do
@@ -151,10 +151,10 @@ local function startHauntedEvent()
                     local part = obj :: BasePart
                     -- Store original color
                     originalColors[part] = part.Color
-                    -- Tween to haunted color
+                    -- Tween to YingYang color
                     local tween = TweenService:Create(part,
                         TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                        {Color = hauntedData.Color}
+                        {Color = yingYangData.Color}
                     )
                     tween:Play()
                 end
@@ -172,21 +172,21 @@ local function startHauntedEvent()
         tween:Play()
     end
     
-    -- Clone HauntedParticles
-    local hauntedParticlesTemplate = hauntedFolder2 and hauntedFolder2:FindFirstChild("HauntedParticles")
+    -- Clone YingYangParticles
+    local yingYangParticlesTemplate = yingYangFolder2 and yingYangFolder2:FindFirstChild("YingYangParticles")
     
-    if hauntedParticlesTemplate and hauntedParticlesTemplate:IsA("BasePart") then
-        hauntedParticles = hauntedParticlesTemplate:Clone() :: BasePart
-        if hauntedParticles then
-            hauntedParticles.Parent = DEBRIS
+    if yingYangParticlesTemplate and yingYangParticlesTemplate:IsA("BasePart") then
+        yingYangParticles = yingYangParticlesTemplate:Clone() :: BasePart
+        if yingYangParticles then
+            yingYangParticles.Parent = DEBRIS
         end
     end
 
     -- Clone ghost particles for water
     local topLayer = workspace:WaitForChild("__THINGS"):FindFirstChild("TopLayer")
-    local hauntedGhostParticles = hauntedFolder2 and hauntedFolder2:FindFirstChild("TopLayerParticles")
-    if hauntedGhostParticles then
-        for _, particle in ipairs(hauntedGhostParticles:GetChildren()) do
+    local yingYangGhostParticles = yingYangFolder2 and yingYangFolder2:FindFirstChild("TopLayerParticles")
+    if yingYangGhostParticles then
+        for _, particle in ipairs(yingYangGhostParticles:GetChildren()) do
             if particle:IsA("ParticleEmitter") then
                 local cloned = particle:Clone()
                 cloned.Parent = topLayer
@@ -195,32 +195,32 @@ local function startHauntedEvent()
     end
     
     -- Mark startup as complete
-    isHauntedStarting = false
+    isYingYangStarting = false
 end
 
-local function endHauntedEvent()
+local function endYingYangEvent()
     -- Prevent ending if not running
-    if not isHauntedRunning then 
-        warn("[MutationEvent] Haunted event not running, ignoring end request")
+    if not isYingYangRunning then 
+        warn("[MutationEvent] YingYang event not running, ignoring end request")
         return 
     end
     
     -- Wait for startup process to complete if it's still running
-    while isHauntedStarting do
+    while isYingYangStarting do
         task.wait(0.1)
     end
     
     -- Turn on whirlpool particles for 3 seconds
-    if hauntedPortal then
-        Audio.Play("rbxassetid://111689316568748", hauntedPortal, 1, 1.5, 450)
+    if yingYangPortal then
+        Audio.Play("rbxassetid://111689316568748", yingYangPortal, 1, 1.5, 450)
         
         task.wait(6)
-        setParticlesEnabled(hauntedPortal, false)
+        setParticlesEnabled(yingYangPortal, false)
     end
     
-    -- Turn off particles for HauntedParticles
-    if hauntedParticles then
-        setParticlesEnabled(hauntedParticles, false)
+    -- Turn off particles for YingYangParticles
+    if yingYangParticles then
+        setParticlesEnabled(yingYangParticles, false)
     end
     
     -- Remove sky
@@ -253,8 +253,8 @@ local function endHauntedEvent()
     end
     
     -- Turn off whirlpool particles again
-    if hauntedPortal then
-        setParticlesEnabled(hauntedPortal, false)
+    if yingYangPortal then
+        setParticlesEnabled(yingYangPortal, false)
     end
 
     local topLayer = workspace:WaitForChild("__THINGS"):FindFirstChild("TopLayer")
@@ -267,13 +267,13 @@ local function endHauntedEvent()
     task.wait(3)
     
     -- Destroy all cloned parts
-    if hauntedPortal then
-        hauntedPortal:Destroy()
-        hauntedPortal = nil
+    if yingYangPortal then
+        yingYangPortal:Destroy()
+        yingYangPortal = nil
     end
-    if hauntedParticles then
-        hauntedParticles:Destroy()
-        hauntedParticles = nil
+    if yingYangParticles then
+        yingYangParticles:Destroy()
+        yingYangParticles = nil
     end
     for _, particle in ipairs(topLayer:GetChildren()) do
         if particle:IsA("ParticleEmitter") then
@@ -282,8 +282,8 @@ local function endHauntedEvent()
     end
     
     -- Reset event state
-    isHauntedRunning = false
-    isHauntedStarting = false
+    isYingYangRunning = false
+    isYingYangStarting = false
 end
 
 -- Network event handlers
@@ -293,16 +293,16 @@ Network.Fired("MutationEvent_Start", function(eventId: string, startTime: number
     _eventStartTime = startTime
     eventEndTime = endTime
     
-    if eventId == "Haunted" then
-        task.spawn(startHauntedEvent)
+    if eventId == "YingYang" then
+        task.spawn(startYingYangEvent)
     end
     
     updateEventGuis()
 end)
 
 Network.Fired("MutationEvent_End", function(eventId: string)
-    if eventId == "Haunted" then
-        task.spawn(endHauntedEvent)
+    if eventId == "YingYang" then
+        task.spawn(endYingYangEvent)
     end
     
     isEventActive = false
@@ -328,8 +328,8 @@ Network.Fired("MutationEvent_Status", function(active: boolean, eventId: string?
     nextEventTime = nextTime
     
     -- If event is currently active, start it immediately
-    if active and eventId == "Haunted" then
-        task.spawn(startHauntedEvent)
+    if active and eventId == "YingYang" then
+        task.spawn(startYingYangEvent)
     end
     
     updateEventGuis()
@@ -352,8 +352,8 @@ TagHook("EventGui", function(gui: SurfaceGui)
     
     table.insert(eventGuis, gui)
     
-    -- Initialize with default Haunted display
-    local eventData = Directory.MutationEvents["Haunted"]
+    -- Initialize with default YingYang display
+    local eventData = Directory.MutationEvents["YingYang"]
     if eventData then
         local frame = gui:FindFirstChild("Frame")
         local event = frame and frame:FindFirstChild("Event")
@@ -378,12 +378,12 @@ TagHook("EventGui", function(gui: SurfaceGui)
 end)
 
 --[[
-    Public API to check if Haunted event is currently active.
+    Public API to check if YingYang event is currently active.
     
-    @return boolean - Whether Haunted event is active
+    @return boolean - Whether YingYang event is active
 ]]
-function MutationEventCmds.IsHauntedActive(): boolean
-    return isEventActive and currentEventId == "Haunted"
+function MutationEventCmds.IsYingYangActive(): boolean
+    return isEventActive and currentEventId == "YingYang"
 end
 
 --[[
