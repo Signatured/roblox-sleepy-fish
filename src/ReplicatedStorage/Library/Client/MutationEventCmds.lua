@@ -12,6 +12,7 @@ local TagHook = require(Library.Functions.TagHook)
 local NotificationCmds = require(Library.Client.NotificationCmds)
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
 local Audio = require(ReplicatedStorage.Library.Audio)
+local Signal = require(ReplicatedStorage.Library.Signal)
 
 local player = Players.LocalPlayer
 local DEBRIS = workspace:WaitForChild("__DEBRIS")
@@ -48,6 +49,18 @@ local originalColors: {[BasePart]: Color3} = {}
 
 -- GUI elements
 local eventGuis: {SurfaceGui} = {}
+
+-- Grass color animation
+local grassParts: {BasePart} = {}
+local grassAnimationThread: thread? = nil
+local startGrassAnimation: () -> ()
+local stopGrassAnimation: () -> ()
+local isPartyEventActive = false
+
+-- Listen to signal from Party event to know when it's active
+Signal.Fired("PartyEventActive"):Connect(function(isActive: boolean)
+	isPartyEventActive = isActive
+end)
 
 local function updateEventGuis()
     -- Always show YingYang event status
@@ -144,21 +157,29 @@ local function startYingYangEvent()
     -- Change colors of parts with EventColor attribute
     local yingYangData = Directory.MutationEvents["YingYang"]
     if yingYangData then
-        local THINGS = workspace:FindFirstChild("__THINGS")
-        if THINGS then
-            for _, obj in ipairs(THINGS:GetDescendants()) do
+        local function recolor(instance: Instance)
+            for _, obj in ipairs(instance:GetDescendants()) do
                 if (obj:IsA("Part") or obj:IsA("MeshPart")) and obj:GetAttribute("EventColor") then
                     local part = obj :: BasePart
                     -- Store original color
                     originalColors[part] = part.Color
+                    local color = yingYangData.UseAttributeColors and obj:GetAttribute("EventColor") or yingYangData.Color
                     -- Tween to YingYang color
                     local tween = TweenService:Create(part,
                         TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                        {Color = yingYangData.Color}
+                        {Color = color}
                     )
                     tween:Play()
                 end
             end
+        end
+        local THINGS = workspace:FindFirstChild("__THINGS")
+        if THINGS then
+            recolor(THINGS)
+        end
+        local MAP = workspace:FindFirstChild("Map")
+        if MAP then
+            recolor(MAP)
         end
     end
     
@@ -295,6 +316,7 @@ Network.Fired("MutationEvent_Start", function(eventId: string, startTime: number
     
     if eventId == "YingYang" then
         task.spawn(startYingYangEvent)
+        task.spawn(startGrassAnimation)
     end
     
     updateEventGuis()
@@ -303,6 +325,7 @@ end)
 Network.Fired("MutationEvent_End", function(eventId: string)
     if eventId == "YingYang" then
         task.spawn(endYingYangEvent)
+        task.spawn(stopGrassAnimation)
     end
     
     isEventActive = false
@@ -330,6 +353,7 @@ Network.Fired("MutationEvent_Status", function(active: boolean, eventId: string?
     -- If event is currently active, start it immediately
     if active and eventId == "YingYang" then
         task.spawn(startYingYangEvent)
+        task.spawn(startGrassAnimation)
     end
     
     updateEventGuis()
@@ -394,6 +418,99 @@ end
 function MutationEventCmds.GetCurrentEvent(): (boolean, string?)
     return isEventActive, currentEventId
 end
+
+-- Grass color animation functions
+local function animateGrassColors()
+    local WHITE = Color3.new(1, 1, 1)
+    local DARK_GRAY = Color3.fromRGB(34, 34, 34)
+    
+    while isEventActive do
+        -- Check if Party event is active - if so, skip this cycle
+        if isPartyEventActive then
+            task.wait(1)
+            continue
+        end
+        
+        -- Tween to white
+        for _, part in ipairs(grassParts) do
+            if part and part.Parent then
+                local tween = TweenService:Create(part, TweenInfo.new(0.5, Enum.EasingStyle.Linear), {Color = WHITE})
+                tween:Play()
+            end
+        end
+        
+        -- Wait on white (0.5s tween + 5s stay)
+        task.wait(5.5)
+        
+        if not isEventActive then break end
+        
+        -- Check again before tweening to black
+        if isPartyEventActive then
+            task.wait(1)
+            continue
+        end
+        
+        -- Tween to dark gray
+        for _, part in ipairs(grassParts) do
+            if part and part.Parent then
+                local tween = TweenService:Create(part, TweenInfo.new(0.5, Enum.EasingStyle.Linear), {Color = DARK_GRAY})
+                tween:Play()
+            end
+        end
+        
+        -- Wait on dark gray (0.5s tween + 5s stay)
+        task.wait(5.5)
+    end
+end
+
+startGrassAnimation = function()
+    -- Don't start if Party event is active
+    if isPartyEventActive then
+        return
+    end
+    
+    -- Stop any existing animation
+    stopGrassAnimation()
+    
+    -- Start new animation thread
+    grassAnimationThread = task.spawn(animateGrassColors)
+end
+
+stopGrassAnimation = function()
+    -- Cancel animation thread
+    if grassAnimationThread then
+        task.cancel(grassAnimationThread)
+        grassAnimationThread = nil
+    end
+    
+    -- Restore original colors
+    for _, part in ipairs(grassParts) do
+        if part and part.Parent then
+            local originalColor = part:GetAttribute("OriginalColor")
+            if typeof(originalColor) == "Color3" then
+                part.Color = originalColor
+            end
+        end
+    end
+end
+
+-- Setup TagHook to listen for Grass parts
+TagHook("Grass", function(inst: Instance)
+    if inst and inst:IsA("BasePart") then
+        local part = inst :: BasePart
+        table.insert(grassParts, part)
+    end
+    
+    -- Cleanup function
+    return function()
+        if inst:IsA("BasePart") then
+            local index = table.find(grassParts, inst)
+            if index then
+                table.remove(grassParts, index)
+            end
+        end
+    end
+end)
 
 -- Initialize when player loads
 task.spawn(function()

@@ -16,6 +16,7 @@ local Functions = require(ReplicatedStorage.Library.Functions)
 local Audio = require(ReplicatedStorage.Library.Audio)
 local Directory = require(ReplicatedStorage.Game.Library.Directory)
 local Fireworks = require(ReplicatedStorage.Library.Client.WorldFX.Fireworks)
+local Signal = require(ReplicatedStorage.Library.Signal)
 
 local Assets = ReplicatedStorage.Assets
 
@@ -25,7 +26,6 @@ local module = {}
 local cannons: {[number]: Model} = {}
 local _isActive = false
 local grassParts: {BasePart} = {}
-local grassOriginalColors: {[BasePart]: Color3} = {}
 local worldFX: Model? = nil
 local partyMusic: Sound? = nil
 
@@ -577,6 +577,9 @@ function module.OnStart()
 	print("[Party Client] Event started")
 	_isActive = true
 	
+	-- Notify other scripts that Party event is now active
+	Signal.Fire("PartyEventActive", true)
+	
 	NotificationCmds.Message("Let's party! 🎉", {
 		Color = Color3.fromRGB(255, 100, 255),
 		Time = 8,
@@ -625,11 +628,6 @@ function module.OnStart()
 		if inst and inst:IsA("BasePart") then
 			local part = inst :: BasePart
 			table.insert(grassParts, part)
-			
-			-- Store original color if not already stored
-			if not grassOriginalColors[part] then
-				grassOriginalColors[part] = part.Color
-			end
 		end
 		
 		-- Cleanup function
@@ -799,6 +797,9 @@ function module.OnStop()
 	print("[Party Client] Event stopped")
 	_isActive = false
 	
+	-- Notify other scripts that Party event is no longer active
+	Signal.Fire("PartyEventActive", false)
+	
 	NotificationCmds.Message("Party's over! 🎈", {
 		Color = Color3.fromRGB(255, 100, 255),
 		Time = 8,
@@ -820,14 +821,14 @@ function module.OnStop()
 	-- Restore original grass colors
 	for _, part in ipairs(grassParts) do
 		if part and part.Parent then
-			local originalColor = grassOriginalColors[part]
-			if originalColor then
+			local originalColor = part:GetAttribute("OriginalColor")
+			if typeof(originalColor) == "Color3" then
 				part.Color = originalColor
 			end
 		end
 	end
 	
-	-- Clear grass parts list (keep original colors stored for next event)
+	-- Clear grass parts list
 	grassParts = {}
 	
 	-- Remove WorldFX (disable particles first, then remove after 3 seconds)

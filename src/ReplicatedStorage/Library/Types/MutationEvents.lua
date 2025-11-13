@@ -9,6 +9,7 @@ export type raw_dir = {
     Color: Color3,
     Interval: number,
     Duration: number,
+    UseAttributeColors: boolean,
 }
 
 export type dir_schema = raw_dir & DirectoryTypes.dir_schema
