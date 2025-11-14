@@ -17,7 +17,7 @@ return {
     BaseUpgradeCost = 30500,
     BillboardOffset = 12,
     PedestalOffset = -1,
-    RarityWeight = 8,
+    RarityWeight = 7,
     IndexOffset = -17,
     IndexPositionOffset = Vector3.new(-6, 0, 0),
     IndexRotationOffset = Vector3.new(0, math.rad(90), 0),
