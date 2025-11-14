@@ -38,6 +38,21 @@ return {
 				if cloned:IsA("ParticleEmitter") and scaleMultiplier > 1.5 then
 					scaleMultiplier = math.min(scaleMultiplier, 3)
 					cloned.Rate = cloned.Rate * scaleMultiplier
+					
+					-- Scale particle size between 1 and 2 based on scale multiplier
+					local sizeScale = 1 + (scaleMultiplier - 1.5) / (3 - 1.5) -- Maps 1.5-3 to 1-2
+					sizeScale = math.clamp(sizeScale, 1, 2)
+					
+					local originalSize = cloned.Size
+					local newSize = {}
+					for i, keypoint in ipairs(originalSize.Keypoints) do
+						newSize[i] = NumberSequenceKeypoint.new(
+							keypoint.Time,
+							keypoint.Value * sizeScale,
+							keypoint.Envelope * sizeScale
+						)
+					end
+					cloned.Size = NumberSequence.new(newSize)
 				end
 
 				cloned.Parent = vfxBox

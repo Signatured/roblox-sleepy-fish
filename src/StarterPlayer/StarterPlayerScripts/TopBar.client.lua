@@ -26,7 +26,7 @@ end
 task.spawn(function()
     while true do
         local save = Save.Get()
-        if not save or not save.TutorialClaim then
+        if not save or (not save.TutorialClaim and not hasPrivilegedPermission()) then
             task.wait(1)
             continue
         end
