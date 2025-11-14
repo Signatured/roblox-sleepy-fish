@@ -16,7 +16,7 @@ return {
     Rarity = Rarity.Mythical,
     MoneyPerSecond = 420,
     BaseUpgradeCost = 10500,
-    BillboardOffset = 9.5,
+    BillboardOffset = 11.5,
     PedestalOffset = 0,
     RarityWeight = 5,
     IndexOffset = -4,
