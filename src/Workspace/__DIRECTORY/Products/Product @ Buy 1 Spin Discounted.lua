@@ -53,7 +53,7 @@ return {
 
 		Notifications.Message(player, `You purchased 1 Yin Yang Wheel Spin!`, {
 			Time = 6,
-			Color = Color3.fromRGB(33, 14, 80)
+			Color = Color3.fromRGB(255, 255, 255)
 		})
 
 		return true
