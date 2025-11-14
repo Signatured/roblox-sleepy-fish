@@ -117,7 +117,7 @@ local function startYingYangEvent()
     isYingYangRunning = true
     
     -- Send notification
-    NotificationCmds.Message("Balance shifts... the Ying Yang awakens!", {
+    NotificationCmds.Message("Balance shifts... the Yin Yang awakens!", {
         Color = eventData.Color,
         Time = 10,
         Sound = "rbxassetid://125840884527985"

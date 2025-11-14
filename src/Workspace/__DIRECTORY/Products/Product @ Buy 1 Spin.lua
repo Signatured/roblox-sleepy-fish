@@ -45,7 +45,7 @@ return {
 		save.Wheels[wheelId] = save.Wheels[wheelId] or { Free = 0, Paid = 0, FreeNextAt = nil }
 		save.Wheels[wheelId].Paid += 1
 
-		Notifications.Message(player, `You purchased 1 Ying Yang Wheel Spin!`, {
+		Notifications.Message(player, `You purchased 1 Yin Yang Wheel Spin!`, {
 			Time = 6,
 			Color = Color3.fromRGB(33, 14, 80)
 		})

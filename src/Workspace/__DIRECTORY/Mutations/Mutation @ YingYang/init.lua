@@ -1,7 +1,7 @@
 --!strict
 
 return {
-	DisplayName = "Ying Yang",
+	DisplayName = "Yin Yang",
 	Color = Color3.fromRGB(255, 255, 255),
 	MutationEarningsMultiplier = 2,
 	ApplyToModel = function(model: Model)

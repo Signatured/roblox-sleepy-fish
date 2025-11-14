@@ -51,7 +51,7 @@ return {
 		local est = now + EST_OFFSET
 		save.WheelDailyDealDayKey = math.floor(est / 86400)
 
-		Notifications.Message(player, `You purchased 1 Ying Yang Wheel Spin!`, {
+		Notifications.Message(player, `You purchased 1 Yin Yang Wheel Spin!`, {
 			Time = 6,
 			Color = Color3.fromRGB(33, 14, 80)
 		})

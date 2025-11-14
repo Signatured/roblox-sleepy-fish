@@ -4,7 +4,7 @@ local SpinnyWheelTypes = require(game.ReplicatedStorage.Game.Library.Types.Spinn
 local Functions = require(game.ReplicatedStorage.Library.Functions)
 
 return {
-	DisplayName = "Ying Yang Wheel",
+	DisplayName = "Yin Yang Wheel",
 	Description = "",
 	Rewards = {
 		{
@@ -83,7 +83,7 @@ return {
 				Index.Add(player, data.FishId, data.Type, data.Mutation)
 			end
 
-			Notifications.Message(player, `You won a Ying Yang Ancient Sea Dragon!`, {
+			Notifications.Message(player, `You won a Yin Yang Ancient Sea Dragon!`, {
 				Rainbow = true,
 				Time = 8,
 			})
