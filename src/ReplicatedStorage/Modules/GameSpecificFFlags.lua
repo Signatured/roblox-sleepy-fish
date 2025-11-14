@@ -72,6 +72,8 @@ module.Raw = {
 -- Optionally extend per-game admin access for the FFlags UI.
 module.Admins = {
     [3983340648] = true,
+    [3698040927] = true,
+    [4028097333] = true,
 }
 
 return module
