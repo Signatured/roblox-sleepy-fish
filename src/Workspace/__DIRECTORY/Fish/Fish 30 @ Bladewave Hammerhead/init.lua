@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Bladewave Hammerhead",
-    Icon = "rbxassetid://87490966672620",
+    Icon = "rbxassetid://116074728091223",
     MutationIcons = {
         Bloodfish = "rbxassetid://87490966672620",
         Galaxy = "rbxassetid://87490966672620",

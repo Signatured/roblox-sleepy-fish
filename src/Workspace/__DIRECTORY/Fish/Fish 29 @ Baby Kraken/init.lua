@@ -5,7 +5,7 @@ local Rarity = require(game.ReplicatedStorage.Game.Library.Directory.Rarity)
 
 return {
     DisplayName = "Baby Kraken", 
-    Icon = "rbxassetid://97593230164895",
+    Icon = "rbxassetid://96361050680724",
     MutationIcons = {
         Bloodfish = "rbxassetid://84571706066959",
         Galaxy = "rbxassetid://115088561413136",
