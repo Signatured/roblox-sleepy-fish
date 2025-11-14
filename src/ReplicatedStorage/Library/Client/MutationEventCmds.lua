@@ -120,7 +120,7 @@ local function startYinYangEvent()
     NotificationCmds.Message("Balance shifts... the Yin Yang awakens!", {
         Color = eventData.Color,
         Time = 10,
-        Sound = "rbxassetid://125840884527985"
+        Sound = "rbxassetid://139100592181941"
     })
 
     task.wait(3)

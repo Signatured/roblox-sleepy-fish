@@ -23,10 +23,10 @@ local CHASE_MUSIC_IDS = {
 	"rbxassetid://106684853320177"
 }
 local EVENT_MUSIC_IDS = {
-    "rbxassetid://76972647615379",
-    "rbxassetid://71664058244414",
-    "rbxassetid://108850215333929",
-    "rbxassetid://129029120489772",
+    "rbxassetid://127398266653689",
+    "rbxassetid://100244450207624",
+    "rbxassetid://77874619166101",
+    "rbxassetid://71123357599630",
 }
 local lastIndex: number? = nil
 local defaultVolume = 0.15

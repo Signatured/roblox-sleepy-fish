@@ -55,6 +55,8 @@ local preloadSounds = {
     "rbxassetid://72111030447267", -- Party machine give fish
     "rbxassetid://96756442780379", -- Party Admin abuse event started
     "rbxassetid://119218265790569", -- Fish about to spawn sound
+
+    "rbxassetid://139100592181941", -- YinYang event start
 }
 
 Audio.PreloadSounds(preloadSounds)
