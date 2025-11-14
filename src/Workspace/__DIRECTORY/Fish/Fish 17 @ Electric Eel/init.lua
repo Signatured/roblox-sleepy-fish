@@ -11,7 +11,7 @@ return {
         Galaxy = "rbxassetid://72866162612874",
         Spooky = "rbxassetid://73932868936473",
         Haunted = "rbxassetid://88647703740509",
-        YinYang = "",
+        YinYang = "rbxassetid://116049423566530",
     },
     Rarity = Rarity.Epic,
     MoneyPerSecond = 50,
