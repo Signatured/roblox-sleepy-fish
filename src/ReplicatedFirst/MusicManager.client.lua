@@ -47,7 +47,7 @@ local preChaseState = {
     timePosition = 0,
 }
 
--- YingYang event music state
+-- YinYang event music state
 local isEventMusicActive = false
 local eventMusicIndex = 1
 local preEventState = {
@@ -129,7 +129,7 @@ local function setEventTrack()
 		return
 	end
 	
-	-- Fall back to YingYang event music
+	-- Fall back to YinYang event music
 	if #EVENT_MUSIC_IDS == 0 then return end
 	musicSound.SoundId = EVENT_MUSIC_IDS[eventMusicIndex]
 end
@@ -142,7 +142,7 @@ local function nextEventTrack()
 		return
 	end
 	
-	-- Fall back to YingYang event music
+	-- Fall back to YinYang event music
 	if #EVENT_MUSIC_IDS == 0 then return end
 	eventMusicIndex = (eventMusicIndex % #EVENT_MUSIC_IDS) + 1
 end
@@ -261,7 +261,7 @@ local function PlayEventMusic(active: boolean)
         if musicOverride then
             print("[MusicManager] Started admin abuse event music override")
         else
-            print("[MusicManager] Started YingYang event music")
+            print("[MusicManager] Started YinYang event music")
         end
     else
         -- If event music isn't active and no stop is scheduled, nothing to do
@@ -415,7 +415,7 @@ local function init()
 		end
 	end)
 	
-	-- YingYang event and admin abuse event music toggle, checked periodically
+	-- YinYang event and admin abuse event music toggle, checked periodically
 	task.spawn(function()
 		-- Wait for MutationEventCmds to be available
 		local MutationEventCmds: any = nil
@@ -430,13 +430,13 @@ local function init()
 			end
 		end
 		
-		-- Check music override and YingYang status every second
+		-- Check music override and YinYang status every second
 		while true do
 			local hasActiveMusicOverride = getActiveMusicOverride() ~= nil
-			local isYingYangActive = MutationEventCmds.IsYingYangActive()
+			local isYinYangActive = MutationEventCmds.IsYinYangActive()
 			
 			-- Admin abuse event music override takes highest priority
-			if hasActiveMusicOverride or isYingYangActive then
+			if hasActiveMusicOverride or isYinYangActive then
 				if not isEventMusicActive then
 					PlayEventMusic(true)
 				end

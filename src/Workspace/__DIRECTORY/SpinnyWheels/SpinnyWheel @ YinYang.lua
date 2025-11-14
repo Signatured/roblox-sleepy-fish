@@ -12,7 +12,7 @@ return {
 			Weight = 1,
 			DisplayChance = "1%",
 			Icon = "rbxassetid://122931667882291",
-			Title1 = "YingYang",
+			Title1 = "YinYang",
 			Title2 = "Ancient Sea Dragon",
 			Title3 = "$1.65k/s",
 		},
@@ -71,13 +71,13 @@ return {
 			local data = Fish.Give(player, {
 				FishId = "Ancient Sea Dragon",
 				Type = "Normal",
-				Mutation = "YingYang"
+				Mutation = "YinYang"
 			})
 	
 			if data then
 				Fish.ForceHoldFish(player, data)
 				ExistCount.IncrementCount(data.FishId, data.Type)
-				if data.Mutation == "YingYang" then
+				if data.Mutation == "YinYang" then
 					ExistCount.IncrementMutationCount(data.FishId, data.Mutation)
 				end
 				Index.Add(player, data.FishId, data.Type, data.Mutation)

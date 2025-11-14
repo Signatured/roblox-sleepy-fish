@@ -40,7 +40,7 @@ return {
 		end
 
 		-- Grant 1 paid spin for the wheel (id derived from module name)
-		local wheelId = "YingYang"
+		local wheelId = "YinYang"
 		save.Wheels = save.Wheels or {}
 		save.Wheels[wheelId] = save.Wheels[wheelId] or { Free = 0, Paid = 0, FreeNextAt = nil }
 		save.Wheels[wheelId].Paid += 1

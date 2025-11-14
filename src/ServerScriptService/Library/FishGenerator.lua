@@ -623,10 +623,10 @@ local function spawnForcedByRarity(rarityId: string, owner: Player?, _fishType: 
         -- Use the provided mutation override
         mutation = mutationOverride
     elseif not schema.LuckyBlockId and not schema.SpecialItemFish then -- Lucky Block fish never have mutations
-        -- Check if YingYang event is active and apply YingYang mutation
+        -- Check if YinYang event is active and apply YinYang mutation
         local isEventActive, eventId = MutationEvent.GetCurrentStatus()
-        if isEventActive and eventId == "YingYang" then
-            mutation = "YingYang"
+        if isEventActive and eventId == "YinYang" then
+            mutation = "YinYang"
         end
     end
 
@@ -764,12 +764,12 @@ local function spawnOne(into: BasePart, backdate: number?, positionOverride: CFr
         fishType = "Normal"
     end
 
-    -- Check if YingYang event is active and apply Bloodfish mutation
+    -- Check if YinYang event is active and apply Bloodfish mutation
     local mutation: string? = nil
     if not schema.LuckyBlockId and not schema.SpecialItemFish then -- Lucky Block fish never have mutations
         local isEventActive, eventId = MutationEvent.GetCurrentStatus()
-        if isEventActive and eventId == "YingYang" then
-            mutation = "YingYang"
+        if isEventActive and eventId == "YinYang" then
+            mutation = "YinYang"
         end
     end
 

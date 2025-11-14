@@ -132,8 +132,8 @@ end
     Handles button activation (click)
 ]]
 local function onActivated()
-    -- Fire signal to tell SpinnyWheelController to open the "YingYang" wheel
-    Signal.Fire("OpenSpinnyWheel", "YingYang")
+    -- Fire signal to tell SpinnyWheelController to open the "YinYang" wheel
+    Signal.Fire("OpenSpinnyWheel", "YinYang")
 end
 
 --[[

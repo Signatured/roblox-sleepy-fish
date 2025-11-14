@@ -35,14 +35,14 @@ local function getESTTime(): number
 end
 
 -- Event effect instances
-local yingYangPortal: BasePart? = nil
+local yinYangPortal: BasePart? = nil
 local sky: Instance? = nil
 local colorCorrection: ColorCorrectionEffect? = nil
-local yingYangParticles: BasePart? = nil
+local yinYangParticles: BasePart? = nil
 
 -- Event state tracking
-local isYingYangRunning = false
-local isYingYangStarting = false
+local isYinYangRunning = false
+local isYinYangStarting = false
 
 -- Event color storage for parts
 local originalColors: {[BasePart]: Color3} = {}
@@ -63,14 +63,14 @@ Signal.Fired("PartyEventActive"):Connect(function(isActive: boolean)
 end)
 
 local function updateEventGuis()
-    -- Always show YingYang event status
-    local eventData = Directory.MutationEvents["YingYang"]
+    -- Always show YinYang event status
+    local eventData = Directory.MutationEvents["YinYang"]
     if not eventData then return end
     
     local now = getESTTime()
     local text = ""
     
-    if isEventActive and currentEventId == "YingYang" and eventEndTime then
+    if isEventActive and currentEventId == "YinYang" and eventEndTime then
         local timeRemaining = math.max(0, eventEndTime - now)
         text = `{eventData.DisplayName} Event ending in {Functions.FormatTime(timeRemaining)}`
     elseif nextEventTime then
@@ -103,18 +103,18 @@ local function setParticlesEnabled(parent: Instance, enabled: boolean)
 end
 
 
-local function startYingYangEvent()
+local function startYinYangEvent()
     -- Prevent multiple starts
-    if isYingYangRunning or isYingYangStarting then 
-        warn("[MutationEvent] YingYang event already running or starting, ignoring duplicate start")
+    if isYinYangRunning or isYinYangStarting then 
+        warn("[MutationEvent] YinYang event already running or starting, ignoring duplicate start")
         return 
     end
     
-    local eventData = Directory.MutationEvents["YingYang"]
+    local eventData = Directory.MutationEvents["YinYang"]
     if not eventData then return end
     
-    isYingYangStarting = true
-    isYingYangRunning = true
+    isYinYangStarting = true
+    isYinYangRunning = true
     
     -- Send notification
     NotificationCmds.Message("Balance shifts... the Yin Yang awakens!", {
@@ -126,16 +126,16 @@ local function startYingYangEvent()
     task.wait(3)
     
     -- Clone and setup Black Hole
-    local eventFolder = Assets:FindFirstChild("YingYang")
-    local yingYangPortalTemplate = eventFolder and eventFolder:FindFirstChild("YingYangPortal")
-    if yingYangPortalTemplate and yingYangPortalTemplate:IsA("BasePart") then
-        yingYangPortal = yingYangPortalTemplate:Clone() :: BasePart
-        if yingYangPortal then
-            yingYangPortal.Parent = DEBRIS
+    local eventFolder = Assets:FindFirstChild("YinYang")
+    local yinYangPortalTemplate = eventFolder and eventFolder:FindFirstChild("YinYangPortal")
+    if yinYangPortalTemplate and yinYangPortalTemplate:IsA("BasePart") then
+        yinYangPortal = yinYangPortalTemplate:Clone() :: BasePart
+        if yinYangPortal then
+            yinYangPortal.Parent = DEBRIS
 
-            Audio.Play("rbxassetid://111689316568748", yingYangPortal, 1, 1.5, 450)
+            Audio.Play("rbxassetid://111689316568748", yinYangPortal, 1, 1.5, 450)
 
-            -- local sound = yingYangPortal:FindFirstChild("Sound")::Sound?
+            -- local sound = yinYangPortal:FindFirstChild("Sound")::Sound?
             -- if sound then
             --     sound.Playing = true
             -- end
@@ -145,8 +145,8 @@ local function startYingYangEvent()
     -- task.wait(3)
     
     -- Clone sky
-    local yingYangFolder2 = Assets:FindFirstChild("YingYang")
-    local skyTemplate = yingYangFolder2 and yingYangFolder2:FindFirstChild("YingYangSky")
+    local yinYangFolder2 = Assets:FindFirstChild("YinYang")
+    local skyTemplate = yinYangFolder2 and yinYangFolder2:FindFirstChild("YinYangSky")
     if skyTemplate then
         sky = skyTemplate:Clone()
         if sky then
@@ -155,16 +155,16 @@ local function startYingYangEvent()
     end
     
     -- Change colors of parts with EventColor attribute
-    local yingYangData = Directory.MutationEvents["YingYang"]
-    if yingYangData then
+    local yinYangData = Directory.MutationEvents["YinYang"]
+    if yinYangData then
         local function recolor(instance: Instance)
             for _, obj in ipairs(instance:GetDescendants()) do
                 if (obj:IsA("Part") or obj:IsA("MeshPart")) and obj:GetAttribute("EventColor") then
                     local part = obj :: BasePart
                     -- Store original color
                     originalColors[part] = part.Color
-                    local color = yingYangData.UseAttributeColors and obj:GetAttribute("EventColor") or yingYangData.Color
-                    -- Tween to YingYang color
+                    local color = yinYangData.UseAttributeColors and obj:GetAttribute("EventColor") or yinYangData.Color
+                    -- Tween to YinYang color
                     local tween = TweenService:Create(part,
                         TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
                         {Color = color}
@@ -193,21 +193,21 @@ local function startYingYangEvent()
         tween:Play()
     end
     
-    -- Clone YingYangParticles
-    local yingYangParticlesTemplate = yingYangFolder2 and yingYangFolder2:FindFirstChild("YingYangParticles")
+    -- Clone YinYangParticles
+    local yinYangParticlesTemplate = yinYangFolder2 and yinYangFolder2:FindFirstChild("YinYangParticles")
     
-    if yingYangParticlesTemplate and yingYangParticlesTemplate:IsA("BasePart") then
-        yingYangParticles = yingYangParticlesTemplate:Clone() :: BasePart
-        if yingYangParticles then
-            yingYangParticles.Parent = DEBRIS
+    if yinYangParticlesTemplate and yinYangParticlesTemplate:IsA("BasePart") then
+        yinYangParticles = yinYangParticlesTemplate:Clone() :: BasePart
+        if yinYangParticles then
+            yinYangParticles.Parent = DEBRIS
         end
     end
 
     -- Clone ghost particles for water
     local topLayer = workspace:WaitForChild("__THINGS"):FindFirstChild("TopLayer")
-    local yingYangGhostParticles = yingYangFolder2 and yingYangFolder2:FindFirstChild("TopLayerParticles")
-    if yingYangGhostParticles then
-        for _, particle in ipairs(yingYangGhostParticles:GetChildren()) do
+    local yinYangGhostParticles = yinYangFolder2 and yinYangFolder2:FindFirstChild("TopLayerParticles")
+    if yinYangGhostParticles then
+        for _, particle in ipairs(yinYangGhostParticles:GetChildren()) do
             if particle:IsA("ParticleEmitter") then
                 local cloned = particle:Clone()
                 cloned.Parent = topLayer
@@ -216,32 +216,32 @@ local function startYingYangEvent()
     end
     
     -- Mark startup as complete
-    isYingYangStarting = false
+    isYinYangStarting = false
 end
 
-local function endYingYangEvent()
+local function endYinYangEvent()
     -- Prevent ending if not running
-    if not isYingYangRunning then 
-        warn("[MutationEvent] YingYang event not running, ignoring end request")
+    if not isYinYangRunning then 
+        warn("[MutationEvent] YinYang event not running, ignoring end request")
         return 
     end
     
     -- Wait for startup process to complete if it's still running
-    while isYingYangStarting do
+    while isYinYangStarting do
         task.wait(0.1)
     end
     
     -- Turn on whirlpool particles for 3 seconds
-    if yingYangPortal then
-        Audio.Play("rbxassetid://111689316568748", yingYangPortal, 1, 1.5, 450)
+    if yinYangPortal then
+        Audio.Play("rbxassetid://111689316568748", yinYangPortal, 1, 1.5, 450)
         
         task.wait(6)
-        setParticlesEnabled(yingYangPortal, false)
+        setParticlesEnabled(yinYangPortal, false)
     end
     
-    -- Turn off particles for YingYangParticles
-    if yingYangParticles then
-        setParticlesEnabled(yingYangParticles, false)
+    -- Turn off particles for YinYangParticles
+    if yinYangParticles then
+        setParticlesEnabled(yinYangParticles, false)
     end
     
     -- Remove sky
@@ -274,8 +274,8 @@ local function endYingYangEvent()
     end
     
     -- Turn off whirlpool particles again
-    if yingYangPortal then
-        setParticlesEnabled(yingYangPortal, false)
+    if yinYangPortal then
+        setParticlesEnabled(yinYangPortal, false)
     end
 
     local topLayer = workspace:WaitForChild("__THINGS"):FindFirstChild("TopLayer")
@@ -288,13 +288,13 @@ local function endYingYangEvent()
     task.wait(3)
     
     -- Destroy all cloned parts
-    if yingYangPortal then
-        yingYangPortal:Destroy()
-        yingYangPortal = nil
+    if yinYangPortal then
+        yinYangPortal:Destroy()
+        yinYangPortal = nil
     end
-    if yingYangParticles then
-        yingYangParticles:Destroy()
-        yingYangParticles = nil
+    if yinYangParticles then
+        yinYangParticles:Destroy()
+        yinYangParticles = nil
     end
     for _, particle in ipairs(topLayer:GetChildren()) do
         if particle:IsA("ParticleEmitter") then
@@ -303,8 +303,8 @@ local function endYingYangEvent()
     end
     
     -- Reset event state
-    isYingYangRunning = false
-    isYingYangStarting = false
+    isYinYangRunning = false
+    isYinYangStarting = false
 end
 
 -- Network event handlers
@@ -314,8 +314,8 @@ Network.Fired("MutationEvent_Start", function(eventId: string, startTime: number
     _eventStartTime = startTime
     eventEndTime = endTime
     
-    if eventId == "YingYang" then
-        task.spawn(startYingYangEvent)
+    if eventId == "YinYang" then
+        task.spawn(startYinYangEvent)
         task.spawn(startGrassAnimation)
     end
     
@@ -323,8 +323,8 @@ Network.Fired("MutationEvent_Start", function(eventId: string, startTime: number
 end)
 
 Network.Fired("MutationEvent_End", function(eventId: string)
-    if eventId == "YingYang" then
-        task.spawn(endYingYangEvent)
+    if eventId == "YinYang" then
+        task.spawn(endYinYangEvent)
         task.spawn(stopGrassAnimation)
     end
     
@@ -351,8 +351,8 @@ Network.Fired("MutationEvent_Status", function(active: boolean, eventId: string?
     nextEventTime = nextTime
     
     -- If event is currently active, start it immediately
-    if active and eventId == "YingYang" then
-        task.spawn(startYingYangEvent)
+    if active and eventId == "YinYang" then
+        task.spawn(startYinYangEvent)
         task.spawn(startGrassAnimation)
     end
     
@@ -376,8 +376,8 @@ TagHook("EventGui", function(gui: SurfaceGui)
     
     table.insert(eventGuis, gui)
     
-    -- Initialize with default YingYang display
-    local eventData = Directory.MutationEvents["YingYang"]
+    -- Initialize with default YinYang display
+    local eventData = Directory.MutationEvents["YinYang"]
     if eventData then
         local frame = gui:FindFirstChild("Frame")
         local event = frame and frame:FindFirstChild("Event")
@@ -402,12 +402,12 @@ TagHook("EventGui", function(gui: SurfaceGui)
 end)
 
 --[[
-    Public API to check if YingYang event is currently active.
+    Public API to check if YinYang event is currently active.
     
-    @return boolean - Whether YingYang event is active
+    @return boolean - Whether YinYang event is active
 ]]
-function MutationEventCmds.IsYingYangActive(): boolean
-    return isEventActive and currentEventId == "YingYang"
+function MutationEventCmds.IsYinYangActive(): boolean
+    return isEventActive and currentEventId == "YinYang"
 end
 
 --[[
@@ -439,8 +439,8 @@ local function animateGrassColors()
             end
         end
         
-        -- Wait on white (0.5s tween + 5s stay)
-        task.wait(5.5)
+        -- Wait on white (0.5s tween + 3s stay)
+        task.wait(3.5)
         
         if not isEventActive then break end
         
@@ -458,8 +458,8 @@ local function animateGrassColors()
             end
         end
         
-        -- Wait on dark gray (0.5s tween + 5s stay)
-        task.wait(5.5)
+        -- Wait on dark gray (0.5s tween + 3s stay)
+        task.wait(3.5)
     end
 end
 
