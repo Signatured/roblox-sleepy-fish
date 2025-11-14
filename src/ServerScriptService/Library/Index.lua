@@ -21,6 +21,9 @@ export type IndexData = {
 
 local Index = {}
 
+-- Current active mutation for index completion checking
+local CURRENT_MUTATION = "YinYang" -- Change this when rotating mutation events
+
 local function GetMutationId(mutation: string?): string?
 	if not mutation then
 		return nil
@@ -99,7 +102,10 @@ end
 
 local function entryComplete(entry: IndexData?): boolean
 	if not entry then return false end
-	return entry.Normal == true and entry.Shiny == true and entry.Gold == true and entry.Rainbow == true and entry.BloodMoon == true and entry.Galaxy == true and entry.Spooky == true and entry.Haunted == true and entry.YinYang == true
+	-- Check Normal, Shiny, Gold, Rainbow, and the current mutation
+	local hasBasicVariants = entry.Normal == true and entry.Shiny == true and entry.Gold == true and entry.Rainbow == true
+	local hasCurrentMutation = (entry :: any)[CURRENT_MUTATION] == true
+	return hasBasicVariants and hasCurrentMutation
 end
 
 function Index.IsCompleted(player: Player): boolean

@@ -11,7 +11,7 @@ return {
 			Index = 1,
 			Weight = 1,
 			DisplayChance = "1%",
-			Icon = "rbxassetid://122931667882291",
+			Icon = "rbxassetid://99795338196115",
 			Title1 = "YinYang",
 			Title2 = "Ancient Sea Dragon",
 			Title3 = "$1.65k/s",
